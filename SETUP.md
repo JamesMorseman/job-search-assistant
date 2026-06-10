@@ -25,7 +25,7 @@ cp .env.example .env
 |---|---|---|---|
 | `USAJOBS_API_KEY` | Free | https://developer.usajobs.gov/apirequest/ (instant approval) | Federal civil engineering postings (Army Corps, Reclamation, FHWA, etc.) |
 | `USAJOBS_EMAIL` | — | Your email | USAJOBS requires it in the `User-Agent` header |
-| `ANTHROPIC_API_KEY` | Pay-as-you-go (~$30–60/mo at full volume) | https://console.anthropic.com/ → API Keys | Resume + cover letter generation |
+| `OPENAI_API_KEY` | Pay-as-you-go | https://platform.openai.com/api-keys | Resume + cover letter generation |
 
 ### Required for full pipeline
 

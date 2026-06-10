@@ -27,8 +27,10 @@ class Settings(BaseSettings):
     DRIVE_ROOT_FOLDER_ID: str = ""
     GMAIL_ALERT_LABEL: str = "job-alerts"
 
-    # Anthropic
-    ANTHROPIC_API_KEY: str = ""
+    # Document generation
+    OPENAI_API_KEY: str = ""
+    GENERATION_PROVIDER: Literal["openai"] = "openai"
+    GENERATION_MODEL: str = "gpt-4.1"
 
     # Local DB
     DB_PATH: str = "data/jobs.db"

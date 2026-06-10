@@ -43,7 +43,7 @@ def run_preflight() -> PreflightReport:
     # ── API keys ──────────────────────────────────────────────────────────────
     report.checks.append(_check_key("USAJOBS_API_KEY", "required", "Federal civil-eng postings; free instant approval"))
     report.checks.append(_check_key("USAJOBS_EMAIL", "required", "Required in USAJOBS User-Agent header"))
-    report.checks.append(_check_key("ANTHROPIC_API_KEY", "required", "Resume + cover letter generation"))
+    report.checks.append(_check_key("OPENAI_API_KEY", "required", "Resume + cover letter generation"))
     report.checks.append(_check_key("ADZUNA_APP_ID", "recommended", "Broad aggregator; free tier"))
     report.checks.append(_check_key("ADZUNA_API_KEY", "recommended", "Broad aggregator; free tier"))
 

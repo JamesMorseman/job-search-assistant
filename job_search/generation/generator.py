@@ -1,4 +1,4 @@
-"""Document generation — tailored resume + cover letter via Claude API."""
+"""Document generation — tailored resume + cover letter via OpenAI API."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import json
 import logging
 from pathlib import Path
 
-import anthropic
 import yaml
 from docx import Document as DocxDocument
 
@@ -17,8 +16,7 @@ from .keywords import KeywordExtractor
 
 logger = logging.getLogger(__name__)
 
-# Prefer claude-sonnet-4-6 with prompt caching for cost efficiency on repeated profile loads
-MODEL = "claude-sonnet-4-6"
+MODEL = settings.GENERATION_MODEL
 
 
 RESUME_SYSTEM = """You are an expert civil engineering resume writer.
@@ -29,6 +27,19 @@ RULES (non-negotiable):
 2. Do not inflate responsibilities, overstate proficiency, or imply unearned qualifications.
 3. Return ONLY valid JSON matching the schema below. No markdown, no prose outside the schema.
 4. Do not include a cover letter — that is a separate call.
+
+PROFILE FRAGMENT GUIDANCE:
+- Treat resume_bullet_bank, role_specific_fragments, job_matching_keywords, capstone_project,
+  relevant_coursework_by_category, technical_skills, software_tools, and engineering_methods
+  as reusable evidence pools.
+- Select only fragments and facts that match the target job description, discipline, and
+  seniority level.
+- Adapt selected fragments naturally for the role; do not paste them mechanically or include
+  every available fact.
+- Prioritize concise bullet evidence with specific projects, methods, software, coursework,
+  and quantified leadership or operations details when relevant.
+- If a keyword or requirement is not supported by the master profile, omit it or frame it only
+  as learnability where the profile explicitly supports that.
 
 OUTPUT SCHEMA:
 {
@@ -51,12 +62,35 @@ RULES:
 3. Weave in ONLY top-tier JD keywords naturally; do not pad for density.
 4. The letter is NOT a restatement of the resume. It positions WHY this firm, WHY this role.
 5. Return ONLY valid JSON: {"salutation": "...", "body_paragraphs": ["...", "..."], "closing": "..."}
-6. 3-4 body paragraphs maximum. Each paragraph = one string in the array."""
+6. 3-4 body paragraphs maximum. Each paragraph = one string in the array.
+
+PROFILE FRAGMENT GUIDANCE:
+- Treat cover_letter_fragment_bank, role_specific_fragments, job_matching_keywords,
+  capstone_project, relevant_coursework_by_category, technical_skills, software_tools,
+  and engineering_methods as reusable evidence pools.
+- Select only role-relevant fragments based on the job description, discipline, employer
+  context, and generated resume.
+- Adapt fragments into a natural narrative of fit and motivation; do not paste fragments
+  mechanically or repeat resume bullets.
+- Use project, coursework, technical, coordination, documentation, and field-practices evidence only when it helps
+  explain why the candidate fits this specific role.
+- Do not include unsupported claims or imply experience with tools, credentials, or duties
+  not verified in the master profile."""
 
 
 class DocumentGenerator:
     def __init__(self):
-        self.client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        if settings.GENERATION_PROVIDER != "openai":
+            raise ValueError(f"Unsupported generation provider: {settings.GENERATION_PROVIDER}")
+
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise RuntimeError(
+                "OpenAI SDK is required for document generation. Install project dependencies first."
+            ) from exc
+
+        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
         self.extractor = KeywordExtractor()
         self._profile: dict | None = None
 
@@ -125,20 +159,20 @@ The professional summary must be rewritten specifically for this role.""",
             }
         ]
 
-        resp = self.client.messages.create(
+        resp = self.client.chat.completions.create(
             model=MODEL,
             max_tokens=4096,
-            system=[
+            response_format={"type": "json_object"},
+            messages=[
                 {
-                    "type": "text",
-                    "text": RESUME_SYSTEM,
-                    "cache_control": {"type": "ephemeral"},  # cache the system prompt
-                }
+                    "role": "system",
+                    "content": RESUME_SYSTEM,
+                },
+                *messages,
             ],
-            messages=messages,
         )
 
-        raw = resp.content[0].text.strip()
+        raw = self._response_text(resp)
         return json.loads(raw)
 
     def _generate_cover_letter(
@@ -176,21 +210,26 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
             }
         ]
 
-        resp = self.client.messages.create(
+        resp = self.client.chat.completions.create(
             model=MODEL,
             max_tokens=2048,
-            system=[
+            response_format={"type": "json_object"},
+            messages=[
                 {
-                    "type": "text",
-                    "text": COVER_LETTER_SYSTEM,
-                    "cache_control": {"type": "ephemeral"},
-                }
+                    "role": "system",
+                    "content": COVER_LETTER_SYSTEM,
+                },
+                *messages,
             ],
-            messages=messages,
         )
 
-        raw = resp.content[0].text.strip()
+        raw = self._response_text(resp)
         return json.loads(raw)
+
+    @staticmethod
+    def _response_text(resp) -> str:
+        """Extract JSON text from an OpenAI chat completion response."""
+        return resp.choices[0].message.content.strip()
 
     def _render_resume_text(self, data: dict) -> str:
         """Plain-text render of the resume JSON for keyword coverage computation."""

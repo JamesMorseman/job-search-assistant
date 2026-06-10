@@ -28,7 +28,7 @@ nano .env
 |-----|-------------|
 | `USAJOBS_API_KEY` | https://developer.usajobs.gov/apirequest/ (free, instant) |
 | `ADZUNA_APP_ID/KEY` | https://developer.adzuna.com/ (free tier) |
-| `ANTHROPIC_API_KEY` | https://console.anthropic.com/ |
+| `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
 | Google OAuth2 | Google Cloud Console → OAuth2 desktop credentials → download `credentials.json` |
 
 ### Google OAuth2 first-time auth

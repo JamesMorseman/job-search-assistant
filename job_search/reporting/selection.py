@@ -6,7 +6,7 @@ Flow:
        "applied"→ selected/presented → applied (start follow-up)
        "skip"   → presented → rejected
   2. generate_for_selected(): For every job in 'selected' without docs,
-       call Claude once for resume + once for cover letter, upload to Drive,
+       call OpenAI once for resume + once for cover letter, upload to Drive,
        write doc links back to the Sheet.
 
 Only step (2) consumes LLM tokens. Step (1) is pure DB/Sheet I/O.
@@ -140,7 +140,7 @@ class SelectionProcessor:
                         (
                             job_id, resume_url, result["keyword_coverage"],
                             str(result["keywords_hit"]), str(result["keywords_missed"]),
-                            "claude-sonnet-4-6",
+                            settings.GENERATION_MODEL,
                         ),
                     )
                     if cover_url:
@@ -148,7 +148,7 @@ class SelectionProcessor:
                             "INSERT INTO generated_docs "
                             "(canonical_job_id, doc_type, drive_url, model_used) "
                             "VALUES (?, 'cover_letter', ?, ?)",
-                            (job_id, cover_url, "claude-sonnet-4-6"),
+                            (job_id, cover_url, settings.GENERATION_MODEL),
                         )
 
                     # Write doc links back to Sheet
