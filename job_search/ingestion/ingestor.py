@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 from datetime import datetime
+from pathlib import Path
 
 import yaml
 
+from job_search.config import settings
 from job_search.db import get_db
 from job_search.models import FirmConfig
 
@@ -26,8 +29,14 @@ class Ingestor:
         try:
             with open(config_path) as f:
                 raw = yaml.safe_load(f) or {}
-            self._firms = [FirmConfig(**firm) for firm in raw.get("firms", [])]
-            logger.info("Loaded %d firms from registry", len(self._firms))
+            firms = [FirmConfig(**firm) for firm in raw.get("firms", [])]
+            self._firms = [firm for firm in firms if not self._is_placeholder_firm(firm)]
+            skipped = len(firms) - len(self._firms)
+            logger.info(
+                "Loaded %d firms from registry%s",
+                len(self._firms),
+                f" ({skipped} placeholder skipped)" if skipped else "",
+            )
         except FileNotFoundError:
             logger.warning("firms.yaml not found — registry empty; only public-sector sources will run")
 
@@ -38,25 +47,28 @@ class Ingestor:
             "updated": 0,
             "reposts": 0,
             "errors": 0,
+            "would_insert": 0,
+            "dry_run": self.dry_run,
             "sources": {},
         }
+        logger.info("Ingest starting: dry_run=%s db_path=%s", self.dry_run, Path(settings.DB_PATH).resolve())
 
         with get_db() as db:
             dedup = Deduplicator(db)
 
-            for job in self._iter_all_sources():
+            for job in self._iter_all_sources(db):
                 try:
                     job = self.scorer.score(job)
                     if self.dry_run:
                         logger.info("DRY RUN — would upsert: %s @ %s", job.title, job.company)
-                        stats["new"] += 1
+                        stats["would_insert"] += 1
                         continue
                     is_new, is_repost = dedup.upsert(job)
                     src = stats["sources"].setdefault(job.source, {"new": 0, "updated": 0, "reposts": 0})
                     if is_new:
                         stats["new"] += 1
                         src["new"] += 1
-                        self._log_health(db, job.source, job.firm_id, "ok")
+                        self._safe_log_health(db, job.source, job.firm_id, "ok")
                     else:
                         stats["updated"] += 1
                         src["updated"] += 1
@@ -74,7 +86,7 @@ class Ingestor:
         )
         return stats
 
-    def _iter_all_sources(self):
+    def _iter_all_sources(self, db):
         """Yield CanonicalJob from all configured sources in priority order."""
         from job_search.adapters import (
             ATS_ADAPTER_MAP,
@@ -85,29 +97,29 @@ class Ingestor:
         from job_search.models import ATSTier
 
         # 1. Public sector (USAJOBS)
-        yield from self._run_adapter(USAJobsAdapter())
+        yield from self._run_adapter(USAJobsAdapter(), db)
 
         # 2. Aggregator (Adzuna)
-        yield from self._run_adapter(AdzunaAdapter())
+        yield from self._run_adapter(AdzunaAdapter(), db)
 
         # 3. Green-tier firm adapters
         for firm in self._firms:
             if firm.ats_tier == ATSTier.GREEN:
                 adapter_cls = ATS_ADAPTER_MAP.get(firm.ats_type)
                 if adapter_cls:
-                    yield from self._run_adapter(adapter_cls(firm))
+                    yield from self._run_adapter(adapter_cls(firm), db)
 
         # 4. Yellow-tier (Workday) — throttled
         for firm in self._firms:
             if firm.ats_tier == ATSTier.YELLOW:
                 adapter_cls = ATS_ADAPTER_MAP.get(firm.ats_type)
                 if adapter_cls:
-                    yield from self._run_adapter(adapter_cls(firm))
+                    yield from self._run_adapter(adapter_cls(firm), db)
 
         # 5. Email alerts — backstop for LinkedIn/Indeed (ruled out for direct scraping)
-        yield from self._run_adapter(EmailAlertsAdapter())
+        yield from self._run_adapter(EmailAlertsAdapter(), db)
 
-    def _run_adapter(self, adapter):
+    def _run_adapter(self, adapter, db):
         source_name = adapter.source_name
         firm_id = getattr(adapter.firm, "firm_id", None) if adapter.firm else None
         try:
@@ -118,8 +130,7 @@ class Ingestor:
             logger.info("Adapter %s/%s: %d jobs yielded", source_name, firm_id or "global", count)
         except Exception as exc:
             logger.error("Adapter %s/%s failed: %s", source_name, firm_id or "global", exc)
-            with get_db() as db:
-                self._log_health(db, source_name, firm_id, "error", str(exc))
+            self._safe_log_health(db, source_name, firm_id, "error", str(exc))
 
     def _log_health(
         self,
@@ -135,4 +146,33 @@ class Ingestor:
             VALUES (?, ?, ?, ?)
             """,
             (source, firm_id, status, error_detail),
+        )
+
+    def _safe_log_health(
+        self,
+        db,
+        source: str,
+        firm_id: str | None,
+        status: str,
+        error_detail: str | None = None,
+    ) -> None:
+        try:
+            self._log_health(db, source, firm_id, status, error_detail)
+        except sqlite3.Error as exc:
+            logger.warning("Source health logging failed for %s/%s: %s", source, firm_id or "global", exc)
+
+    @staticmethod
+    def _is_placeholder_firm(firm: FirmConfig) -> bool:
+        identity_text = " ".join(str(value or "").lower() for value in (
+            firm.firm_id,
+            firm.name,
+            firm.ats_board_token,
+            firm.ats_tenant,
+            firm.ats_site,
+        ))
+        urls = " ".join(str(value or "").lower() for value in (firm.website, firm.careers_url))
+        return (
+            any(marker in identity_text for marker in ("example", "placeholder", "replace with real", "testfirm"))
+            or "example.com" in urls
+            or "examplefirm" in urls
         )
