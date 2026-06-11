@@ -13,8 +13,12 @@ content.
 - Columns: single column.
 - Primary font: Calibri.
 - Body font size: 10 pt.
-- Default paragraph line spacing: approximately 1.0667 lines where explicitly
-  set in the DOCX.
+- Default paragraph line spacing where explicitly stored: 256 twentieths of a
+  point with `lineRule=auto`, exposed by python-docx as approximately 1.0667
+  lines.
+- Right-aligned date tab stop: 10800 twips, equal to 7.5 in from the left
+  margin. This appears on education, project, work, location, and skills lines
+  that use tab-stop alignment.
 - Overall style: compact, one-page engineering resume with dense but readable
   spacing.
 
@@ -57,9 +61,11 @@ but must not leave blank section headings.
 - Weight: bold.
 - Alignment: left.
 - Case: title case, not all caps.
-- Underline/rules: no horizontal rules or underlines observed.
-- Spacing: compact; no reliable explicit before/after spacing was stored on
-  most heading paragraphs.
+- Underline/rules: heading paragraphs have a bottom paragraph border, not text
+  underline. XML value: `w:bottom w:val="single" w:sz="6" w:space="0"
+  w:color="000000"`.
+- Spacing: line spacing 256 twentieths / auto, exposed as approximately 1.0667
+  lines. No explicit before/after spacing was stored on heading paragraphs.
 - Heading paragraphs use the Normal paragraph style with direct bold/size
   formatting rather than a named Heading style.
 
@@ -82,14 +88,23 @@ Observed pattern:
 
 - First education line:
   - Institution name bold.
-  - Location follows after a pipe separator.
-  - Graduation date is right-aligned using a tab stop, not by a table.
+  - Location follows after a pipe separator as `School Name | City, State`.
+  - Current renderer fallbacks are `Farmingdale State College | Farmingdale,
+    New York` and `Suffolk County Community College | Selden, New York` when
+    the LLM omits location from structured content.
+  - Graduation date is right-aligned using a tab stop at 7.5 in / 10800 twips,
+    not by a table.
   - Date text is italic.
 - Degree line:
   - Degree/program text regular.
+  - ABET accreditation appears as part of the degree line, e.g. `B.S. in Civil
+    Engineering Technology (ABET Accredited)`.
   - Honors or recognition may be right-aligned with a tab stop.
   - Honors/date text may be italic.
+  - Dean's List must remain separate from ABET accreditation and should align
+    with the date area when present.
   - First-line indent observed on degree lines: 0.5 in.
+  - First Farmingdale degree line has 12 pt after-spacing in the template.
 - Additional school entries repeat institution/location/date, then indented
   degree line.
 
@@ -104,22 +119,31 @@ Example pattern, not fixed content:
 Observed pattern:
 
 - Project header line:
-  - Project type or role label may be bold.
-  - Project/client/title follows after a pipe separator.
-  - Date is right-aligned using a tab stop.
+  - Project title is bold.
+  - Date is right-aligned using the 7.5 in / 10800 twip tab stop.
   - Date text is italic.
 - Secondary project line:
-  - Role/program/team descriptor in regular 10 pt text.
-  - Pipe separators may be used between role and program/context.
+  - Role and organization/program/context appear in regular 10 pt text,
+    separated by a pipe when both are available.
 - Bullet list follows immediately after the project header block.
 - Engineering/project evidence should appear before non-engineering work
   experience.
 
 Example pattern, not fixed content:
 
-`Project/Role Label | Project Name [tab] Term YYYY`
+`Project Title [tab] Term YYYY`
 
 `Role / Focus | Program or context`
+
+Specific renderer examples:
+
+`Senior Capstone Project [tab] Spring 2026`
+
+`Structural Design Lead | Civil Engineering Technology Program`
+
+`Job Search Assistant [tab] 2026`
+
+`Software Automation Project | Personal Project`
 
 ## Work Experience Formatting
 
@@ -128,7 +152,7 @@ Observed pattern:
 - Job header line:
   - Role/title bold.
   - Employer follows after a pipe separator in regular weight.
-  - Date range is right-aligned using a tab stop.
+  - Date range is right-aligned using the 7.5 in / 10800 twip tab stop.
   - Date range is italic.
 - Location line:
   - City/state line appears directly under the job header.
@@ -161,7 +185,9 @@ Example pattern, not fixed content:
 ## Bullet Style
 
 - Bullet paragraph style: Word `List Paragraph`.
-- Primary bullet appearance: solid round bullet observed in numbering XML.
+- Primary bullet appearance: Symbol-font bullet observed in the active list
+  definitions used by template paragraphs. Numbering XML also contains a
+  multilevel solid bullet definition.
 - Bullet indentation from DOCX numbering:
   - Left indent: 720 twips, equal to 0.5 in.
   - Hanging indent: 360 twips, equal to 0.25 in.
@@ -179,10 +205,16 @@ Observed pattern:
 - Section heading: `Technical Skills`, Calibri 12 pt bold.
 - Skills are compact paragraph rows, not bullets.
 - Category label is bold and followed by a colon.
-- Items are separated with centered dot separators in the DOCX. If the renderer
-  cannot reliably produce that character, use a simple pipe or semicolon
-  separator.
+- Items are separated with semicolons in generated DOCX output to avoid
+  replacement characters in Windows/Word rendering.
 - Category text after the label is regular 10 pt.
+- Skill rows observed with 12 pt after-spacing and the same 7.5 in right tab
+  stop, though the tab stop is not visually needed unless content wraps.
+- For civil/structural resumes, programming/data tools are folded into
+  `Software` unless the target role is clearly software/data/automation-heavy.
+- Supported standards from profile evidence may be grouped under
+  `Codes/Standards`, such as ASCE 7, AISC, ACI 318, or ASTM D854. Do not add
+  unsupported credentials, memberships, or code experience.
 - Example pattern, not fixed content:
 
 `Software: Tool 1 | Tool 2 | Tool 3`
@@ -202,10 +234,6 @@ Observed pattern:
 
 ## Extraction Limits And Assumptions
 
-- Exact tab stop positions were not fully extracted from the DOCX. The observed
-  layout uses tab characters for right-aligned dates; generation/rendering code
-  should implement a reliable right-aligned date area by tab stops, table cells,
-  or equivalent layout logic.
 - Exact inherited font settings for some runs could not be extracted because
   Word stores them as inherited defaults. Closest observed style is Calibri,
   10 pt body, regular.

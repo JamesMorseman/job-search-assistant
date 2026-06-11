@@ -58,7 +58,7 @@ class EvidenceSelector:
         resume = self._pick(scored, {"resume_bullet"}, limits.resume_bullets, omitted)
         cover = self._pick(scored, {"cover_fragment"}, limits.cover_fragments, omitted)
         role = self._pick(scored, {"role_fragment"}, limits.role_fragments, omitted)
-        projects = self._pick(scored, {"project"}, limits.projects, omitted)
+        projects = self._pick_projects(scored, limits.projects, omitted)
         coursework = self._pick(scored, {"coursework"}, limits.coursework, omitted)
 
         stm = self._pick(scored, {"skill", "tool", "method"}, limits.skills_tools_methods_total, omitted)
@@ -90,6 +90,7 @@ class EvidenceSelector:
             cover_fragments=cover,
             role_fragments=role,
             projects=projects,
+            personal_projects=[i for i in projects if i.evidence_type == "personal_project"],
             coursework=coursework,
             skills=skills,
             tools=tools,
@@ -123,10 +124,78 @@ class EvidenceSelector:
             selected_signatures.add(signature)
         return selected
 
+    def _pick_projects(
+        self,
+        scored: list[EvidenceScore],
+        limit: int,
+        omitted: Counter,
+    ) -> list[EvidenceItem]:
+        selected: list[EvidenceItem] = []
+        selected_signatures: set[str] = set()
+        selected_topics: set[str] = set()
+        selected_ids: set[str] = set()
+        candidates = [s for s in scored if s.item.evidence_type in {"project", "personal_project"}]
+        for score in candidates:
+            if score.item.id in selected_ids:
+                omitted["redundant"] += 1
+                continue
+            signature = self._signature(score.item.text)
+            if signature in selected_signatures:
+                omitted["redundant"] += 1
+                continue
+            topic = self._project_topic(score.item)
+            if topic in selected_topics and score.item.evidence_type != "personal_project":
+                if score.item.section == "capstone_project":
+                    replaced = self._replace_project_topic(selected, topic, score.item)
+                    if replaced:
+                        selected_ids.discard(replaced.id)
+                        selected_ids.add(score.item.id)
+                        selected_signatures.add(signature)
+                        omitted["replaced_redundant_project_with_capstone"] += 1
+                        continue
+                omitted["redundant_project_topic"] += 1
+                continue
+            if len(selected) >= limit:
+                omitted["limit_reached"] += 1
+                continue
+            if score.score <= 0.15 and selected:
+                omitted["low_score"] += 1
+                continue
+            selected.append(score.item)
+            selected_signatures.add(signature)
+            selected_topics.add(topic)
+            selected_ids.add(score.item.id)
+        return selected
+
+    def _replace_project_topic(
+        self,
+        selected: list[EvidenceItem],
+        topic: str,
+        replacement: EvidenceItem,
+    ) -> EvidenceItem | None:
+        for index, item in enumerate(selected):
+            if self._project_topic(item) == topic and item.section != "capstone_project":
+                selected[index] = replacement
+                return item
+        return None
+
     @staticmethod
     def _signature(text: str) -> str:
         tokens = sorted(tokenize(text))
         return " ".join(tokens[:8]) or normalize_text(text)[:60]
+
+    @staticmethod
+    def _project_topic(item: EvidenceItem) -> str:
+        text = normalize_text(" ".join([item.text, " ".join(item.tags), " ".join(item.disciplines)]))
+        if any(term in text for term in ["python", "automation", "sqlite", "openai", "llm", "data ingestion", "google sheets"]):
+            return "software_automation"
+        if any(term in text for term in ["structural", "steel", "concrete", "ram", "framing", "load"]):
+            return "structural_design"
+        if any(term in text for term in ["construction", "traffic", "schedule", "safety", "field"]):
+            return "construction"
+        if any(term in text for term in ["stormwater", "water", "hydraulic", "cistern"]):
+            return "water_resources"
+        return normalize_text(item.text)[:40]
 
     @staticmethod
     def _field_docs_relevant(jd: str, role_family: str) -> bool:

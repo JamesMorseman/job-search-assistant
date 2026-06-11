@@ -31,7 +31,7 @@ def resolve_service_config(service: LLMService) -> LLMServiceConfig:
     generation_model = _clean(getattr(settings, "GENERATION_MODEL", ""))
 
     default_provider = _clean(getattr(settings, "AI_DEFAULT_PROVIDER", "openai"))
-    default_model = _clean(getattr(settings, "AI_DEFAULT_MODEL", "gpt-4.1"))
+    default_model = _clean(getattr(settings, "AI_DEFAULT_MODEL", "gpt-5.4"))
 
     provider = service_provider or generation_provider or default_provider
     model = service_model or generation_model or default_model

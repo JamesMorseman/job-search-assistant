@@ -73,9 +73,17 @@ class EvidenceScorer:
             score += min(1.2, 0.4 * len(method_hits))
             reasons.append("method_match")
 
-        if item.evidence_type in {"project", "coursework"} and (overlaps or family in normalize_text(item_text)):
+        if item.evidence_type in {"project", "personal_project", "coursework"} and (overlaps or family in normalize_text(item_text)):
             score += 1.0
             reasons.append("project_or_coursework_relevance")
+
+        if item.evidence_type == "personal_project" and self._automation_relevant(context.jd, item_text):
+            score += 2.0
+            reasons.append("automation_breadth")
+
+        if item.section == "capstone_project":
+            score += 1.2
+            reasons.append("capstone_priority")
 
         if item.evidence_type in {"resume_bullet", "cover_fragment", "role_fragment"}:
             score += 0.5
@@ -104,6 +112,21 @@ class EvidenceScorer:
     def _looks_like_method(value: str) -> bool:
         text = normalize_text(value)
         return any(hint in text for hint in ["analysis", "design", "scheduling", "estimating", "inspection", "documentation", "coordination"])
+
+    @staticmethod
+    def _automation_relevant(jd: str, item_text: str) -> bool:
+        jd_text = normalize_text(jd)
+        evidence_text = normalize_text(item_text)
+        jd_hits = any(term in jd_text for term in [
+            "python", "automation", "data", "database", "sqlite", "api", "llm",
+            "openai", "workflow", "software", "scripting", "analytics", "dashboard",
+            "excel", "sheets", "reporting",
+        ])
+        item_hits = any(term in evidence_text for term in [
+            "python", "automation", "sqlite", "llm", "openai", "google sheets",
+            "google drive", "cli", "test suite", "data ingestion",
+        ])
+        return jd_hits and item_hits
 
     @staticmethod
     def _mismatch_penalty(item: EvidenceItem, context: ScoreContext) -> float:

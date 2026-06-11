@@ -69,7 +69,26 @@ def sample_profile() -> dict:
             "discipline_tags": ["structural"],
         },
         "academic_projects": [
-            {"id": "proj_docs", "name": "Construction plan report", "description": "Prepared safety and traffic documentation."}
+            {"id": "proj_docs", "name": "Construction plan report", "description": "Prepared safety and traffic documentation."},
+            {
+                "id": "proj_steel_duplicate",
+                "name": "Steel Design Project",
+                "description": "Designed steel and concrete structural members using load development and RAM-style structural analysis.",
+                "discipline_tags": ["structural"],
+            },
+        ],
+        "personal_projects": [
+            {
+                "id": "personal_jsa",
+                "name": "Job Search Assistant",
+                "type": "Personal software / automation project",
+                "framing_note": "Use as automation, data, and software workflow evidence; do not frame as civil design experience.",
+                "evidence": [
+                    "Built a Python job-search automation platform with USAJOBS and Adzuna ingestion.",
+                    "Used SQLite, OpenAI integration, provider-agnostic LLM architecture, Google Drive/Sheets workflows, CLI workflow, and 100+ passing tests.",
+                ],
+                "technologies": ["Python", "SQLite", "OpenAI", "Google Sheets", "CLI"],
+            }
         ],
         "relevant_coursework_by_category": {
             "structural": ["Steel Design", "Reinforced Concrete Design", "Structural Analysis"],
@@ -112,8 +131,18 @@ def test_profile_flattening_covers_rich_sections():
     assert "resume_bullet_bank" in sections
     assert "cover_letter_fragment_bank" in sections
     assert "capstone_project" in sections
+    assert "personal_projects" in sections
     assert "software_tools" in sections
     assert "education_detail" in sections
+
+
+def test_personal_projects_are_loaded_as_personal_project_evidence():
+    items = EvidenceLoader().load(sample_profile())
+    personal = [item for item in items if item.section == "personal_projects"]
+
+    assert personal
+    assert {item.evidence_type for item in personal} == {"personal_project"}
+    assert any("Python job-search automation" in item.text for item in personal)
 
 
 def test_scoring_rewards_keyword_and_discipline_overlap():
@@ -149,6 +178,31 @@ def test_selector_deduplicates_and_groups_by_evidence_type():
     assert packet.cover_fragments
     assert packet.role_fragments
     assert packet.projects
+    assert packet.personal_projects == [i for i in packet.projects if i.evidence_type == "personal_project"]
     assert packet.coursework
     assert packet.skills or packet.tools or packet.methods
     assert packet.target_role_family == "structural"
+
+
+def test_job_search_assistant_selected_for_automation_relevant_roles():
+    job = make_job(
+        title="Civil Engineering Data Automation Analyst",
+        description_normalized=(
+            "Civil engineering role supporting Python automation, data ingestion, SQLite databases, "
+            "OpenAI LLM workflows, Google Sheets reporting, and documentation for structural project teams."
+        ),
+    )
+
+    packet = EvidenceSelector().select(sample_profile(), job, job.description_normalized or "")
+    project_ids = [item.id for item in packet.projects]
+
+    assert "capstone" in project_ids
+    assert "personal_jsa" in project_ids
+
+
+def test_redundant_structural_project_deprioritized_when_capstone_selected():
+    packet = EvidenceSelector().select(sample_profile(), make_job(), make_job().description_normalized or "")
+    project_ids = [item.id for item in packet.projects]
+
+    assert "capstone" in project_ids
+    assert "proj_steel_duplicate" not in project_ids

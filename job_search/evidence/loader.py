@@ -28,6 +28,7 @@ SECTION_TYPES: dict[str, EvidenceType] = {
     "job_matching_keywords": "keyword",
     "capstone_project": "project",
     "academic_projects": "project",
+    "personal_projects": "personal_project",
     "relevant_coursework_by_category": "coursework",
     "transcript_coursework": "coursework",
     "technical_skills": "skill",
@@ -88,10 +89,26 @@ class EvidenceLoader:
             if self._has_direct_text(value):
                 yield value
             for key, child in value.items():
-                if key in {
+                if self._has_direct_text(value) and key in {"evidence", "technologies", "bullets"}:
+                    for record in self._iter_leaf_records(child):
+                        if not isinstance(record, dict):
+                            record = {"text": str(record)}
+                        if isinstance(record, dict):
+                            parent_tags = string_list(value.get("tags")) + string_list(value.get("discipline_tags"))
+                            record = {
+                                **record,
+                                "id": value.get("id") or record.get("id"),
+                                "name": value.get("name") or record.get("name"),
+                                "description": f"{value.get('name', '')}: {record.get('text') or record.get('description') or record.get('name') or ''}",
+                                "tags": parent_tags + string_list(record.get("tags")) + [key],
+                                "tools": string_list(value.get("technologies")) + string_list(record.get("tools")),
+                                "source_refs": string_list(value.get("source_refs")) + string_list(record.get("source_refs")),
+                            }
+                        yield record
+                elif key in {
                     "bullets", "items", "fragments", "keywords", "courses",
                     "coursework", "projects", "tools", "skills", "methods",
-                    "other", "relevant_coursework",
+                    "other", "relevant_coursework", "evidence", "technologies",
                 }:
                     yield from self._iter_leaf_records(child)
                 elif not self._has_direct_text(value) and isinstance(child, str):

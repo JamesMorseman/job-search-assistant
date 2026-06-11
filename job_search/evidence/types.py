@@ -11,6 +11,7 @@ EvidenceType = Literal[
     "role_fragment",
     "keyword",
     "project",
+    "personal_project",
     "coursework",
     "skill",
     "tool",
@@ -58,6 +59,7 @@ class EvidencePacket:
     cover_fragments: list[EvidenceItem] = field(default_factory=list)
     role_fragments: list[EvidenceItem] = field(default_factory=list)
     projects: list[EvidenceItem] = field(default_factory=list)
+    personal_projects: list[EvidenceItem] = field(default_factory=list)
     coursework: list[EvidenceItem] = field(default_factory=list)
     skills: list[EvidenceItem] = field(default_factory=list)
     tools: list[EvidenceItem] = field(default_factory=list)
@@ -81,6 +83,7 @@ class EvidencePacket:
             "cover_fragments": [i.to_prompt_dict() for i in self.cover_fragments],
             "role_fragments": [i.to_prompt_dict() for i in self.role_fragments],
             "projects": [i.to_prompt_dict() for i in self.projects],
+            "personal_projects": [i.to_prompt_dict() for i in self.personal_projects],
             "coursework": [i.to_prompt_dict() for i in self.coursework],
             "skills": [i.to_prompt_dict() for i in self.skills],
             "tools": [i.to_prompt_dict() for i in self.tools],
@@ -95,6 +98,7 @@ class EvidencePacket:
             "cover_fragments": self.cover_fragments,
             "role_fragments": self.role_fragments,
             "projects": self.projects,
+            "personal_projects": self.personal_projects,
             "coursework": self.coursework,
             "skills": self.skills,
             "tools": self.tools,

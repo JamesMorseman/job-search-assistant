@@ -8,11 +8,11 @@ def test_generation_defaults_are_openai():
     settings = Settings(OPENAI_API_KEY="", _env_file=None)
 
     assert settings.AI_DEFAULT_PROVIDER == "openai"
-    assert settings.AI_DEFAULT_MODEL == "gpt-4.1"
+    assert settings.AI_DEFAULT_MODEL == "gpt-5.4"
     assert settings.GENERATION_PROVIDER == "openai"
-    assert settings.GENERATION_MODEL == "gpt-4.1"
-    assert settings.GRADING_PROVIDER == ""
-    assert settings.GRADING_MODEL == ""
+    assert settings.GENERATION_MODEL == "gpt-5.4"
+    assert settings.GRADING_PROVIDER == "openai"
+    assert settings.GRADING_MODEL == "gpt-5.4-mini"
     assert settings.OPENAI_API_KEY == ""
 
 

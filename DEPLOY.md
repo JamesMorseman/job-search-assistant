@@ -31,8 +31,11 @@ nano .env
 | `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
 
 LLM services are provider-configurable. OpenAI is the current supported default:
-`AI_DEFAULT_PROVIDER=openai`, with optional per-service overrides for
-`GENERATION_*`, `GRADING_*`, `PROFILE_*`, and `EXTRACTION_*`.
+`AI_DEFAULT_PROVIDER=openai` and `AI_DEFAULT_MODEL=gpt-5.4`, with optional
+per-service overrides for `GENERATION_*`, `GRADING_*`, `PROFILE_*`, and
+`EXTRACTION_*`. Recommended production defaults keep document generation on
+`GENERATION_MODEL=gpt-5.4` and high-volume fit grading on
+`GRADING_MODEL=gpt-5.4-mini`.
 | Google OAuth2 | Google Cloud Console → OAuth2 desktop credentials → download `credentials.json` |
 
 ### Google OAuth2 first-time auth

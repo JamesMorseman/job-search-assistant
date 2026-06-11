@@ -41,9 +41,9 @@ cp .env.example .env
 
 | Key | Why |
 |---|---|
-| `AI_DEFAULT_PROVIDER` / `AI_DEFAULT_MODEL` | Default LLM provider/model; OpenAI is the current supported provider |
-| `GENERATION_PROVIDER` / `GENERATION_MODEL` | Override resume and cover-letter generation model |
-| `GRADING_PROVIDER` / `GRADING_MODEL` | Override fit-grading model independently from document generation |
+| `AI_DEFAULT_PROVIDER` / `AI_DEFAULT_MODEL` | Default LLM provider/model; recommended `openai` / `gpt-5.4` |
+| `GENERATION_PROVIDER` / `GENERATION_MODEL` | Override resume and cover-letter generation model; recommended `openai` / `gpt-5.4` |
+| `GRADING_PROVIDER` / `GRADING_MODEL` | Override fit-grading model independently from document generation; recommended `openai` / `gpt-5.4-mini` for high-volume grading |
 | `PROFILE_PROVIDER` / `PROFILE_MODEL` | Reserved for future profile enrichment/extraction workflows |
 | `EXTRACTION_PROVIDER` / `EXTRACTION_MODEL` | Reserved for future source-document extraction workflows |
 | Static IP allowlist on droplet | If Workday's anti-bot starts flagging you, rotating IPs would be evasion (against policy). Keep the same IP and back off. |
