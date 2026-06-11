@@ -53,5 +53,6 @@ class LLMBatchStatus:
     status: str | None
     output_file_id: str | None = None
     error_file_id: str | None = None
+    request_counts: dict[str, int] | None = None
     failure_details: Any | None = None
     raw: Any | None = None

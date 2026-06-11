@@ -47,11 +47,13 @@ class FakeBatches:
         output_file_id="file_output",
         error_file_id=None,
         errors=None,
+        request_counts=None,
     ):
         self.status = status
         self.output_file_id = output_file_id
         self.error_file_id = error_file_id
         self.errors = errors
+        self.request_counts = request_counts
         self.created = []
 
     def create(self, **kwargs):
@@ -64,6 +66,7 @@ class FakeBatches:
             output_file_id=self.output_file_id,
             error_file_id=self.error_file_id,
             errors=self.errors,
+            request_counts=self.request_counts,
         )
 
 
@@ -106,7 +109,7 @@ def test_generate_json_maps_neutral_request_to_openai_chat_completion():
     assert response.model == "gpt-test"
     call = client.chat.completions.calls[0]
     assert call["model"] == "gpt-test"
-    assert call["max_tokens"] == 123
+    assert call["max_completion_tokens"] == 123
     assert call["messages"][0] == {"role": "system", "content": "system"}
     assert call["response_format"]["json_schema"]["name"] == "result"
 
@@ -118,6 +121,8 @@ def test_build_batch_request_preserves_schema_and_custom_id():
     assert wire_req["method"] == "POST"
     assert wire_req["url"] == "/v1/chat/completions"
     assert wire_req["body"]["model"] == "gpt-test"
+    assert wire_req["body"]["max_completion_tokens"] == 123
+    assert "max_tokens" not in wire_req["body"]
     assert wire_req["body"]["response_format"]["type"] == "json_schema"
 
 
@@ -170,3 +175,37 @@ def test_batch_status_includes_error_file_and_failure_details():
     assert status.error_file_id == "file_error"
     assert status.failure_details == {"data": [{"message": "invalid request"}]}
     assert error_text == "bad jsonl"
+
+
+def test_completed_batch_without_output_fetches_error_file_and_parses_request_errors():
+    error_text = "\n".join([
+        json.dumps({
+            "custom_id": "job1",
+            "response": {
+                "status_code": 400,
+                "body": {"error": {"message": "Unsupported parameter: max_tokens"}},
+            },
+        }),
+        json.dumps({
+            "custom_id": "job2",
+            "error": {"message": "Invalid model sk-secret-not-real"},
+        }),
+    ])
+    batches = FakeBatches(
+        status="completed",
+        output_file_id=None,
+        error_file_id="file_error",
+        request_counts={"total": 2, "completed": 0, "failed": 2},
+    )
+    provider = OpenAIProvider(api_key="", client=FakeOpenAIClient(error_text=error_text, batches=batches))
+
+    results = provider.fetch_json_batch_results("batch_1")
+    status = provider.retrieve_batch_status("batch_1")
+    errors = provider.fetch_batch_errors("batch_1", limit=2)
+
+    assert results == []
+    assert status.request_counts == {"total": 2, "completed": 0, "failed": 2}
+    assert errors == [
+        {"custom_id": "job1", "status_code": 400, "message": "Unsupported parameter: max_tokens"},
+        {"custom_id": "job2", "status_code": None, "message": "Invalid model sk-REDACTED"},
+    ]

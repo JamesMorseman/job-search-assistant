@@ -61,12 +61,14 @@ class FakeBatches:
         output_file_id="file_output",
         error_file_id=None,
         errors=None,
+        request_counts=None,
     ):
         self._status = status
         self._batch_id = batch_id
         self._output_file_id = output_file_id
         self._error_file_id = error_file_id
         self._errors = errors
+        self._request_counts = request_counts
         self.created: list = []
 
     def create(self, **kwargs):
@@ -79,6 +81,7 @@ class FakeBatches:
             output_file_id=self._output_file_id,
             error_file_id=self._error_file_id,
             errors=self._errors,
+            request_counts=self._request_counts,
         )
 
 
@@ -273,6 +276,7 @@ def test_run_timeout_fallback(db_path, monkeypatch):
     assert stats["graded"] == 0
     assert stats["batch_id"] == "bnew"
     assert stats["batch_status"] == "in_progress"
+    assert stats["batch_errors"] == []
     assert len(client.batches.created) == 1
 
     conn = _conn(db_path)
@@ -317,6 +321,43 @@ def test_run_failed_batch_marks_terminal_and_logs_error_details(db_path, monkeyp
     assert stats["graded"] == 0
     assert stats["timed_out"] is False
     assert stats["batch_status"] == "failed"
+    assert stats["batch_errors"] == [
+        {"custom_id": None, "status_code": None, "message": "bad request"}
+    ]
     conn = _conn(db_path)
     assert conn.execute("SELECT llm_graded_at FROM jobs WHERE canonical_job_id='j1'").fetchone()[0] is None
     assert conn.execute("SELECT status FROM grading_batches WHERE batch_id='bnew'").fetchone()[0] == "failed"
+
+
+def test_run_completed_batch_with_error_file_reports_request_errors(db_path, monkeypatch):
+    monkeypatch.setattr("job_search.config.settings.GRADING_ENABLED", True)
+    conn = _conn(db_path)
+    _insert(conn, "j1", match_score=0.8)
+    conn.close()
+
+    error_text = json.dumps({
+        "custom_id": "j1",
+        "response": {
+            "status_code": 400,
+            "body": {"error": {"message": "Unsupported parameter: max_tokens"}},
+        },
+    })
+    batches = FakeBatches(
+        status="completed",
+        batch_id="bnew",
+        output_file_id=None,
+        error_file_id="file_error",
+        request_counts={"total": 1, "completed": 0, "failed": 1},
+    )
+    client = _client(batches=batches, error_text=error_text)
+    stats = _grader(client).run(timeout_s=5)
+
+    assert stats["graded"] == 0
+    assert stats["batch_status"] == "completed"
+    assert stats["batch_request_counts"] == {"total": 1, "completed": 0, "failed": 1}
+    assert stats["batch_errors"] == [
+        {"custom_id": "j1", "status_code": 400, "message": "Unsupported parameter: max_tokens"}
+    ]
+    conn = _conn(db_path)
+    assert conn.execute("SELECT llm_graded_at FROM jobs WHERE canonical_job_id='j1'").fetchone()[0] is None
+    assert conn.execute("SELECT status FROM grading_batches WHERE batch_id='bnew'").fetchone()[0] == "drained"

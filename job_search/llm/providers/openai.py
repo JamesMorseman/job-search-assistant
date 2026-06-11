@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import re
 from typing import Any
 
 from job_search.llm.types import LLMBatchStatus, LLMMessage, LLMRequest, LLMResponse
@@ -28,12 +29,14 @@ class OpenAIProvider:
         self.client = client
 
     def generate_json(self, request: LLMRequest) -> LLMResponse:
-        resp = self.client.chat.completions.create(
-            model=request.model,
-            max_tokens=request.max_tokens,
-            response_format=self._response_format(request),
-            messages=self._messages(request.messages),
-        )
+        kwargs = {
+            "model": request.model,
+            "response_format": self._response_format(request),
+            "messages": self._messages(request.messages),
+        }
+        if request.max_tokens is not None:
+            kwargs["max_completion_tokens"] = request.max_tokens
+        resp = self.client.chat.completions.create(**kwargs)
         return LLMResponse(
             content=self._response_text(resp),
             model=getattr(resp, "model", request.model),
@@ -61,6 +64,7 @@ class OpenAIProvider:
             status=getattr(batch, "status", None),
             output_file_id=getattr(batch, "output_file_id", None),
             error_file_id=getattr(batch, "error_file_id", None),
+            request_counts=self._as_dict(getattr(batch, "request_counts", None)),
             failure_details=getattr(batch, "errors", None) or getattr(batch, "failure_details", None),
             raw=batch,
         )
@@ -77,6 +81,10 @@ class OpenAIProvider:
             return []
         if not status.output_file_id:
             logger.warning("LLM batch %s completed with no output file", batch_id)
+            if status.error_file_id:
+                self.fetch_batch_error_text(batch_id)
+            else:
+                self._log_batch_error_details(status)
             return []
 
         content = self.client.files.content(status.output_file_id).read()
@@ -118,20 +126,28 @@ class OpenAIProvider:
         self._log_batch_error_details(status)
         return text
 
+    def fetch_batch_errors(self, batch_id: str, limit: int = 5) -> list[dict[str, Any]]:
+        text = self.fetch_batch_error_text(batch_id)
+        if not text:
+            return []
+        return self.parse_batch_error_text(text, limit=limit)
+
     @classmethod
     def build_batch_request(cls, request: LLMRequest) -> dict[str, Any]:
         if not request.custom_id:
             raise ValueError("Batch requests require custom_id")
+        body = {
+            "model": request.model,
+            "response_format": cls._response_format(request),
+            "messages": cls._messages(request.messages),
+        }
+        if request.max_tokens is not None:
+            body["max_completion_tokens"] = request.max_tokens
         return {
             "custom_id": request.custom_id,
             "method": "POST",
             "url": "/v1/chat/completions",
-            "body": {
-                "model": request.model,
-                "max_tokens": request.max_tokens,
-                "response_format": cls._response_format(request),
-                "messages": cls._messages(request.messages),
-            },
+            "body": body,
         }
 
     @classmethod
@@ -163,7 +179,68 @@ class OpenAIProvider:
 
     @staticmethod
     def _log_batch_error_details(status: LLMBatchStatus) -> None:
+        logger.warning(
+            "LLM batch %s details: status=%s output_file_id=%s error_file_id=%s request_counts=%s",
+            status.batch_id,
+            status.status,
+            status.output_file_id,
+            status.error_file_id,
+            status.request_counts,
+        )
         if status.error_file_id:
             logger.warning("LLM batch %s has error file %s", status.batch_id, status.error_file_id)
         if status.failure_details:
             logger.warning("LLM batch %s failure details: %s", status.batch_id, status.failure_details)
+
+    @classmethod
+    def parse_batch_error_text(cls, text: str, limit: int = 5) -> list[dict[str, Any]]:
+        errors: list[dict[str, Any]] = []
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            try:
+                data = json.loads(line)
+            except json.JSONDecodeError:
+                errors.append({"custom_id": None, "message": cls._sanitize(line[:500])})
+                continue
+
+            error = data.get("error")
+            response = data.get("response") or {}
+            body = response.get("body") if isinstance(response, dict) else None
+            if error is None and isinstance(body, dict):
+                error = body.get("error") or body
+
+            message = error
+            if isinstance(error, dict):
+                message = error.get("message") or error.get("code") or error
+
+            errors.append(
+                {
+                    "custom_id": data.get("custom_id"),
+                    "status_code": response.get("status_code") if isinstance(response, dict) else None,
+                    "message": cls._sanitize(str(message)),
+                }
+            )
+            if len(errors) >= limit:
+                break
+        return errors
+
+    @staticmethod
+    def _sanitize(value: str) -> str:
+        value = re.sub(r"sk-[A-Za-z0-9_-]+", "sk-REDACTED", value)
+        value = re.sub(r"Bearer\s+[A-Za-z0-9._-]+", "Bearer REDACTED", value, flags=re.IGNORECASE)
+        return value
+
+    @staticmethod
+    def _as_dict(value) -> dict[str, int] | None:
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value
+        if hasattr(value, "model_dump"):
+            return value.model_dump()
+        out = {}
+        for key in ("total", "completed", "failed"):
+            if hasattr(value, key):
+                out[key] = getattr(value, key)
+        return out or None

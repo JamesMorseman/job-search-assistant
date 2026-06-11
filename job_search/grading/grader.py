@@ -172,7 +172,14 @@ class FitGrader:
         while True:
             batch_status = self.llm.retrieve_batch_status(batch_id)
             status = batch_status.status
-            logger.info("grading batch %s status=%s", batch_id, status or "unknown")
+            logger.info(
+                "grading batch %s status=%s output_file_id=%s error_file_id=%s request_counts=%s",
+                batch_id,
+                status or "unknown",
+                batch_status.output_file_id,
+                batch_status.error_file_id,
+                batch_status.request_counts,
+            )
             if status in BATCH_TERMINAL_STATUSES:
                 return batch_status
             if time.monotonic() >= deadline:
@@ -242,6 +249,16 @@ class FitGrader:
                 batch_status.failure_details,
             )
 
+    def _collect_batch_errors(self, batch_id: str) -> list[dict]:
+        fetch_errors = getattr(self.llm, "fetch_batch_errors", None)
+        if not callable(fetch_errors):
+            return []
+        try:
+            return fetch_errors(batch_id, limit=5)
+        except Exception as exc:  # noqa: BLE001 - diagnostics should not crash grading
+            logger.warning("grading batch %s error parsing failed: %s", batch_id, exc)
+            return []
+
     def drain_prior(self, db) -> int:
         """Finish any prior batch that timed out before its grades were retrieved.
         Persists their grades and marks them drained, so a slow batch is never
@@ -283,6 +300,8 @@ class FitGrader:
             "timed_out": False,
             "batch_id": None,
             "batch_status": None,
+            "batch_request_counts": None,
+            "batch_errors": [],
         }
         if not settings.GRADING_ENABLED:
             return stats
@@ -311,10 +330,12 @@ class FitGrader:
 
         batch_status = self.poll_until_done(batch_id, timeout_s)
         stats["batch_status"] = batch_status.status
+        stats["batch_request_counts"] = batch_status.request_counts
 
         if batch_status.status != "completed":
             if batch_status.status in BATCH_TERMINAL_STATUSES:
                 self._log_failed_batch(batch_status)
+                stats["batch_errors"] = self._collect_batch_errors(batch_status.batch_id)
                 with get_db() as db:
                     self._mark_batch(db, batch_id, batch_status.status or "failed")
                 return stats
@@ -329,6 +350,8 @@ class FitGrader:
             return stats
 
         # Phase C — retrieve, persist, mark drained.
+        if batch_status.error_file_id:
+            stats["batch_errors"] = self._collect_batch_errors(batch_id)
         results = self.fetch_results(batch_id)
         with get_db() as db:
             stats["graded"] = self.persist(db, results)
