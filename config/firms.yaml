@@ -22,20 +22,8 @@
 #   pe_support     — true/false
 # ─────────────────────────────────────────────────────────────────────────────
 
-firms:
+firms: []
   # ── Green tier examples (add real tokens after discovery) ─────────────────
-  - firm_id: example_green_firm
-    name: Example Green Firm
-    website: https://example.com
-    careers_url: https://boards.greenhouse.io/examplefirm
-    ats_type: greenhouse
-    ats_tier: green
-    ats_board_token: examplefirm      # replace with real token from discovery
-    specialties: [structural, construction]
-    known_benefits: [tuition_reimbursement, pe_prep_reimbursement]
-    tuition_reimbursement: true
-    pe_support: true
-
   # ── Yellow tier (Workday) example ─────────────────────────────────────────
   # - firm_id: aecom
   #   name: AECOM
