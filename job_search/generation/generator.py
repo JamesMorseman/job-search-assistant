@@ -10,6 +10,7 @@ import yaml
 from docx import Document as DocxDocument
 
 from job_search.config import settings
+from job_search.evidence import EvidencePacket, EvidenceSelector
 from job_search.llm import get_llm_provider, resolve_service_config
 from job_search.llm.types import LLMMessage, LLMRequest
 from job_search.models import CanonicalJob
@@ -84,6 +85,7 @@ class DocumentGenerator:
         self.llm = llm_provider or get_llm_provider("generation")
         self.model = self.config.model
         self.extractor = KeywordExtractor()
+        self.evidence_selector = EvidenceSelector()
         self._profile: dict | None = None
 
     def load_profile(self, path: str | None = None) -> None:
@@ -105,9 +107,10 @@ class DocumentGenerator:
 
         jd = job.description_normalized or job.description_raw or ""
         keywords = self.extractor.extract(jd)
+        profile_context, evidence_packet, used_fallback = self._build_profile_context(job, jd, keywords)
 
-        resume_json = self._generate_resume(job, jd, keywords)
-        cover_json = self._generate_cover_letter(job, jd, keywords, resume_json)
+        resume_json = self._generate_resume(job, jd, keywords, profile_context)
+        cover_json = self._generate_cover_letter(job, jd, keywords, resume_json, profile_context)
 
         resume_text = self._render_resume_text(resume_json)
         cover_text = self._render_cover_text(cover_json)
@@ -122,13 +125,15 @@ class DocumentGenerator:
             "keyword_coverage": coverage,
             "keywords_hit": hits,
             "keywords_missed": misses,
+            "evidence_packet": evidence_packet.to_prompt_dict() if evidence_packet else None,
+            "evidence_fallback_used": used_fallback,
         }
 
-    def _generate_resume(self, job: CanonicalJob, jd: str, keywords) -> dict:
-        profile_json = json.dumps(self._profile, indent=2)
+    def _generate_resume(self, job: CanonicalJob, jd: str, keywords, profile_context: dict) -> dict:
+        profile_json = json.dumps(profile_context, indent=2)
         kw_summary = ", ".join(k.keyword for k in keywords if k.tier == 1)
 
-        user_prompt = f"""MASTER PROFILE:
+        user_prompt = f"""PROFILE CONTEXT:
 {profile_json}
 
 TARGET ROLE:
@@ -164,11 +169,12 @@ The professional summary must be rewritten specifically for this role."""
         jd: str,
         keywords,
         resume_json: dict,
+        profile_context: dict,
     ) -> dict:
-        profile_json = json.dumps(self._profile, indent=2)
+        profile_json = json.dumps(profile_context, indent=2)
         top_keywords = ", ".join(k.keyword for k in keywords if k.tier == 1)
 
-        user_prompt = f"""MASTER PROFILE:
+        user_prompt = f"""PROFILE CONTEXT:
 {profile_json}
 
 TAILORED RESUME ALREADY GENERATED (use for consistency — do not repeat):
@@ -199,6 +205,45 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         ))
 
         return json.loads(resp.content)
+
+    def _build_profile_context(
+        self,
+        job: CanonicalJob,
+        jd: str,
+        keywords,
+    ) -> tuple[dict, EvidencePacket | None, bool]:
+        try:
+            packet = self.evidence_selector.select(self._profile or {}, job, jd, keywords)
+        except Exception as exc:  # noqa: BLE001 - generation must keep a safe fallback
+            logger.warning("Evidence selection failed; falling back to full profile: %s", exc)
+            return {"full_profile_fallback": self._profile or {}}, None, True
+
+        if not packet.has_rich_evidence():
+            logger.warning("Evidence packet too sparse; falling back to full profile")
+            return {"full_profile_fallback": self._profile or {}}, packet, True
+
+        return {
+            "baseline_profile_facts": self._baseline_profile_facts(self._profile or {}),
+            "selected_evidence_packet": packet.to_prompt_dict(),
+            "generation_rule": (
+                "Use only baseline facts and selected evidence. Preserve section/source labels for grounding. "
+                "Do not infer unsupported tools, credentials, duties, or experience."
+            ),
+        }, packet, False
+
+    @staticmethod
+    def _baseline_profile_facts(profile: dict) -> dict:
+        keys = [
+            "identity",
+            "eligibility",
+            "relocation",
+            "education",
+            "education_detail",
+            "certifications",
+            "profile_summary",
+            "constraints_or_todos",
+        ]
+        return {key: profile.get(key) for key in keys if profile.get(key) is not None}
 
     def _render_resume_text(self, data: dict) -> str:
         """Plain-text render of the resume JSON for keyword coverage computation."""
