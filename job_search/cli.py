@@ -87,7 +87,7 @@ def report():
 @click.option("--max-jobs", type=int, default=None, help="Cap postings graded this run")
 @click.option("--dry-run", is_flag=True, help="Select + build requests; do not submit to the API")
 def grade(timeout: int | None, max_jobs: int | None, dry_run: bool):
-    """Grade NEW viable postings for fit via the OpenAI Batch API."""
+    """Grade NEW viable postings for fit via the configured LLM provider."""
     from job_search.grading import FitGrader
     grader = FitGrader()
     stats = grader.run(timeout_s=timeout, max_jobs=max_jobs, dry_run=dry_run)

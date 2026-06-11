@@ -1,6 +1,6 @@
 """LLM fit-grading — a cheap pre-triage tier over NEW viable postings.
 
-Runs once per daily pass through the OpenAI Batch API: every new posting that
+Runs once per daily pass through the configured LLM batch provider: every new posting that
 clears the deterministic floor is graded for fit against James's master profile
 and gets a categorical grade + one-sentence rationale. The grade augments the
 deterministic `match_score`; it never gates which postings are presented.
@@ -11,7 +11,6 @@ per-job resume/cover-letter generation stays gated on selection.
 
 from __future__ import annotations
 
-import io
 import json
 import logging
 import time
@@ -22,10 +21,10 @@ import yaml
 
 from job_search.config import settings
 from job_search.db import get_db
+from job_search.llm import get_llm_provider, resolve_service_config
+from job_search.llm.types import JSONSchemaSpec, LLMMessage, LLMRequest
 
 logger = logging.getLogger(__name__)
-
-MODEL = settings.GENERATION_MODEL
 
 GRADE_RANK = {"Strong": 3, "Good": 2, "Marginal": 1, "Pass": 0}
 
@@ -75,20 +74,10 @@ class GradeResult:
 
 
 class FitGrader:
-    def __init__(self, client=None):
-        if settings.GENERATION_PROVIDER != "openai":
-            raise ValueError(f"Unsupported generation provider: {settings.GENERATION_PROVIDER}")
-
-        if client is None:
-            try:
-                from openai import OpenAI
-            except ImportError as exc:
-                raise RuntimeError(
-                    "OpenAI SDK is required for fit grading. Install project dependencies first."
-                ) from exc
-            client = OpenAI(api_key=settings.OPENAI_API_KEY)
-
-        self.client = client
+    def __init__(self, llm_provider=None):
+        self.config = resolve_service_config("grading")
+        self.llm = llm_provider or get_llm_provider("grading")
+        self.model = self.config.model
         self._profile: dict | None = None
         self._system_cache: str | None = None
         self._batch_files: dict[str, str] = {}
@@ -158,49 +147,31 @@ class FitGrader:
             f"Grade the fit."
         )
 
-    def _build_request(self, job: dict) -> dict:
+    def _build_request(self, job: dict) -> LLMRequest:
         # custom_id == canonical_job_id so result.custom_id IS the job id.
-        return {
-            "custom_id": job["canonical_job_id"],
-            "method": "POST",
-            "url": "/v1/chat/completions",
-            "body": {
-                "model": MODEL,
-                "max_tokens": 512,
-                "response_format": GRADE_RESPONSE_FORMAT,
-                "messages": [
-                    {"role": "system", "content": self._system_prompt()},
-                    {"role": "user", "content": self._user_message(job)},
-                ],
-            },
-        }
-
-    @staticmethod
-    def _requests_jsonl(requests: list[dict]) -> bytes:
-        return ("\n".join(json.dumps(r) for r in requests) + "\n").encode("utf-8")
+        return LLMRequest(
+            service="grading",
+            model=self.model,
+            max_tokens=512,
+            custom_id=job["canonical_job_id"],
+            json_schema=JSONSchemaSpec(name="fit_grade", schema=GRADE_SCHEMA),
+            messages=[
+                LLMMessage(role="system", content=self._system_prompt()),
+                LLMMessage(role="user", content=self._user_message(job)),
+            ],
+        )
 
     # ── batch lifecycle ──────────────────────────────────────────────────────
-    def submit_batch(self, requests: list[dict]) -> str:
-        payload = self._requests_jsonl(requests)
-        uploaded = self.client.files.create(
-            file=("fit_grading_requests.jsonl", io.BytesIO(payload)),
-            purpose="batch",
-        )
-        batch = self.client.batches.create(
-            input_file_id=uploaded.id,
-            endpoint="/v1/chat/completions",
-            completion_window="24h",
-        )
-        self._batch_files[batch.id] = uploaded.id
-        return batch.id
+    def submit_batch(self, requests: list[LLMRequest]) -> str:
+        return self.llm.submit_json_batch(requests)
 
     def poll_until_done(self, batch_id: str, timeout_s: int, interval_s: int | None = None) -> bool:
         interval = interval_s or settings.GRADING_POLL_INTERVAL_S
         deadline = time.monotonic() + timeout_s
         terminal = {"completed", "failed", "expired", "cancelled"}
         while True:
-            batch = self.client.batches.retrieve(batch_id)
-            status = getattr(batch, "status", None)
+            batch_status = self.llm.retrieve_batch_status(batch_id)
+            status = batch_status.status
             if status in terminal:
                 return status == "completed"
             if time.monotonic() >= deadline:
@@ -208,39 +179,17 @@ class FitGrader:
             time.sleep(interval)
 
     def fetch_results(self, batch_id: str) -> list[GradeResult]:
-        batch = self.client.batches.retrieve(batch_id)
-        output_file_id = getattr(batch, "output_file_id", None)
-        if not output_file_id:
-            logger.warning("grade batch %s has no output file", batch_id)
-            return []
-
-        content = self.client.files.content(output_file_id).read()
-        if isinstance(content, bytes):
-            text = content.decode("utf-8")
-        else:
-            text = str(content)
-
         out: list[GradeResult] = []
-        for line in text.splitlines():
-            if not line.strip():
-                continue
+        for response in self.llm.fetch_json_batch_results(batch_id):
             try:
-                data = json.loads(line)
-                custom_id = data["custom_id"]
-                if data.get("error"):
-                    logger.warning("grade result %s errored: %s", custom_id, data["error"])
-                    continue
-                response = data["response"]
-                body = response["body"]
-                choice = body["choices"][0]
-                payload = json.loads(choice["message"]["content"])
+                payload = json.loads(response.content)
                 out.append(
                     GradeResult(
-                        canonical_job_id=custom_id,
+                        canonical_job_id=response.custom_id or "",
                         grade=payload["grade"],
                         fit_score=payload.get("fit_score"),
                         rationale=payload.get("rationale", ""),
-                        model_used=body.get("model", MODEL),
+                        model_used=response.model or self.model,
                     )
                 )
             except (json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
@@ -286,11 +235,11 @@ class FitGrader:
         for r in pending:
             bid = r["batch_id"]
             try:
-                batch = self.client.batches.retrieve(bid)
+                batch = self.llm.retrieve_batch_status(bid)
             except Exception as exc:  # noqa: BLE001 — best-effort drain
                 logger.warning("drain_prior: retrieve %s failed: %s", bid, exc)
                 continue
-            if getattr(batch, "status", None) != "completed":
+            if batch.status != "completed":
                 continue
             results = self.fetch_results(bid)
             total += self.persist(db, results)

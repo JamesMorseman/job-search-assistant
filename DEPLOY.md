@@ -29,6 +29,10 @@ nano .env
 | `USAJOBS_API_KEY` | https://developer.usajobs.gov/apirequest/ (free, instant) |
 | `ADZUNA_APP_ID/KEY` | https://developer.adzuna.com/ (free tier) |
 | `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
+
+LLM services are provider-configurable. OpenAI is the current supported default:
+`AI_DEFAULT_PROVIDER=openai`, with optional per-service overrides for
+`GENERATION_*`, `GRADING_*`, `PROFILE_*`, and `EXTRACTION_*`.
 | Google OAuth2 | Google Cloud Console → OAuth2 desktop credentials → download `credentials.json` |
 
 ### Google OAuth2 first-time auth

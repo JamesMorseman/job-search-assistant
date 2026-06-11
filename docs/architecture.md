@@ -14,8 +14,8 @@ cron @ 7 AM
        │    ├─ sync_from_sheet  ← read Sheet status col → DB state (Python)
        │    └─ generate_for_selected
        │         └─ for each job James flagged "apply":
-       │              ├─ OpenAI API → resume.json    ← LLM call #1
-       │              └─ OpenAI API → cover.json     ← LLM call #2
+       │              ├─ Configured LLM provider → resume.json    ← LLM call #1
+       │              └─ Configured LLM provider → cover.json     ← LLM call #2
        ├─ FollowUpEngine        ← state machine math (Python)
        └─ DailyReporter         ← Surface new top-N to Sheet (no LLM)
 ```

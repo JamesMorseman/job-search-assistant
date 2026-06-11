@@ -1,8 +1,8 @@
-"""Tests for OpenAI-backed document generation plumbing."""
+"""Tests for OpenAI provider document-generation plumbing."""
 
 from types import SimpleNamespace
 
-from job_search.generation.generator import DocumentGenerator
+from job_search.llm.providers.openai import OpenAIProvider
 
 
 def test_openai_response_text_extracts_chat_completion_content():
@@ -14,4 +14,4 @@ def test_openai_response_text_extracts_chat_completion_content():
         ]
     )
 
-    assert DocumentGenerator._response_text(resp) == '{"ok": true}'
+    assert OpenAIProvider._response_text(resp) == '{"ok": true}'

@@ -25,7 +25,7 @@ cp .env.example .env
 |---|---|---|---|
 | `USAJOBS_API_KEY` | Free | https://developer.usajobs.gov/apirequest/ (instant approval) | Federal civil engineering postings (Army Corps, Reclamation, FHWA, etc.) |
 | `USAJOBS_EMAIL` | — | Your email | USAJOBS requires it in the `User-Agent` header |
-| `OPENAI_API_KEY` | Pay-as-you-go | https://platform.openai.com/api-keys | Resume + cover letter generation |
+| `OPENAI_API_KEY` | Pay-as-you-go | https://platform.openai.com/api-keys | Default OpenAI LLM provider for resume generation, cover letters, and fit grading |
 
 ### Required for full pipeline
 
@@ -41,6 +41,11 @@ cp .env.example .env
 
 | Key | Why |
 |---|---|
+| `AI_DEFAULT_PROVIDER` / `AI_DEFAULT_MODEL` | Default LLM provider/model; OpenAI is the current supported provider |
+| `GENERATION_PROVIDER` / `GENERATION_MODEL` | Override resume and cover-letter generation model |
+| `GRADING_PROVIDER` / `GRADING_MODEL` | Override fit-grading model independently from document generation |
+| `PROFILE_PROVIDER` / `PROFILE_MODEL` | Reserved for future profile enrichment/extraction workflows |
+| `EXTRACTION_PROVIDER` / `EXTRACTION_MODEL` | Reserved for future source-document extraction workflows |
 | Static IP allowlist on droplet | If Workday's anti-bot starts flagging you, rotating IPs would be evasion (against policy). Keep the same IP and back off. |
 | Sentry DSN | If you want error notifications without logging into the droplet daily |
 

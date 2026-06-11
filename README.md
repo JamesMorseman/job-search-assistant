@@ -25,7 +25,7 @@ Subsystem A (daily cron)                       Subsystem B (periodic)
   James reviews on phone/laptop, edits status column
         │
         ▼
-  Sync Sheet → DB · Generate docs (OpenAI API) for jobs he flagged "apply"
+  Sync Sheet → DB · Generate docs (configured LLM provider) for jobs he flagged "apply"
         │
         ▼
   Drive snapshots · Follow-up engine · Funnel stats

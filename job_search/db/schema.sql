@@ -134,11 +134,11 @@ CREATE TABLE IF NOT EXISTS daily_reports (
     generated_at    TEXT DEFAULT (datetime('now'))
 );
 
--- ── LLM grading batches (OpenAI Batch API tracking) ──────────────────────────
+-- ── LLM grading batches (provider batch tracking) ──────────────────────────
 -- One row per submitted batch. A row left in 'submitted' (timed out before the
 -- report ran) is drained on the next run rather than re-graded — never pay twice.
 CREATE TABLE IF NOT EXISTS grading_batches (
-    batch_id        TEXT PRIMARY KEY,            -- OpenAI batch id
+    batch_id        TEXT PRIMARY KEY,            -- provider batch id
     submitted_at    TEXT DEFAULT (datetime('now')),
     status          TEXT DEFAULT 'submitted',    -- submitted|drained|error
     job_count       INTEGER DEFAULT 0,

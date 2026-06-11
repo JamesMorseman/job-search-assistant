@@ -1,4 +1,4 @@
-"""Document generation — tailored resume + cover letter via OpenAI API."""
+"""Document generation — tailored resume + cover letter via provider-neutral LLM API."""
 
 from __future__ import annotations
 
@@ -10,13 +10,13 @@ import yaml
 from docx import Document as DocxDocument
 
 from job_search.config import settings
+from job_search.llm import get_llm_provider, resolve_service_config
+from job_search.llm.types import LLMMessage, LLMRequest
 from job_search.models import CanonicalJob
 
 from .keywords import KeywordExtractor
 
 logger = logging.getLogger(__name__)
-
-MODEL = settings.GENERATION_MODEL
 
 
 RESUME_SYSTEM = """You are an expert civil engineering resume writer.
@@ -79,18 +79,10 @@ PROFILE FRAGMENT GUIDANCE:
 
 
 class DocumentGenerator:
-    def __init__(self):
-        if settings.GENERATION_PROVIDER != "openai":
-            raise ValueError(f"Unsupported generation provider: {settings.GENERATION_PROVIDER}")
-
-        try:
-            from openai import OpenAI
-        except ImportError as exc:
-            raise RuntimeError(
-                "OpenAI SDK is required for document generation. Install project dependencies first."
-            ) from exc
-
-        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    def __init__(self, llm_provider=None):
+        self.config = resolve_service_config("generation")
+        self.llm = llm_provider or get_llm_provider("generation")
+        self.model = self.config.model
         self.extractor = KeywordExtractor()
         self._profile: dict | None = None
 
@@ -136,10 +128,7 @@ class DocumentGenerator:
         profile_json = json.dumps(self._profile, indent=2)
         kw_summary = ", ".join(k.keyword for k in keywords if k.tier == 1)
 
-        messages = [
-            {
-                "role": "user",
-                "content": f"""MASTER PROFILE:
+        user_prompt = f"""MASTER PROFILE:
 {profile_json}
 
 TARGET ROLE:
@@ -155,25 +144,19 @@ TIER-1 KEYWORDS (must appear in resume, both long-form and acronym):
 {kw_summary}
 
 Produce the tailored resume JSON. Emphasize the most relevant experience and projects for this discipline.
-The professional summary must be rewritten specifically for this role.""",
-            }
-        ]
+The professional summary must be rewritten specifically for this role."""
 
-        resp = self.client.chat.completions.create(
-            model=MODEL,
+        resp = self.llm.generate_json(LLMRequest(
+            service="generation",
+            model=self.model,
             max_tokens=4096,
-            response_format={"type": "json_object"},
             messages=[
-                {
-                    "role": "system",
-                    "content": RESUME_SYSTEM,
-                },
-                *messages,
+                LLMMessage(role="system", content=RESUME_SYSTEM),
+                LLMMessage(role="user", content=user_prompt),
             ],
-        )
+        ))
 
-        raw = self._response_text(resp)
-        return json.loads(raw)
+        return json.loads(resp.content)
 
     def _generate_cover_letter(
         self,
@@ -185,10 +168,7 @@ The professional summary must be rewritten specifically for this role.""",
         profile_json = json.dumps(self._profile, indent=2)
         top_keywords = ", ".join(k.keyword for k in keywords if k.tier == 1)
 
-        messages = [
-            {
-                "role": "user",
-                "content": f"""MASTER PROFILE:
+        user_prompt = f"""MASTER PROFILE:
 {profile_json}
 
 TAILORED RESUME ALREADY GENERATED (use for consistency — do not repeat):
@@ -206,30 +186,19 @@ TOP KEYWORDS (weave in naturally, not mechanically):
 {top_keywords}
 
 Write the cover letter JSON. Make it compelling for a human engineering hiring manager.
-3-4 paragraphs. Do not summarize the resume — make the case for fit.""",
-            }
-        ]
+3-4 paragraphs. Do not summarize the resume — make the case for fit."""
 
-        resp = self.client.chat.completions.create(
-            model=MODEL,
+        resp = self.llm.generate_json(LLMRequest(
+            service="generation",
+            model=self.model,
             max_tokens=2048,
-            response_format={"type": "json_object"},
             messages=[
-                {
-                    "role": "system",
-                    "content": COVER_LETTER_SYSTEM,
-                },
-                *messages,
+                LLMMessage(role="system", content=COVER_LETTER_SYSTEM),
+                LLMMessage(role="user", content=user_prompt),
             ],
-        )
+        ))
 
-        raw = self._response_text(resp)
-        return json.loads(raw)
-
-    @staticmethod
-    def _response_text(resp) -> str:
-        """Extract JSON text from an OpenAI chat completion response."""
-        return resp.choices[0].message.content.strip()
+        return json.loads(resp.content)
 
     def _render_resume_text(self, data: dict) -> str:
         """Plain-text render of the resume JSON for keyword coverage computation."""

@@ -27,12 +27,20 @@ class Settings(BaseSettings):
     DRIVE_ROOT_FOLDER_ID: str = ""
     GMAIL_ALERT_LABEL: str = "job-alerts"
 
-    # Document generation
+    # LLM providers/models
     OPENAI_API_KEY: str = ""
-    GENERATION_PROVIDER: Literal["openai"] = "openai"
+    AI_DEFAULT_PROVIDER: str = "openai"
+    AI_DEFAULT_MODEL: str = "gpt-4.1"
+    GENERATION_PROVIDER: str = "openai"
     GENERATION_MODEL: str = "gpt-4.1"
+    GRADING_PROVIDER: str = ""
+    GRADING_MODEL: str = ""
+    PROFILE_PROVIDER: str = ""
+    PROFILE_MODEL: str = ""
+    EXTRACTION_PROVIDER: str = ""
+    EXTRACTION_MODEL: str = ""
 
-    # LLM fit-grading (cheap pre-triage tier via OpenAI Batch API)
+    # LLM fit-grading (cheap pre-triage tier)
     GRADING_ENABLED: bool = True
     GRADING_FLOOR: float = 0.55          # mirror the report's PRESENTATION_THRESHOLD
     GRADING_MAX_JOBS: int = 50           # cost guardrail: max postings graded per run

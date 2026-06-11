@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from job_search.config import settings
+from job_search.llm.factory import SUPPORTED_PROVIDERS, configured_provider_names
 
 
 @dataclass
@@ -43,7 +44,7 @@ def run_preflight() -> PreflightReport:
     # ── API keys ──────────────────────────────────────────────────────────────
     report.checks.append(_check_key("USAJOBS_API_KEY", "required", "Federal civil-eng postings; free instant approval"))
     report.checks.append(_check_key("USAJOBS_EMAIL", "required", "Required in USAJOBS User-Agent header"))
-    report.checks.append(_check_key("OPENAI_API_KEY", "required", "Resume/cover-letter generation + fit-grading"))
+    report.checks.extend(_llm_provider_checks())
     report.checks.append(_check_key("ADZUNA_APP_ID", "recommended", "Broad aggregator; free tier"))
     report.checks.append(_check_key("ADZUNA_API_KEY", "recommended", "Broad aggregator; free tier"))
 
@@ -146,3 +147,25 @@ def _check_key(env_name: str, severity: str, detail: str) -> Check:
         detail=detail if not is_placeholder else f"NOT SET — {detail}",
         severity=severity,
     )
+
+
+def _llm_provider_checks() -> list[Check]:
+    checks: list[Check] = []
+    providers = configured_provider_names()
+
+    for provider in sorted(p for p in providers if p not in SUPPORTED_PROVIDERS):
+        checks.append(Check(
+            name=f"LLM provider: {provider}",
+            ok=False,
+            detail=f"Unsupported LLM provider configured: {provider}",
+            severity="required",
+        ))
+
+    if "openai" in providers:
+        checks.append(_check_key(
+            "OPENAI_API_KEY",
+            "required",
+            "Configured OpenAI LLM services",
+        ))
+
+    return checks

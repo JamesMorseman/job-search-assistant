@@ -6,7 +6,7 @@ Flow:
        "applied"→ selected/presented → applied (start follow-up)
        "skip"   → presented → rejected
   2. generate_for_selected(): For every job in 'selected' without docs,
-       call OpenAI once for resume + once for cover letter, upload to Drive,
+       call configured LLM provider once for resume + once for cover letter, upload to Drive,
        write doc links back to the Sheet.
 
 Only step (2) consumes LLM tokens. Step (1) is pure DB/Sheet I/O.
@@ -22,6 +22,7 @@ from pathlib import Path
 from job_search.config import settings
 from job_search.db import get_db
 from job_search.generation import DocumentGenerator
+from job_search.llm import resolve_service_config
 from job_search.models import AppState, ATSType, CanonicalJob
 
 from .sheets import SheetsLogger
@@ -118,6 +119,7 @@ class SelectionProcessor:
                 return stats
 
             self._lazy_init_generator()
+            generation_model = resolve_service_config("generation").model
 
             for job_row in jobs:
                 job_id = job_row["canonical_job_id"]
@@ -140,7 +142,7 @@ class SelectionProcessor:
                         (
                             job_id, resume_url, result["keyword_coverage"],
                             str(result["keywords_hit"]), str(result["keywords_missed"]),
-                            settings.GENERATION_MODEL,
+                            generation_model,
                         ),
                     )
                     if cover_url:
@@ -148,7 +150,7 @@ class SelectionProcessor:
                             "INSERT INTO generated_docs "
                             "(canonical_job_id, doc_type, drive_url, model_used) "
                             "VALUES (?, 'cover_letter', ?, ?)",
-                            (job_id, cover_url, settings.GENERATION_MODEL),
+                            (job_id, cover_url, generation_model),
                         )
 
                     # Write doc links back to Sheet

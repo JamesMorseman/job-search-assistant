@@ -9,6 +9,7 @@ import pytest
 
 from job_search.db.connection import init_db
 from job_search.grading import FitGrader, GradeResult
+from job_search.llm.providers.openai import OpenAIProvider
 
 VALID_ID = "a" * 64  # 64 hex chars, like a real canonical_job_id (SHA256)
 
@@ -74,7 +75,8 @@ def _client(batches=None, output_text=""):
 
 
 def _grader(client=None, profile=None):
-    g = FitGrader(client=client or _client())
+    provider = OpenAIProvider(api_key="", client=client or _client())
+    g = FitGrader(llm_provider=provider)
     g._profile = profile or {"identity": {"first_name": "James", "last_name": "Morseman"}}
     return g
 
@@ -134,22 +136,23 @@ def test_custom_id_is_canonical_job_id():
     job = {"canonical_job_id": VALID_ID, "title": "CE", "company": "Acme",
            "description_normalized": "bridges"}
     req = _grader()._build_request(job)
-    assert req["custom_id"] == VALID_ID
-    assert re.fullmatch(r"[A-Za-z0-9_-]{1,64}", req["custom_id"])
+    assert req.custom_id == VALID_ID
+    assert re.fullmatch(r"[A-Za-z0-9_-]{1,64}", req.custom_id)
 
 
 def test_request_carries_schema_and_cached_profile():
     job = {"canonical_job_id": VALID_ID, "title": "CE", "company": "Acme",
            "description_normalized": "bridges"}
     req = _grader()._build_request(job)
-    body = req["body"]
+    wire_req = OpenAIProvider.build_batch_request(req)
+    body = wire_req["body"]
 
     schema = body["response_format"]["json_schema"]["schema"]
     assert schema["properties"]["grade"]["enum"] == ["Strong", "Good", "Marginal", "Pass"]
     assert schema["properties"]["fit_score"]["maximum"] == 5
 
-    assert req["method"] == "POST"
-    assert req["url"] == "/v1/chat/completions"
+    assert wire_req["method"] == "POST"
+    assert wire_req["url"] == "/v1/chat/completions"
     assert "James" in body["messages"][0]["content"]
     assert body["model"] == "gpt-4.1"
 
