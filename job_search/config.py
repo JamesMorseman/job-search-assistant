@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     GENERATION_PROVIDER: Literal["openai"] = "openai"
     GENERATION_MODEL: str = "gpt-4.1"
 
+    # LLM fit-grading (cheap pre-triage tier via OpenAI Batch API)
+    GRADING_ENABLED: bool = True
+    GRADING_FLOOR: float = 0.55          # mirror the report's PRESENTATION_THRESHOLD
+    GRADING_MAX_JOBS: int = 50           # cost guardrail: max postings graded per run
+    GRADING_POLL_TIMEOUT_S: int = 900    # bounded wait before the report falls back
+    GRADING_POLL_INTERVAL_S: int = 20
+
     # Local DB
     DB_PATH: str = "data/jobs.db"
 
