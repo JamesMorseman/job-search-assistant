@@ -76,6 +76,27 @@ def test_generator_uses_selected_evidence_instead_of_full_profile():
     assert "DO NOT SEND THIS IRRELEVANT FULL PROFILE NOTE" not in prompt
 
 
+def test_generator_includes_work_history_in_baseline_profile_facts():
+    fake = FakeLLMProvider()
+    generator = DocumentGenerator(llm_provider=fake)
+    profile = sample_profile()
+    profile["experience"] = [{
+        "employer": "Urban Air Adventure Park",
+        "title": "Event Coordination Department Head",
+        "start_date": "2021-09",
+        "end_date": "present",
+        "location": "Lake Grove, NY",
+    }]
+    generator._profile = profile
+
+    generator.generate(make_job())
+
+    prompt = user_prompt(fake)
+    assert "baseline_profile_facts" in prompt
+    assert "Urban Air Adventure Park" in prompt
+    assert "Event Coordination Department Head" in prompt
+
+
 def test_resume_style_guide_is_included_in_prompt():
     fake = FakeLLMProvider()
     generator = DocumentGenerator(llm_provider=fake)

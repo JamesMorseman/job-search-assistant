@@ -196,6 +196,63 @@ def test_project_date_fallback_hierarchy(tmp_path):
     assert "Campus Cleanup\t2024" in texts
 
 
+def test_academic_project_organization_and_invalid_date_fallbacks(tmp_path):
+    data = sample_resume_json()
+    data["projects"] = [
+        {
+            "name": "Senior Capstone Project",
+            "role": "Structural Engineering Lead / Project Leader",
+            "date": "Spring 2026",
+            "bullets": ["Led structural design."],
+        },
+        {
+            "name": "Bridge Replacement Construction Management Plan",
+            "role": "Academic Project",
+            "date": "Academic Project",
+            "bullets": ["Prepared construction management planning content."],
+        },
+    ]
+    path = tmp_path / "resume.docx"
+    make_generator().save_docx(data, str(path))
+    texts = paragraph_texts(Document(path))
+
+    capstone_idx = texts.index("Senior Capstone Project\tSpring 2026")
+    bridge_idx = texts.index("Bridge Replacement Construction Management Plan\t2025")
+
+    assert texts[capstone_idx + 1] == "Structural Engineering Lead / Project Leader | Farmingdale State College"
+    assert texts[bridge_idx + 1] == "Student Project Contributor | Farmingdale State College"
+    assert not any("Academic Project\tAcademic Project" in text for text in texts)
+
+
+def test_generated_resume_with_profile_work_history_renders_work_experience(tmp_path):
+    generator = make_generator()
+    generator._profile["experience"] = [
+        {
+            "employer": "Urban Air Adventure Park",
+            "title": "Event Coordination Department Head",
+            "start_date": "2021-09",
+            "end_date": "present",
+            "location": "Lake Grove, NY",
+            "bullets": [
+                {"text": "Coordinate staffing, logistics, training, and event execution."},
+                {"text": "Train new employees and support readiness evaluations."},
+            ],
+        }
+    ]
+    data = sample_resume_json()
+    data["experience"] = []
+
+    rendered = generator._qa_resume_json(data, "Entry-level structural engineer role with available page capacity.")
+    path = tmp_path / "resume.docx"
+    generator.save_docx(rendered, str(path))
+    texts = paragraph_texts(Document(path))
+
+    assert rendered["experience"]
+    assert rendered["rendering_qa"]["page_utilization_estimate"] < 1
+    assert "Work Experience" in texts
+    assert any("Urban Air Adventure Park" in text for text in texts)
+
+
 def test_skills_are_grouped_not_single_generic_skills_line(tmp_path):
     doc = render_doc(tmp_path)
     texts = paragraph_texts(doc)
@@ -212,6 +269,41 @@ def test_skills_are_grouped_not_single_generic_skills_line(tmp_path):
     assert not any(text.startswith("Skills:") for text in texts)
     assert "?" not in " ".join(texts)
     assert any("; " in text for text in texts if text.startswith("Software:"))
+
+
+def test_programming_data_folds_into_software_for_civil_structural_resume():
+    generator = make_generator()
+    data = sample_resume_json()
+    data["professional_summary"] = "Entry-level civil engineer focused on structural design with Python automation support."
+    data["skills"] = ["Python", "SQLite", "RAM Structural System", "Structural Analysis"]
+
+    groups = generator._group_skills(
+        data["skills"],
+        separate_programming_data=generator._is_software_data_heavy_resume(data),
+        resume_json=data,
+    )
+
+    assert "Programming/Data" not in groups
+    assert "Python" in groups["Software"]
+    assert "SQLite" in groups["Software"]
+
+
+def test_programming_data_separates_for_software_data_heavy_resume():
+    generator = make_generator()
+    data = {
+        "professional_summary": "Software engineer and data analyst candidate for a workflow automation role.",
+        "keyword_notes": {"included": ["software developer role", "data automation role"]},
+        "skills": ["Python", "SQLite", "API integration"],
+    }
+
+    groups = generator._group_skills(
+        data["skills"],
+        separate_programming_data=generator._is_software_data_heavy_resume(data),
+        resume_json=data,
+    )
+
+    assert "Programming/Data" in groups
+    assert "Python" in groups["Programming/Data"]
 
 
 def test_skill_and_professional_development_spacing_is_compact(tmp_path):

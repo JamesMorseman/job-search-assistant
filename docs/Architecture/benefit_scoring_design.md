@@ -36,6 +36,32 @@ in the daily report, and mirrors them to Google Sheets.
 - Do not allow unapproved firm drafts to affect scoring.
 - Do not infer benefits from vague company marketing without explicit evidence.
 
+## Current Scoring Limitations
+
+Current behavior in `job_search/ingestion/scoring.py` is intentionally simple
+but too weak for long-term use:
+
+- `BENEFIT_SIGNALS` and `TRAJECTORY_SIGNALS` are `dict[str, float]` constants.
+- `_compute_benefit_score(text)` and `_compute_trajectory_score(text)` add a
+  weight whenever a raw substring appears in the job text.
+- Scores are capped at `1.0`, but repeated weak concepts can still crowd the
+  result.
+- There is no `SignalHit` or reason trail explaining why a score was assigned.
+- Ambiguous one-word terms can score incorrectly:
+  - `tuition` can match vague education language.
+  - `graduate` can mean "new graduate" rather than graduate-school support.
+  - `mentor` can match informal language without a real mentorship program.
+  - `housing` can match project type or market sector instead of assistance.
+- Some concepts can bleed across categories, especially tuition/graduate
+  language appearing in both benefit and trajectory scoring.
+- Firm fields such as `known_benefits`, `tuition_reimbursement`, and
+  `pe_support` are not currently used by scoring.
+- Reports and Sheets show numeric benefit/trajectory scores without explaining
+  the underlying evidence.
+- No reason metadata is persisted, which makes debugging, dashboard display,
+  and future calibration harder.
+- There is no clean extension point for approved firm-profile priors.
+
 ## Architecture Decision
 
 Create a deterministic signal scoring engine. Use shared signal models for both

@@ -293,6 +293,7 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
             "education",
             "education_detail",
             "certifications",
+            "experience",
             "profile_summary",
             "constraints_or_todos",
         ]
@@ -342,6 +343,7 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         cleaned["certifications"] = self._clean_string_list(cleaned.get("certifications", []))[:3]
 
         self._allocate_resume_content(cleaned, warnings)
+        self._restore_profile_work_experience_if_omitted(cleaned, warnings)
         self._trim_resume_to_length(cleaned, warnings)
         qa = self._resume_qa(cleaned)
         qa["warnings"].extend(warnings)
@@ -478,6 +480,69 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
                 project["bullets"] = project.get("bullets", [])[:1 if data.get("experience") else 2]
         self._expand_underfilled_resume(data, original_experience, original_projects, warnings)
 
+    def _restore_profile_work_experience_if_omitted(self, data: dict, warnings: list[str]) -> None:
+        if data.get("experience") or not self._profile:
+            return
+        if self._resume_word_count(data) >= RESUME_SOFT_WORD_CAP:
+            return
+        profile_experience = self._profile_work_experience_items()
+        if not profile_experience:
+            return
+        data["experience"] = profile_experience[:1]
+        warnings.append("Work Experience restored from baseline profile facts after generated resume omitted it.")
+
+    def _profile_work_experience_items(self) -> list[dict]:
+        if not self._profile:
+            return []
+        out: list[dict] = []
+        for entry in self._profile.get("experience", []) or []:
+            if not isinstance(entry, dict):
+                continue
+            employer = self._clean_text(entry.get("employer", ""))
+            title = self._clean_text(entry.get("title", ""))
+            if not employer and not title:
+                continue
+            item = {
+                "employer": employer,
+                "title": title,
+                "dates": self._format_profile_date_range(entry),
+                "location": self._clean_text(str(entry.get("location", "")).replace(";", " | ")),
+                "bullets": self._profile_work_bullets(entry)[:2],
+            }
+            out.append({k: v for k, v in item.items() if v not in ("", [], None)})
+        return out
+
+    def _profile_work_bullets(self, entry: dict) -> list[str]:
+        bullets: list[str] = []
+        for bullet in entry.get("bullets", []) or []:
+            if isinstance(bullet, dict):
+                text = bullet.get("text", "")
+            else:
+                text = bullet
+            clean = self._clean_text(text)
+            if clean:
+                bullets.append(clean)
+        return bullets
+
+    def _format_profile_date_range(self, entry: dict) -> str:
+        start = self._format_year_month(entry.get("start_date"))
+        end_raw = entry.get("end_date")
+        end = "Present" if str(end_raw).lower() == "present" else self._format_year_month(end_raw)
+        return " - ".join(part for part in [start, end] if part)
+
+    @staticmethod
+    def _format_year_month(value) -> str:
+        text = str(value or "").strip()
+        if len(text) != 7 or text[4] != "-":
+            return text
+        months = {
+            "01": "January", "02": "February", "03": "March", "04": "April",
+            "05": "May", "06": "June", "07": "July", "08": "August",
+            "09": "September", "10": "October", "11": "November", "12": "December",
+        }
+        year, month = text.split("-")
+        return f"{months.get(month, month)} {year}"
+
     def _expand_underfilled_resume(
         self,
         data: dict,
@@ -592,10 +657,16 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
             str(resume_json.get("professional_summary", "")),
             json.dumps(resume_json.get("keyword_notes", {})),
         ]).lower()
+        civil_signals = [
+            "civil engineer", "structural", "transportation", "water resources",
+            "construction", "site civil", "land development", "geotechnical",
+        ]
+        if any(signal in text for signal in civil_signals):
+            return False
         signals = [
-            "data analyst", "automation analyst", "software", "developer", "python automation",
-            "data automation", "database", "sqlite", "api integration", "llm workflow",
-            "workflow automation",
+            "data analyst", "automation analyst", "software engineer", "software developer",
+            "developer role", "python automation role", "data automation role",
+            "database role", "workflow automation role",
         ]
         return sum(1 for signal in signals if signal in text) >= 2
 
@@ -812,7 +883,7 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         name = self._clean_text(project.get("name", ""))
         if not name:
             return
-        role = self._clean_text(project.get("role", ""))
+        role = self._project_role(project)
         date = self._project_date(project)
         organization = self._project_organization(project)
         p = doc.add_paragraph()
@@ -1130,11 +1201,25 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
             return project_type.replace("_", " ").title()
         if self._is_job_search_assistant_project(project):
             return "Personal Project"
+        if self._is_academic_project(project):
+            return "Farmingdale State College"
         return ""
+
+    def _project_role(self, project: dict) -> str:
+        role = self._clean_text(project.get("role", ""))
+        if role and role.lower() not in {"academic project", "class project", "student project", "personal project"}:
+            return role
+        if self._is_job_search_assistant_project(project):
+            return "Software Automation Project"
+        if self._is_academic_project(project):
+            return "Student Project Contributor"
+        if self._is_personal_project(project):
+            return "Personal Project Contributor"
+        return role
 
     def _project_date(self, project: dict) -> str:
         date = self._clean_text(project.get("date", ""))
-        if date:
+        if date and self._looks_like_project_date(date):
             return date
         text = json.dumps(project).lower()
         if self._is_personal_project(project):
@@ -1147,6 +1232,20 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
     def _is_personal_project(project: dict) -> bool:
         text = json.dumps(project).lower()
         return "personal" in text or "job search assistant" in text or "software automation" in text
+
+    @staticmethod
+    def _is_academic_project(project: dict) -> bool:
+        text = json.dumps(project).lower()
+        return any(term in text for term in ("academic", "student", "capstone", "class_project", "course", "farmingdale", "bridge replacement"))
+
+    @staticmethod
+    def _looks_like_project_date(value: str) -> bool:
+        text = value.strip().lower()
+        if not text:
+            return False
+        if any(label in text for label in ("academic project", "personal project", "student project", "class project")):
+            return False
+        return any(char.isdigit() for char in text) or any(term in text for term in ("spring", "summer", "fall", "winter"))
 
     @staticmethod
     def _remove_table_borders(table) -> None:
