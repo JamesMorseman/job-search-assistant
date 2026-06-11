@@ -25,8 +25,9 @@ class FakeChat:
 
 
 class FakeFiles:
-    def __init__(self, output_text=""):
+    def __init__(self, output_text="", error_text=""):
         self.output_text = output_text
+        self.error_text = error_text
         self.created = []
 
     def create(self, file, purpose):
@@ -34,11 +35,23 @@ class FakeFiles:
         return SimpleNamespace(id="file_input")
 
     def content(self, file_id):
-        return SimpleNamespace(read=lambda: self.output_text.encode("utf-8"))
+        text = self.error_text if file_id == "file_error" else self.output_text
+        return SimpleNamespace(read=lambda: text.encode("utf-8"))
 
 
 class FakeBatches:
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        status="completed",
+        output_file_id="file_output",
+        error_file_id=None,
+        errors=None,
+    ):
+        self.status = status
+        self.output_file_id = output_file_id
+        self.error_file_id = error_file_id
+        self.errors = errors
         self.created = []
 
     def create(self, **kwargs):
@@ -46,14 +59,19 @@ class FakeBatches:
         return SimpleNamespace(id="batch_1")
 
     def retrieve(self, batch_id):
-        return SimpleNamespace(status="completed", output_file_id="file_output")
+        return SimpleNamespace(
+            status=self.status,
+            output_file_id=self.output_file_id,
+            error_file_id=self.error_file_id,
+            errors=self.errors,
+        )
 
 
 class FakeOpenAIClient:
-    def __init__(self, output_text=""):
+    def __init__(self, output_text="", error_text="", batches=None):
         self.chat = FakeChat()
-        self.files = FakeFiles(output_text)
-        self.batches = FakeBatches()
+        self.files = FakeFiles(output_text, error_text)
+        self.batches = batches or FakeBatches()
 
 
 def _request(custom_id="job1"):
@@ -124,3 +142,31 @@ def test_batch_results_parse_successful_lines_only():
     assert results[0].custom_id == "job1"
     assert results[0].content == '{"ok": true}'
     assert results[0].model == "gpt-test"
+
+
+def test_batch_results_wait_for_completed_status_before_fetching_output():
+    batches = FakeBatches(status="in_progress", output_file_id=None)
+    client = FakeOpenAIClient(output_text='{"should": "not read"}', batches=batches)
+    provider = OpenAIProvider(api_key="", client=client)
+
+    results = provider.fetch_json_batch_results("batch_1")
+
+    assert results == []
+
+
+def test_batch_status_includes_error_file_and_failure_details():
+    batches = FakeBatches(
+        status="failed",
+        output_file_id=None,
+        error_file_id="file_error",
+        errors={"data": [{"message": "invalid request"}]},
+    )
+    provider = OpenAIProvider(api_key="", client=FakeOpenAIClient(error_text="bad jsonl", batches=batches))
+
+    status = provider.retrieve_batch_status("batch_1")
+    error_text = provider.fetch_batch_error_text("batch_1")
+
+    assert status.status == "failed"
+    assert status.error_file_id == "file_error"
+    assert status.failure_details == {"data": [{"message": "invalid request"}]}
+    assert error_text == "bad jsonl"

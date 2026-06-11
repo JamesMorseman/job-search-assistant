@@ -22,11 +22,12 @@ import yaml
 from job_search.config import settings
 from job_search.db import get_db
 from job_search.llm import get_llm_provider, resolve_service_config
-from job_search.llm.types import JSONSchemaSpec, LLMMessage, LLMRequest
+from job_search.llm.types import JSONSchemaSpec, LLMBatchStatus, LLMMessage, LLMRequest
 
 logger = logging.getLogger(__name__)
 
 GRADE_RANK = {"Strong": 3, "Good": 2, "Marginal": 1, "Pass": 0}
+BATCH_TERMINAL_STATUSES = {"completed", "failed", "expired", "cancelled"}
 
 GRADE_SYSTEM = """You are grading the FIT between a civil-engineering candidate and a SINGLE job posting.
 You are NOT writing a resume or cover letter. Output only a categorical grade + one-sentence rationale.
@@ -165,17 +166,17 @@ class FitGrader:
     def submit_batch(self, requests: list[LLMRequest]) -> str:
         return self.llm.submit_json_batch(requests)
 
-    def poll_until_done(self, batch_id: str, timeout_s: int, interval_s: int | None = None) -> bool:
+    def poll_until_done(self, batch_id: str, timeout_s: int, interval_s: int | None = None) -> LLMBatchStatus:
         interval = interval_s or settings.GRADING_POLL_INTERVAL_S
         deadline = time.monotonic() + timeout_s
-        terminal = {"completed", "failed", "expired", "cancelled"}
         while True:
             batch_status = self.llm.retrieve_batch_status(batch_id)
             status = batch_status.status
-            if status in terminal:
-                return status == "completed"
+            logger.info("grading batch %s status=%s", batch_id, status or "unknown")
+            if status in BATCH_TERMINAL_STATUSES:
+                return batch_status
             if time.monotonic() >= deadline:
-                return False
+                return batch_status
             time.sleep(interval)
 
     def fetch_results(self, batch_id: str) -> list[GradeResult]:
@@ -224,6 +225,23 @@ class FitGrader:
             (status, batch_id),
         )
 
+    def _log_failed_batch(self, batch_status: LLMBatchStatus) -> None:
+        logger.warning(
+            "grading batch %s ended with status=%s",
+            batch_status.batch_id,
+            batch_status.status or "unknown",
+        )
+        fetch_errors = getattr(self.llm, "fetch_batch_error_text", None)
+        if callable(fetch_errors):
+            fetch_errors(batch_status.batch_id)
+        elif batch_status.error_file_id or batch_status.failure_details:
+            logger.warning(
+                "grading batch %s error_file_id=%s failure_details=%s",
+                batch_status.batch_id,
+                batch_status.error_file_id,
+                batch_status.failure_details,
+            )
+
     def drain_prior(self, db) -> int:
         """Finish any prior batch that timed out before its grades were retrieved.
         Persists their grades and marks them drained, so a slow batch is never
@@ -240,6 +258,10 @@ class FitGrader:
                 logger.warning("drain_prior: retrieve %s failed: %s", bid, exc)
                 continue
             if batch.status != "completed":
+                logger.info("drain_prior: batch %s status=%s", bid, batch.status or "unknown")
+                if batch.status in {"failed", "expired", "cancelled"}:
+                    self._log_failed_batch(batch)
+                    self._mark_batch(db, bid, batch.status)
                 continue
             results = self.fetch_results(bid)
             total += self.persist(db, results)
@@ -260,6 +282,7 @@ class FitGrader:
             "graded": 0,
             "timed_out": False,
             "batch_id": None,
+            "batch_status": None,
         }
         if not settings.GRADING_ENABLED:
             return stats
@@ -286,9 +309,23 @@ class FitGrader:
         with get_db() as db:
             self._record_batch(db, batch_id, len(rows))
 
-        if not self.poll_until_done(batch_id, timeout_s):
-            stats["timed_out"] = True  # leave 'submitted' → drained next run
-            logger.warning("grading batch %s not done in %ss; report falls back to deterministic score", batch_id, timeout_s)
+        batch_status = self.poll_until_done(batch_id, timeout_s)
+        stats["batch_status"] = batch_status.status
+
+        if batch_status.status != "completed":
+            if batch_status.status in BATCH_TERMINAL_STATUSES:
+                self._log_failed_batch(batch_status)
+                with get_db() as db:
+                    self._mark_batch(db, batch_id, batch_status.status or "failed")
+                return stats
+
+            stats["timed_out"] = True  # leave 'submitted' -> drained next run
+            logger.warning(
+                "grading batch %s status=%s after %ss; report falls back to deterministic score",
+                batch_id,
+                batch_status.status or "unknown",
+                timeout_s,
+            )
             return stats
 
         # Phase C — retrieve, persist, mark drained.

@@ -38,8 +38,9 @@ def _errored_line(custom_id):
 
 
 class FakeFiles:
-    def __init__(self, output_text=""):
+    def __init__(self, output_text="", error_text=""):
         self.output_text = output_text
+        self.error_text = error_text
         self.created: list = []
 
     def create(self, file, purpose):
@@ -47,13 +48,25 @@ class FakeFiles:
         return SimpleNamespace(id="file_input")
 
     def content(self, file_id):
-        return SimpleNamespace(read=lambda: self.output_text.encode("utf-8"))
+        text = self.error_text if file_id == "file_error" else self.output_text
+        return SimpleNamespace(read=lambda: text.encode("utf-8"))
 
 
 class FakeBatches:
-    def __init__(self, *, status="completed", batch_id="batch_test"):
+    def __init__(
+        self,
+        *,
+        status="completed",
+        batch_id="batch_test",
+        output_file_id="file_output",
+        error_file_id=None,
+        errors=None,
+    ):
         self._status = status
         self._batch_id = batch_id
+        self._output_file_id = output_file_id
+        self._error_file_id = error_file_id
+        self._errors = errors
         self.created: list = []
 
     def create(self, **kwargs):
@@ -61,7 +74,12 @@ class FakeBatches:
         return SimpleNamespace(id=self._batch_id)
 
     def retrieve(self, batch_id):
-        return SimpleNamespace(status=self._status, output_file_id="file_output")
+        return SimpleNamespace(
+            status=self._status,
+            output_file_id=self._output_file_id,
+            error_file_id=self._error_file_id,
+            errors=self._errors,
+        )
 
 
 class FakeOpenAIClient:
@@ -70,8 +88,8 @@ class FakeOpenAIClient:
         self.files = files or FakeFiles()
 
 
-def _client(batches=None, output_text=""):
-    return FakeOpenAIClient(batches=batches, files=FakeFiles(output_text))
+def _client(batches=None, output_text="", error_text=""):
+    return FakeOpenAIClient(batches=batches, files=FakeFiles(output_text, error_text))
 
 
 def _grader(client=None, profile=None):
@@ -154,7 +172,7 @@ def test_request_carries_schema_and_cached_profile():
     assert wire_req["method"] == "POST"
     assert wire_req["url"] == "/v1/chat/completions"
     assert "James" in body["messages"][0]["content"]
-    assert body["model"] == "gpt-4.1"
+    assert body["model"] == req.model
 
 
 # ── results + persistence ────────────────────────────────────────────────────
@@ -167,6 +185,12 @@ def test_fetch_results_keeps_only_successful_lines():
     assert len(results) == 1
     assert results[0].canonical_job_id == "good"
     assert results[0].grade == "Strong"
+
+
+def test_fetch_results_skips_in_progress_batch_without_output_file():
+    client = _client(batches=FakeBatches(status="in_progress", output_file_id=None))
+    results = _grader(client).fetch_results("b")
+    assert results == []
 
 
 def test_persist_sets_columns_and_grade_once(db_path):
@@ -247,6 +271,8 @@ def test_run_timeout_fallback(db_path, monkeypatch):
 
     assert stats["timed_out"] is True
     assert stats["graded"] == 0
+    assert stats["batch_id"] == "bnew"
+    assert stats["batch_status"] == "in_progress"
     assert len(client.batches.created) == 1
 
     conn = _conn(db_path)
@@ -266,6 +292,31 @@ def test_run_full_cycle_persists(db_path, monkeypatch):
 
     assert stats["graded"] == 1
     assert stats["timed_out"] is False
+    assert stats["batch_status"] == "completed"
     conn = _conn(db_path)
     assert conn.execute("SELECT llm_grade FROM jobs WHERE canonical_job_id='j1'").fetchone()[0] == "Strong"
     assert conn.execute("SELECT status FROM grading_batches WHERE batch_id='bnew'").fetchone()[0] == "drained"
+
+
+def test_run_failed_batch_marks_terminal_and_logs_error_details(db_path, monkeypatch):
+    monkeypatch.setattr("job_search.config.settings.GRADING_ENABLED", True)
+    conn = _conn(db_path)
+    _insert(conn, "j1", match_score=0.8)
+    conn.close()
+
+    batches = FakeBatches(
+        status="failed",
+        batch_id="bnew",
+        output_file_id=None,
+        error_file_id="file_error",
+        errors={"message": "validation failed"},
+    )
+    client = _client(batches=batches, error_text='{"error": "bad request"}')
+    stats = _grader(client).run(timeout_s=5)
+
+    assert stats["graded"] == 0
+    assert stats["timed_out"] is False
+    assert stats["batch_status"] == "failed"
+    conn = _conn(db_path)
+    assert conn.execute("SELECT llm_graded_at FROM jobs WHERE canonical_job_id='j1'").fetchone()[0] is None
+    assert conn.execute("SELECT status FROM grading_batches WHERE batch_id='bnew'").fetchone()[0] == "failed"

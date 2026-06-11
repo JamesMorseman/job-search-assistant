@@ -52,3 +52,6 @@ class LLMBatchStatus:
     batch_id: str
     status: str | None
     output_file_id: str | None = None
+    error_file_id: str | None = None
+    failure_details: Any | None = None
+    raw: Any | None = None

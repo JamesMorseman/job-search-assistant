@@ -60,12 +60,23 @@ class OpenAIProvider:
             batch_id=batch_id,
             status=getattr(batch, "status", None),
             output_file_id=getattr(batch, "output_file_id", None),
+            error_file_id=getattr(batch, "error_file_id", None),
+            failure_details=getattr(batch, "errors", None) or getattr(batch, "failure_details", None),
+            raw=batch,
         )
 
     def fetch_json_batch_results(self, batch_id: str) -> list[LLMResponse]:
         status = self.retrieve_batch_status(batch_id)
+        if status.status != "completed":
+            logger.warning(
+                "LLM batch %s is %s; output is available only after completed",
+                batch_id,
+                status.status or "unknown",
+            )
+            self._log_batch_error_details(status)
+            return []
         if not status.output_file_id:
-            logger.warning("LLM batch %s has no output file", batch_id)
+            logger.warning("LLM batch %s completed with no output file", batch_id)
             return []
 
         content = self.client.files.content(status.output_file_id).read()
@@ -94,6 +105,18 @@ class OpenAIProvider:
             except (json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
                 logger.warning("LLM batch result parse failed: %s", exc)
         return out
+
+    def fetch_batch_error_text(self, batch_id: str) -> str | None:
+        status = self.retrieve_batch_status(batch_id)
+        if not status.error_file_id:
+            self._log_batch_error_details(status)
+            return None
+        content = self.client.files.content(status.error_file_id).read()
+        text = content.decode("utf-8") if isinstance(content, bytes) else str(content)
+        if text.strip():
+            logger.warning("LLM batch %s error file: %s", batch_id, text[:2000])
+        self._log_batch_error_details(status)
+        return text
 
     @classmethod
     def build_batch_request(cls, request: LLMRequest) -> dict[str, Any]:
@@ -137,3 +160,10 @@ class OpenAIProvider:
                 "schema": request.json_schema.schema,
             },
         }
+
+    @staticmethod
+    def _log_batch_error_details(status: LLMBatchStatus) -> None:
+        if status.error_file_id:
+            logger.warning("LLM batch %s has error file %s", status.batch_id, status.error_file_id)
+        if status.failure_details:
+            logger.warning("LLM batch %s failure details: %s", status.batch_id, status.failure_details)
