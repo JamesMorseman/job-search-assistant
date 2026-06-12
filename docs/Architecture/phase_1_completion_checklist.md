@@ -1,220 +1,48 @@
-# Phase 1 Completion Checklist - Resume Generation
+# Phase 1 Completion Checklist - Resume And Cover Letter Generation
 
 ## Purpose
 
-This checklist defines exactly what must be true before
-`Phase 1 - Resume Generation` in `docs/Architecture/roadmap.md` is considered
-complete.
+This checklist defines what must be true before Phase 1 can stop being the
+active coding focus and the project can move to Phase 2: Benefit/Trajectory
+Scoring.
 
-Phase 1 is complete only when resume and cover-letter generation can be run,
-rerun, audited, and trusted without special database surgery or unclear state
-transitions.
+Phase 1 is not complete until both the resume and cover-letter pipelines produce
+professional, grounded, review-ready application materials. Recent cover-letter
+failures such as `body_paragraphs_placeholder`, single-paragraph output, and
+closing/signature text merged into the body are explicit blockers.
 
 ## Scope
 
-Phase 1 includes:
+Phase 1 covers:
 
 - resume generation
 - cover-letter generation
-- regeneration / force generation
-- generated document history
-- latest/current document identification
-- evidence-packet compatibility
-- style-guide compatibility
-- renderer stability
-- upload and tracking integration
+- deterministic resume rendering
+- evidence selection and profile grounding
+- document regeneration
+- generated document persistence
+- Drive upload
+- latest/current document behavior
+- tests and user-facing documentation for generation workflows
 
-Phase 1 does not include:
+Phase 1 does not cover:
 
-- benefit/trajectory scoring refactor
+- benefit/trajectory scoring implementation
 - firm repository implementation
 - dashboard service layer
 - dashboard UI
-- pipeline run analytics
+- analytics and pipeline-run history
 - automatic application submission
 
-## Completion Gate
+## 1. Resume Generation Completion Criteria
 
-Phase 1 is complete when every item below is true.
+Resume generation is complete when all criteria below are true.
 
-## 1. Supported CLI Workflow
+### Deterministic Renderer
 
-- There is a documented one-command way to regenerate documents for a single
-  job.
-- The supported command is one of:
-  - `jsa regenerate JOB_ID`
-  - `jsa apply --force JOB_ID`
-  - `jsa generate --force JOB_ID`
-- The command works for a job that already has generated documents.
-- The command does not require manual edits to SQLite state.
-- The command does not require deleting existing `generated_docs` rows.
-- The command returns a clear success/failure message that names the job ID.
-
-Acceptance test:
-
-```bash
-jsa generate --force JOB_ID
-```
-
-or the chosen replacement command must create a fresh resume and cover-letter
-generation for `JOB_ID` without manual state reset.
-
-## 2. State Machine Behavior
-
-- Applying or regenerating an already-selected job is idempotent.
-- A job already in `selected` can be regenerated without attempting an invalid
-  transition back into `selected`.
-- A job in `presented` can still move to `selected` through the normal apply
-  path.
-- Regeneration does not move a job backward in the application workflow.
-- Regeneration does not mark a job as `applied`.
-- Invalid state transitions still fail loudly for unsupported workflows.
-- State changes, when they happen, continue to go through
-  `advance_state()` / the application state machine.
-
-Acceptance test:
-
-- Running apply/generate on a job already in `selected` does not produce:
-
-```text
-Could not advance ... to 'selected' - invalid transition
-```
-
-## 3. Generated Document History
-
-- Regeneration preserves historical generated document records.
-- New resume generations insert new `generated_docs` rows.
-- New cover-letter generations insert new `generated_docs` rows.
-- Historical resume and cover-letter links remain queryable.
-- No implementation overwrites old rows in a way that loses audit history.
-- `generated_docs` records include enough metadata to identify:
-  - job ID
-  - document type
-  - document URL or path
-  - generation timestamp
-  - generation model/provider where available
-  - keyword coverage where available for resumes
-
-Acceptance test:
-
-- Running regeneration twice for the same job produces two distinguishable
-  resume records and two distinguishable cover-letter records, or preserves
-  equivalent version history through an explicitly documented versioning model.
-
-## 4. Latest / Current Document Semantics
-
-- There is an unambiguous way to identify the latest resume for a job.
-- There is an unambiguous way to identify the latest cover letter for a job.
-- Reporting, Sheets sync, and future dashboard code do not need to guess which
-  generated document is current.
-- The implementation uses one of:
-  - a latest-document query ordered by generation timestamp / row ID
-  - an `is_current` flag
-  - a documented version field
-- If `is_current` is used, exactly one current resume and one current cover
-  letter can exist per job.
-- If latest-by-query is used, ordering is deterministic.
-
-Acceptance test:
-
-- A helper/query can return exactly one latest resume and one latest cover
-  letter for a job with multiple generations.
-
-## 5. Profile Source Of Truth
-
-- Generation loads the active profile from `profile/james_profile.yaml` through
-  `settings.PROFILE_PATH`.
-- Source-material PDFs/DOCX files are not read directly during generation.
-- `Templates/Resume 2026.docx` is not treated as fixed resume content.
-- Missing profile errors remain explicit and actionable.
-- Profile validation/preflight still detects missing or invalid active profile
-  data.
-
-Acceptance test:
-
-- Generation prompts use facts from `profile/james_profile.yaml`.
-- Removing or renaming source-material PDFs does not change generation behavior.
-
-## 6. Evidence Selection Compatibility
-
-- `DocumentGenerator.generate()` attempts deterministic evidence selection
-  before using full-profile fallback.
-- Evidence selection still reads the rich profile sections used by generation:
-  - `resume_bullet_bank`
-  - `cover_letter_fragment_bank`
-  - `role_specific_fragments`
-  - `job_matching_keywords`
-  - `capstone_project`
-  - `academic_projects`
-  - `personal_projects`
-  - `relevant_coursework_by_category`
-  - `transcript_coursework`
-  - `technical_skills`
-  - `software_tools`
-  - `software`
-  - `engineering_methods`
-  - `field_practices`
-  - `construction_documentation`
-  - `writing_and_communication`
-  - `certifications`
-  - `education_detail`
-  - `education`
-- The Job Search Assistant project remains selectable for automation,
-  software, data, workflow, reporting, or dashboard-adjacent roles.
-- The Job Search Assistant project is not framed as civil design experience.
-- Sparse evidence fallback remains available and logged.
-- Evidence packet output is returned in generation metadata.
-
-Acceptance test:
-
-- Existing evidence selection and generation-evidence tests pass.
-- A software/data/automation-relevant job selects the Job Search Assistant
-  project as personal-project evidence.
-
-## 7. Style Guide Integration
-
-- Resume prompts include both:
-  - `Templates/resume/resume_rendering_spec.md`
-  - `Templates/resume/resume_content_rules.md`
-- Cover-letter prompts include:
-  - `Templates/cover_letter/cover_letter_style_guide.md`
-- Missing style-guide files degrade with a clear warning and fallback guidance.
-- Style-guide paths are case-stable across Windows and case-sensitive
-  filesystems, or the portability risk is explicitly resolved.
-- The resume DOCX template remains a formatting reference only, not profile
-  source material.
-
-Acceptance test:
-
-- Prompt tests verify resume and cover-letter style guide text is included.
-
-## 8. Resume JSON QA And Allocation
-
-- Resume JSON is cleaned before rendering.
-- Blank sections and blank items are removed.
-- Skills are capped at the documented limit.
-- Work experience is preserved when available but kept compact.
-- Capstone/project evidence is prioritized over weaker or generic evidence.
-- Relevant coursework appears only when role-relevant and space allows.
-- Underfilled resumes expand in the documented order:
-  1. capstone bullets
-  2. academic project bullets
-  3. Job Search Assistant bullets
-  4. work-experience bullets
-- Overlength resumes trim in the documented order.
-- `rendering_qa` is attached to resume JSON.
-- Replacement characters and stray question-mark artifacts are cleaned.
-
-Acceptance test:
-
-- Existing resume QA tests pass, including allocation, trimming, coursework,
-  blank-section removal, and Job Search Assistant preservation tests.
-
-## 9. Resume DOCX Renderer
-
-- Resume rendering remains deterministic after the LLM returns JSON.
-- The renderer writes a valid `.docx`.
-- The rendered resume follows the documented section order:
+- Resume DOCX rendering is deterministic after the LLM returns structured JSON.
+- The renderer creates a valid `.docx`.
+- Section ordering is stable:
   1. header/contact
   2. Professional Summary
   3. Education
@@ -223,81 +51,281 @@ Acceptance test:
   6. Work Experience
   7. Technical Skills
   8. Professional Development
+- No blank headings render.
+- Renderer QA warnings are logged and testable.
+- Unsafe replacement-character artifacts do not appear in rendered output.
+
+### Correct Education Formatting
+
 - Education appears before coursework.
-- Engineering projects appear before work experience.
-- Skills are grouped, not emitted as a single generic line.
-- Dates use right-aligned tab stops where expected.
-- The renderer logs QA warnings without silently failing.
-- No blank headings are rendered.
+- School name, location, graduation date, degree, honors, and accreditation
+  render cleanly.
+- Dates use the expected right-aligned tab-stop behavior.
+- Dean's List and ABET accreditation remain separate concepts.
+- Known school-location fallbacks work when the LLM omits school locations.
 
-Acceptance test:
+### Correct Project Formatting
 
-- Existing resume renderer tests pass.
+- Project headers use project name plus date when date is valid.
+- Project role/organization renders on the second line.
+- Invalid labels such as `Academic Project`, `Student Project`, or
+  `Class Project` do not render as dates.
+- Academic project fallback date is `2025`.
+- Academic project fallback role is `Student Project Contributor`.
+- Capstone project default organization is `Farmingdale State College` when no
+  better verified organization is present.
+- Bridge replacement project default organization is `Farmingdale State College`
+  when no better verified organization is present.
 
-## 10. Cover Letter Generation
+### Work Experience Preservation
 
-- Cover letters are generated from the same grounded profile context as the
-  resume.
-- Cover-letter generation receives the generated resume JSON excerpt for
-  consistency.
-- Cover-letter output is cleaned and capped at four body paragraphs.
-- Cover letters do not mechanically repeat resume bullets.
-- Cover letters do not invent hiring-manager names.
-- Current text-file cover-letter upload behavior is documented and supported.
-- If a DOCX cover-letter renderer is not implemented in Phase 1, that remains
-  an explicit future enhancement rather than an ambiguous gap.
+- Meaningful Work Experience is preserved when generated by the LLM.
+- If the LLM omits Work Experience but profile history exists and space allows,
+  Work Experience is restored from `profile/james_profile.yaml`.
+- Restored Work Experience uses real employer, title, dates, location, and
+  profile-grounded bullets.
+- Work Experience remains compact and does not crowd out stronger engineering
+  project evidence.
+- Work Experience is included in baseline profile facts sent to generation.
 
-Acceptance test:
+### Job Search Assistant Project Handling
 
-- Existing generation-evidence tests verify cover-letter style guide inclusion
-  and cover-letter prompt context.
+- Job Search Assistant remains selectable and renderable as a project when
+  relevant.
+- It is framed as automation, workflow design, data management, testing,
+  reporting, and technical initiative.
+- It is not framed as civil design experience.
+- It can be preserved when the target role benefits from software/data/process
+  evidence.
+- It does not displace capstone evidence for civil/structural roles.
 
-## 11. Upload, Sheets, And Tracking Integration
+### Compact Coursework
 
-- Selected-job generation still saves the resume DOCX.
-- Selected-job generation still writes the cover-letter artifact.
-- Both artifacts can be uploaded through the existing Google integration.
-- Successful uploads insert `generated_docs` rows.
-- Successful uploads update Sheet resume and cover-letter links when Sheets is
-  configured.
-- Generation does not break application tracking or follow-up tracking.
-- The overall supported application workflow remains intact:
-  - Job discovered
-  - Job graded
-  - Job presented
-  - Resume generated
-  - Cover letter generated
-  - Documents uploaded
-  - Application tracked
-  - Follow-up tracked
+- Coursework is optional, not filler.
+- Coursework appears only when directly relevant to the target role and space
+  allows.
+- Coursework is capped at 6 rendered items.
+- Coursework renders in a compact 3-column table.
+- Coursework trimming happens by coherent table rows when possible.
 
-Acceptance test:
+### Grouped Skills
 
-- A selected job can run through generation/upload and produce document links
-  without breaking the job's application state.
+- Skills render as grouped rows, not a single generic skills line.
+- Software/data tools use semicolon separators.
+- For civil/structural resumes, Programming/Data skills fold into `Software`.
+- `Programming/Data` remains available only for software/data-heavy targets.
+- Engineering skills and code/standard references render in appropriate groups.
 
-## 12. Debuggability And Auditability
+### No Duplicate Standards
 
-- Generation result metadata includes:
-  - keyword coverage
-  - keywords hit
-  - keywords missed
-  - evidence packet when selected
+- Supported standards such as ASCE 7, AISC, ACI 318, and ASTM D854 are added
+  only when supported by profile evidence.
+- Standards are not duplicated if the LLM already included them.
+- Unsupported standards, credentials, memberships, or code experience are not
+  introduced by the renderer.
+
+### Future-Approved LinkedIn/GitHub Header Support
+
+- The long-term approved header format is documented as:
+
+```text
+Name
+Phone | Email
+LinkedIn URL | GitHub URL
+```
+
+- This support is approved for implementation when resume-header work is next
+  touched.
+- Until implemented, current header behavior must remain stable and tested.
+- The LinkedIn/GitHub requirement should not trigger unrelated implementation
+  work by itself.
+
+## 2. Cover Letter Completion Criteria
+
+Cover-letter generation is complete when all criteria below are true.
+
+### No Placeholder Leakage
+
+- No placeholder text appears in final cover-letter output.
+- `body_paragraphs_placeholder` never appears in generated text, stored JSON,
+  uploaded files, or rendered document artifacts.
+- Empty placeholder arrays, template labels, schema hints, or fallback marker
+  strings do not leak into user-facing output.
+- Invalid cover-letter JSON is rejected, repaired safely, or fails with an
+  actionable error rather than producing broken documents.
+
+### Paragraph Structure
+
+- Cover letters use 3 body paragraphs by default.
+- A 4th paragraph is allowed only when warranted by role-specific context,
+  relocation explanation, unusual fit explanation, or additional high-value
+  project evidence.
+- Single-paragraph cover letters are not acceptable unless explicitly requested.
+- Paragraphs remain focused, compact, and separated in the final artifact.
+
+### Closing And Signature
+
+- Closing/signature is separated from body paragraphs.
+- The sign-off does not merge into the last body paragraph.
+- `Sincerely,` or the configured professional closing appears as a distinct
+  closing block.
+- `James Morseman` is the source-of-truth signature name.
+- The generator must not invent or alter the candidate name.
+
+### Evidence Requirements
+
+- Leadership/management evidence is included when relevant to the job.
+- Capstone/project evidence is included when relevant to the target role.
+- Job Search Assistant may be discussed when relevant as evidence of:
+  - automation
+  - workflow design
+  - data management
+  - testing
+  - technical initiative
+- Job Search Assistant must not be presented as professional civil design
+  experience.
+- Cover-letter claims must be grounded in `profile/james_profile.yaml` and the
+  selected evidence packet or documented full-profile fallback.
+
+### Business-Letter Formatting
+
+- The letter follows professional business-letter conventions.
+- Salutation is separate from body paragraphs.
+- Unknown hiring-manager names are not invented.
+- Tone is professional, specific, and human-readable.
+- The cover letter does not mechanically repeat resume bullets.
+- The final artifact is review-ready before upload.
+- Current text-file output is acceptable only if formatting preserves paragraph
+  separation, salutation, closing, and signature.
+- If a DOCX cover-letter renderer is introduced, it must preserve the same
+  structure.
+
+## 3. Generation Pipeline Criteria
+
+The generation pipeline is complete when all criteria below are true.
+
+### Evidence And Grounding
+
+- `DocumentGenerator.generate()` uses the evidence selector before falling back
+  to the full profile.
+- The active source of truth is `profile/james_profile.yaml`.
+- Source-material PDFs/DOCX files are not read directly during generation.
+- Resume and cover-letter prompts include selected evidence or an explicit
+  fallback profile context.
+- Generated claims are grounded in profile facts and selected evidence.
+- Style guides are included in prompts:
+  - `Templates/resume/resume_rendering_spec.md`
+  - `Templates/resume/resume_content_rules.md`
+  - `Templates/cover_letter/cover_letter_style_guide.md`
+
+### Keyword Coverage
+
+- Resume keyword coverage is computed from rendered resume text.
+- Generation results include:
+  - `keyword_coverage`
+  - `keywords_hit`
+  - `keywords_missed`
+  - evidence packet metadata when available
   - fallback flag
-- Regeneration makes it possible to determine which generated records belong to
-  the new run.
-- Failures in evidence selection, LLM generation, DOCX rendering, upload, or
-  database insert are visible to the caller.
-- No failure mode requires silent manual cleanup before retrying.
 
-Acceptance test:
+### Generated Documents
 
-- A failed generation attempt surfaces an actionable error and does not corrupt
-  existing generated document history.
+- Resume generations create `generated_docs` rows.
+- Cover-letter generations create `generated_docs` rows.
+- Regeneration preserves historical generated document records.
+- Regeneration does not require manual deletion of existing documents.
+- Generated document rows include enough metadata to identify job, document
+  type, URL/path, timestamp, generation model/provider where available, and
+  keyword coverage where relevant.
 
-## 13. Tests Required Before Completion
+### Drive Upload
 
-The following test groups must pass:
+- Resume artifact upload works.
+- Cover-letter artifact upload works.
+- Successful uploads update stored document links.
+- Sheets links update when Sheets integration is configured.
+- Upload failures surface actionable errors and do not corrupt existing document
+  history.
+
+### Latest / Current Document Behavior
+
+- Latest/current document behavior is implemented or explicitly documented.
+- A caller can identify the latest resume for a job.
+- A caller can identify the latest cover letter for a job.
+- Dashboard/service-layer work will not need to guess which generated document
+  is current.
+
+### Regeneration And State
+
+- There is a supported one-command regeneration path, such as:
+  - `jsa regenerate JOB_ID`
+  - `jsa apply --force JOB_ID`
+  - `jsa generate --force JOB_ID`
+- Already-selected jobs can be regenerated without invalid state transitions.
+- Regeneration does not move jobs backward.
+- Regeneration does not mark jobs as `applied`.
+- Regeneration does not require SQLite surgery.
+
+## 4. Tests Required
+
+Phase 1 cannot be complete until these test groups pass in the intended project
+environment.
+
+### Resume Renderer Tests
+
+- DOCX file creation.
+- Header/contact formatting.
+- Education formatting.
+- Project formatting.
+- Work Experience preservation.
+- Coursework table rendering and 6-item cap.
+- Skill grouping and semicolon separators.
+- Programming/Data folding/separation behavior.
+- No duplicate standards.
+- No replacement-character artifacts.
+
+### Evidence Selection Tests
+
+- Rich profile sections are loaded.
+- Selected evidence is used before full-profile fallback.
+- Job Search Assistant is selected for automation/data/software-relevant roles.
+- Capstone and role-relevant project evidence are prioritized.
+- Evidence packets are returned in generation metadata.
+
+### Cover-Letter Pipeline Tests
+
+- Cover-letter prompt includes selected evidence and cover-letter style guide.
+- Cover-letter generation uses the generated resume JSON excerpt for
+  consistency.
+- Default output contains 3 body paragraphs.
+- Optional 4th paragraph behavior is bounded and tested.
+- Leadership/management evidence can appear when relevant.
+- Capstone/project evidence can appear when relevant.
+- Job Search Assistant appears only when relevant and is framed correctly.
+
+### Placeholder-Prevention Tests
+
+- `body_paragraphs_placeholder` is rejected or removed.
+- Schema placeholder strings do not appear in final output.
+- Empty or malformed body paragraph structures do not produce broken documents.
+- Placeholder leakage fails tests.
+
+### Signature Block Tests
+
+- Closing is separate from body paragraphs.
+- Signature is separate from body paragraphs.
+- `James Morseman` appears as the signature name.
+- Closing/signature text does not merge into body text.
+
+### Regeneration Tests
+
+- Supported regeneration command works for a job with existing documents.
+- Already-selected jobs regenerate without invalid state transition.
+- Regeneration creates new document records or documented versions.
+- Historical generated documents remain queryable.
+- Latest/current resume and cover letter are identifiable.
+
+Required command set:
 
 ```bash
 python -m pytest tests/test_evidence_selection.py
@@ -307,44 +335,54 @@ python -m pytest tests/test_preflight_generation.py
 python -m pytest tests/test_selection.py
 ```
 
-Additional Phase 1 tests must exist for:
+Additional cover-letter and regeneration tests should be added before Phase 1 is
+closed if they do not already exist.
 
-- force regeneration or regenerate command behavior
-- already-selected apply behavior
-- generated document history preservation
-- latest/current document lookup
-- regeneration without invalid state transition
-- regeneration without deleting old generated documents
+## 5. Known Blockers Before Phase 1 Completion
 
-## 14. Documentation Required Before Completion
+These items block moving to Benefit/Trajectory Scoring:
 
-- The supported regeneration command is documented in user-facing docs.
-- The difference between apply, generate, and regenerate/force is clear.
-- The active profile source of truth is documented as
+- Cover letter placeholder bug:
+  - `body_paragraphs_placeholder` or similar placeholder text appears in output.
+- Cover letter single-paragraph issue:
+  - generated letters collapse into one body paragraph.
+- Missing separated sign-off:
+  - closing/signature merges into body text.
+- Candidate-name reliability:
+  - final signature does not use `James Morseman`.
+- Any remaining resume renderer bug that affects professional output,
+  including:
+  - broken education formatting
+  - broken project formatting
+  - missing Work Experience when profile history exists and space allows
+  - duplicate standards
+  - replacement-character artifacts
+  - incorrect coursework table/cap behavior
+  - incorrect Programming/Data grouping
+- Regeneration still requires manual state/database repair.
+- Generated document history or latest/current behavior remains ambiguous.
+- Required tests cannot be run or do not pass in the intended environment.
+
+## 6. Exit Criteria
+
+Phase 1 is complete only when all statements below are true:
+
+- A selected job can generate a professional resume and cover letter grounded in
   `profile/james_profile.yaml`.
-- Cover-letter artifact format is documented as current behavior.
-- Latest/current generated document behavior is documented.
-- Any remaining Phase 1 limitation is explicitly listed as a future
-  enhancement, not left implicit.
+- The resume renderer is deterministic, compact, and professionally formatted.
+- The cover letter contains no placeholders, uses separated paragraphs, and has
+  a distinct closing/signature block.
+- Resume and cover-letter artifacts can be uploaded and stored in
+  `generated_docs`.
+- Regeneration works without invalid state transitions or manual database
+  cleanup.
+- Historical generated documents are preserved.
+- Latest/current resume and cover letter behavior is implemented or clearly
+  documented.
+- Required resume, evidence-selection, cover-letter, placeholder, signature, and
+  regeneration tests pass.
+- Known blockers listed above are resolved or explicitly reclassified as
+  non-blocking future enhancements.
 
-## Phase 1 Is Not Complete If
-
-- A user must manually reset a job state in SQLite to regenerate documents.
-- `jsa apply JOB_ID` fails on an already-selected job because it tries to
-  transition to `selected` again.
-- Generated document history is lost during regeneration.
-- There is no deterministic way to identify the latest resume and cover letter.
-- Resume generation bypasses `profile/james_profile.yaml`.
-- Evidence selection no longer reads the expanded master-profile sections.
-- Style guides are not included in prompts.
-- Resume renderer tests fail.
-- Cover-letter generation or upload is broken.
-- Document upload breaks tracking, Sheets sync, or follow-up workflow.
-
-## Final Completion Statement
-
-Phase 1 can be marked complete when a contributor can take a discovered,
-graded, and presented job; select it; generate or regenerate its resume and
-cover letter; upload the documents; see current document links; preserve prior
-generation history; and continue application/follow-up tracking without manual
-state repair.
+Only after these conditions are met should Benefit/Trajectory Scoring become the
+next active coding phase.
