@@ -140,20 +140,71 @@ def test_education_order_deans_list_and_coursework_section(tmp_path):
     assert any(text.startswith("Suffolk County Community College | Selden, New York") for text in texts)
     degree_line = next(text for text in texts if "Civil Engineering Technology" in text)
     assert "ABET Accredited" in degree_line
-    assert any("Dean's List - Spring 2026" in text for text in texts)
-    assert not any("ABET" in text and "Dean's List" in text for text in texts)
+    assert "Dean's List - Spring 2026" in degree_line
+    assert not any(text == "Dean's List - Spring 2026" for text in texts)
     assert all(texts.index("Relevant Coursework") > i for i, text in enumerate(texts) if "College" in text)
+
+
+def test_education_uses_two_line_layout_with_right_aligned_honors(tmp_path):
+    doc = render_doc(tmp_path)
+    texts = paragraph_texts(doc)
+
+    school_idx = texts.index("Farmingdale State College | Farmingdale, New York\tMay 2026")
+    degree_idx = school_idx + 1
+    suffolk_idx = texts.index("Suffolk County Community College | Selden, New York\tJanuary 2025")
+
+    assert texts[degree_idx] == "B.S. in Civil Engineering Technology (ABET Accredited)\tDean's List - Spring 2026"
+    assert "Suffolk County Community College | Selden, New York\tJanuary 2025" in texts
+    assert doc.paragraphs[degree_idx].paragraph_format.left_indent.inches == 0.25
+    assert doc.paragraphs[suffolk_idx + 1].paragraph_format.left_indent.inches == 0.25
+    assert doc.paragraphs[school_idx].paragraph_format.tab_stops
+    assert doc.paragraphs[degree_idx].paragraph_format.tab_stops
+    assert round(doc.paragraphs[degree_idx].paragraph_format.tab_stops[0].position.inches, 1) == 7.5
+
+
+def test_farmingdale_degree_has_single_abet_reference(tmp_path):
+    data = sample_resume_json()
+    data["education"][0]["degree"] = "B.S. (ABET Accredited)"
+    data["education"][0]["honors"] = ["Dean's List - Spring 2026", "ABET Accredited Program"]
+
+    path = tmp_path / "resume.docx"
+    make_generator().save_docx(data, str(path))
+    degree_line = next(text for text in paragraph_texts(Document(path)) if "Civil Engineering Technology" in text)
+
+    assert degree_line.count("ABET") == 1
+    assert "Dean's List - Spring 2026" in degree_line
+    assert "ABET Accredited Program" not in degree_line
 
 
 def test_dates_use_right_aligned_tab_stops(tmp_path):
     doc = render_doc(tmp_path)
-    dated = [p for p in doc.paragraphs if "Graduated May 2026" in p.text or "Spring 2026" in p.text]
+    dated = [p for p in doc.paragraphs if "May 2026" in p.text or "Spring 2026" in p.text]
 
     assert dated
     for paragraph in dated:
         assert "\t" in paragraph.text
         assert paragraph.paragraph_format.tab_stops
         assert round(paragraph.paragraph_format.tab_stops[0].position.inches, 1) == 7.5
+
+
+def test_rendered_bullets_remove_trailing_pipe_artifacts(tmp_path):
+    data = sample_resume_json()
+    data["projects"][0]["bullets"] = [
+        "Reviewed RAM structural model |",
+        "Coordinated markups;",
+        "Prepared calculation package:",
+        "Checked connection loads,",
+    ]
+
+    path = tmp_path / "resume.docx"
+    make_generator().save_docx(data, str(path))
+    texts = paragraph_texts(Document(path))
+
+    assert "Reviewed RAM structural model" in texts
+    assert "Coordinated markups" in texts
+    assert "Prepared calculation package" in texts
+    assert "Checked connection loads" in texts
+    assert not any(text.endswith(("|", ";", ":", ",")) for text in texts if text.startswith(("Reviewed", "Coordinated", "Prepared", "Checked")))
 
 
 def test_work_experience_preserves_title_employer_location(tmp_path):
@@ -175,7 +226,7 @@ def test_project_entries_use_template_two_line_structure(tmp_path):
     jsa_idx = texts.index("Job Search Assistant\t2026")
 
     assert texts[capstone_idx + 1] == "Structural Design Lead | Civil Engineering Technology Program"
-    assert texts[jsa_idx + 1] == "Software Automation Project | Personal Project"
+    assert texts[jsa_idx + 1] == "Project Architect / Lead Developer | Personal Project"
     assert doc.paragraphs[capstone_idx].runs[0].bold is True
     assert doc.paragraphs[capstone_idx].runs[-1].italic is True
 
@@ -220,7 +271,7 @@ def test_academic_project_organization_and_invalid_date_fallbacks(tmp_path):
     bridge_idx = texts.index("Bridge Replacement Construction Management Plan\t2025")
 
     assert texts[capstone_idx + 1] == "Structural Engineering Lead / Project Leader | Farmingdale State College"
-    assert texts[bridge_idx + 1] == "Student Project Contributor | Farmingdale State College"
+    assert texts[bridge_idx + 1] == "Construction Planning Project | Farmingdale State College"
     assert not any("Academic Project\tAcademic Project" in text for text in texts)
 
 
@@ -263,8 +314,12 @@ def test_skills_are_grouped_not_single_generic_skills_line(tmp_path):
     assert any(text.startswith("Codes/Standards:") for text in texts)
     codes = next(text for text in texts if text.startswith("Codes/Standards:"))
     assert "ASCE 7" in codes
-    assert "AISC" in codes
+    assert "AISC Steel Construction Manual" in codes
     assert "ACI 318" in codes
+    assert "ASTM D854" in codes
+    assert codes.count("ASCE 7") == 1
+    assert "ASCE 7-22" not in codes
+    assert codes.count("AISC") == 1
     assert not any(text.startswith("Programming/Data:") for text in texts)
     assert not any(text.startswith("Skills:") for text in texts)
     assert "?" not in " ".join(texts)
@@ -327,6 +382,28 @@ def test_coursework_uses_compact_three_column_table(tmp_path):
     assert "Hydraulics" in table_text
     assert "Surveying" not in table_text
     assert len(doc.tables[0].columns) == 3
+
+
+def test_coursework_labels_are_shortened_and_arranged_for_compact_layout(tmp_path):
+    data = sample_resume_json()
+    data["education"][0]["relevant_coursework"] = [
+        "Field Practices in Civil Engineering Technology",
+        "Reinforced Concrete Design",
+        "Soil Mechanics and Foundations",
+        "Structural Analysis",
+        "Construction Management",
+        "Steel Design",
+    ]
+
+    path = tmp_path / "resume.docx"
+    make_generator().save_docx(data, str(path))
+    table_cells = [cell.text for row in Document(path).tables[0].rows for cell in row.cells]
+
+    assert "Field Practices in Civil Engineering" in table_cells
+    assert "Field Practices in Civil Engineering Technology" not in table_cells
+    assert "Soils & Foundations" in table_cells
+    assert len(DocumentGenerator._arrange_coursework_for_table(data["education"][0]["relevant_coursework"])[:6]) == 6
+    assert all(len(text) <= 36 for text in table_cells if text)
 
 
 def test_renderer_qa_checks_expected_structure():

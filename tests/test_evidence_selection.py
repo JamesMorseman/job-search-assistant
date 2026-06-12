@@ -200,6 +200,42 @@ def test_job_search_assistant_selected_for_automation_relevant_roles():
     assert "personal_jsa" in project_ids
 
 
+def test_leadership_cover_fragment_selected_for_coordination_roles():
+    profile = sample_profile()
+    profile["cover_letter_fragment_bank"].append({
+        "id": "cf_leadership",
+        "text": "Led event teams through staffing, training, scheduling, and customer communication.",
+        "tags": ["leadership", "coordination"],
+    })
+    job = make_job(
+        title="Assistant Project Engineer",
+        description_normalized=(
+            "Entry-level project engineer role requiring leadership, coordination, scheduling, "
+            "documentation, and communication with project teams."
+        ),
+    )
+
+    packet = EvidenceSelector().select(profile, job, job.description_normalized or "")
+    cover_ids = [item.id for item in packet.cover_fragments]
+
+    assert "cf_leadership" in cover_ids
+
+
+def test_job_search_assistant_evidence_selected_for_cover_prompt_context():
+    job = make_job(
+        title="Civil Engineering Data Automation Analyst",
+        description_normalized=(
+            "Civil engineering role supporting Python automation, data ingestion, SQLite databases, "
+            "OpenAI LLM workflows, Google Sheets reporting, and documentation for structural project teams."
+        ),
+    )
+
+    packet = EvidenceSelector().select(sample_profile(), job, job.description_normalized or "")
+
+    assert any(item.id == "personal_jsa" for item in packet.projects)
+    assert any(item.id == "personal_jsa" for item in packet.personal_projects)
+
+
 def test_redundant_structural_project_deprioritized_when_capstone_selected():
     packet = EvidenceSelector().select(sample_profile(), make_job(), make_job().description_normalized or "")
     project_ids = [item.id for item in packet.projects]

@@ -224,17 +224,22 @@ class SelectionProcessor:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             resume_path = str(Path(tmpdir) / f"{prefix}_resume.docx")
-            cover_path = str(Path(tmpdir) / f"{prefix}_cover.txt")
+            cover_path = str(Path(tmpdir) / f"{prefix}_cover.docx")
 
             self._generator.save_docx(result["resume_json"], resume_path)
-            Path(cover_path).write_text(result["cover_letter_text"])
+            self._generator.save_cover_docx(
+                result["cover_letter_json"],
+                cover_path,
+                job=self._hydrate_canonical_job(job_row),
+                today=today,
+            )
 
             folder_id = self._get_or_create_drive_folder(prefix)
             resume_url = self.sheets.upload_document(
                 resume_path, f"{prefix}_resume.docx", folder_id
             )
             cover_url = self.sheets.upload_document(
-                cover_path, f"{prefix}_cover.txt", folder_id
+                cover_path, f"{prefix}_cover.docx", folder_id
             )
         return resume_url, cover_url
 

@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+from docx import Document
+
 from job_search.generation.generator import DocumentGenerator
 from job_search.llm.types import LLMResponse
 from job_search.models import CanonicalJob
@@ -31,8 +33,12 @@ class FakeLLMProvider:
             }))
         return LLMResponse(content=json.dumps({
             "salutation": "Dear Hiring Manager,",
-            "body_paragraphs": ["I am interested in this structural role."],
-            "closing": "Sincerely, James",
+            "body_paragraphs": [
+                "I am interested in this structural role.",
+                "My capstone, leadership, and automation experience align with the role.",
+                "I would welcome the opportunity to contribute.",
+            ],
+            "closing": "Sincerely, James Morseman",
         }))
 
     def submit_json_batch(self, requests):
@@ -123,6 +129,145 @@ def test_cover_letter_style_guide_is_included_in_prompt():
     assert "1 page maximum" in prompt
     assert "Paragraph 1: name the role/company" in prompt
     assert "Do not repeat resume bullets mechanically" in prompt
+    assert "Use exactly 3 body paragraphs" in prompt
+    assert "capstone/technical engineering evidence" in prompt
+    assert "leadership/management plus Job Search Assistant evidence" in prompt
+    assert "Do not mention ChatGPT, Codex" in prompt
+
+
+def test_cover_letter_pipeline_preserves_generated_body_paragraphs():
+    fake = FakeLLMProvider()
+    generator = DocumentGenerator(llm_provider=fake)
+    generator._profile = sample_profile()
+
+    result = generator.generate(make_job())
+    cover = result["cover_letter_json"]
+
+    assert len(fake.requests) == 2
+    assert len(cover["body_paragraphs"]) == 3
+    assert cover["rendering_diagnostics"]["raw_body_paragraph_count"] == 3
+    assert cover["rendering_diagnostics"]["body_paragraph_count"] == 3
+    assert cover["rendering_diagnostics"]["multi_paragraph_output"] is True
+    assert cover["rendering_diagnostics"]["closing_signature_separate"] is True
+
+
+def test_cover_letter_text_rendering_keeps_paragraphs_and_signature_separate():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    cover = generator._qa_cover_letter_json({
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": ["Paragraph one.", "Paragraph two."],
+        "closing": "Sincerely, James Morseman",
+    })
+
+    rendered = generator._render_cover_text(cover)
+
+    assert "Paragraph one.\n\nParagraph two." in rendered
+    assert "Paragraph two.\n\nSincerely,\nJames Morseman" in rendered
+    assert "body_paragraphs_placeholder" not in rendered
+
+
+def test_cover_letter_signature_uses_first_last_profile_name():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = {
+        "identity": {
+            "first_name": "James",
+            "middle_name": "Robert",
+            "last_name": "Morseman",
+        }
+    }
+
+    cover = generator._qa_cover_letter_json({
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": ["Paragraph one.", "Paragraph two.", "Paragraph three."],
+        "closing": "Sincerely, James Robert Morseman",
+    })
+
+    assert cover["closing"] == "Sincerely,\nJames Morseman"
+    assert "James Robert Morseman" not in generator._render_cover_text(cover)
+
+
+def test_cover_letter_prompt_requires_three_paragraph_content_structure():
+    fake = FakeLLMProvider()
+    generator = DocumentGenerator(llm_provider=fake)
+    generator._profile = sample_profile()
+
+    generator.generate(make_job(
+        "Structural role at Acme requiring RAM, steel design, leadership, data workflows, and reporting."
+    ))
+    prompt = user_prompt(fake, index=1)
+
+    assert "1. role/company fit" in prompt
+    assert "2. capstone/technical engineering evidence" in prompt
+    assert "3. leadership/management plus Job Search Assistant evidence when relevant" in prompt
+    assert "Do not mention ChatGPT, Codex" in prompt
+
+
+def test_cover_letter_docx_rendering_uses_multiple_paragraphs_without_placeholders(tmp_path):
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = sample_profile()
+    cover = generator._qa_cover_letter_json({
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": ["Paragraph one.", "Paragraph two.", "Paragraph three."],
+        "closing": "Sincerely, James Morseman",
+    })
+    path = tmp_path / "cover.docx"
+
+    generator.save_cover_docx(cover, str(path), job=make_job(), today="2026-06-12")
+    texts = [p.text for p in Document(path).paragraphs if p.text]
+
+    assert "Paragraph one." in texts
+    assert "Paragraph two." in texts
+    assert "Paragraph three." in texts
+    assert "Sincerely," in texts
+    assert "James Morseman" in texts
+    assert texts.index("Sincerely,") < texts.index("James Morseman")
+    assert not any("placeholder" in text.lower() for text in texts)
+
+
+def test_cover_letter_renderer_rejects_template_placeholders():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    cover = {
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": ["body_paragraphs_placeholder"],
+        "closing": "Sincerely,\nJames Morseman",
+    }
+
+    try:
+        generator._render_cover_text(cover)
+    except ValueError as exc:
+        assert "placeholder leaked" in str(exc)
+    else:
+        raise AssertionError("Expected placeholder leakage to fail rendering.")
+
+
+def test_cover_letter_prompt_includes_leadership_capstone_and_jsa_evidence():
+    fake = FakeLLMProvider()
+    generator = DocumentGenerator(llm_provider=fake)
+    profile = sample_profile()
+    profile["cover_letter_fragment_bank"].extend([
+        {
+            "id": "cf_leadership",
+            "text": "Led event teams through staffing, training, scheduling, and customer communication.",
+            "tags": ["leadership", "coordination"],
+        },
+        {
+            "id": "cf_automation",
+            "text": "Built the Job Search Assistant to organize job data, document generation, and follow-up workflows.",
+            "tags": ["automation", "python"],
+        },
+    ])
+    generator._profile = profile
+
+    generator.generate(make_job(
+        "Structural role using RAM and steel design with project coordination, leadership, "
+        "Python automation, data workflows, and reporting."
+    ))
+    prompt = user_prompt(fake, index=1)
+
+    assert "cf_leadership" in prompt
+    assert "capstone" in prompt
+    assert "personal_jsa" in prompt
+    assert "Job Search Assistant" in prompt
 
 
 def test_generator_falls_back_to_full_profile_when_evidence_is_sparse():

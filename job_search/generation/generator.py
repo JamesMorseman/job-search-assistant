@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from copy import deepcopy
 from pathlib import Path
 
@@ -45,6 +46,7 @@ RESUME_PAGE_UTILIZATION_TARGET = 0.75
 RESUME_SOFT_WORD_CAP = 760
 RESUME_HARD_WORD_CAP = 950
 RESUME_RIGHT_TAB_INCHES = 7.5
+TEMPLATE_PLACEHOLDER_RE = re.compile(r"\b[\w-]*placeholder[\w-]*\b", re.IGNORECASE)
 SCHOOL_LOCATION_FALLBACKS = {
     "farmingdale state college": "Farmingdale, New York",
     "suffolk county community college": "Selden, New York",
@@ -102,11 +104,13 @@ RULES:
 3. Weave in ONLY top-tier JD keywords naturally; do not pad for density.
 4. The letter is NOT a restatement of the resume. It positions WHY this firm, WHY this role.
 5. Return ONLY valid JSON: {"salutation": "...", "body_paragraphs": ["...", "..."], "closing": "..."}
-6. 3-4 body paragraphs maximum. Each paragraph = one string in the array.
+6. Use exactly 3 body paragraphs by default. Use a fourth paragraph only when role-specific context truly requires it.
 7. Follow professional business-letter conventions: one page max, no bullets unless explicitly
    justified, professional tone, no exaggerated AI-style language.
-8. Paragraph 1: role/company and concise reason for interest. Paragraph 2: strongest
-   technical/project evidence. Paragraph 3: fit, communication, learning ability, and closing.
+8. Paragraph 1: role/company fit and concise reason for interest.
+   Paragraph 2: capstone and technical engineering evidence.
+   Paragraph 3: leadership/management plus Job Search Assistant evidence when relevant, framed as
+   automation, workflow design, data management, testing, and technical initiative.
    Optional paragraph 4 only if necessary.
 
 PROFILE FRAGMENT GUIDANCE:
@@ -119,6 +123,8 @@ PROFILE FRAGMENT GUIDANCE:
   mechanically or repeat resume bullets.
 - Use project, coursework, technical, coordination, documentation, and field-practices evidence only when it helps
   explain why the candidate fits this specific role.
+- Never mention the process of using ChatGPT, Codex, or AI assistance to write the letter.
+- Discuss the Job Search Assistant as evidence of skill and initiative, not as a random aside.
 - Do not include unsupported claims or imply experience with tools, credentials, or duties
   not verified in the master profile."""
 
@@ -158,6 +164,7 @@ class DocumentGenerator:
 
         resume_text = self._render_resume_text(resume_json)
         cover_text = self._render_cover_text(cover_json)
+        self._reject_template_placeholders(cover_text, "cover_letter_text")
 
         coverage, hits, misses = self.extractor.compute_coverage(keywords, resume_text)
 
@@ -245,7 +252,11 @@ TOP KEYWORDS (weave in naturally, not mechanically):
 {top_keywords}
 
 Write the cover letter JSON. Make it compelling for a human engineering hiring manager.
-3-4 paragraphs. Do not summarize the resume — make the case for fit."""
+Use exactly 3 body paragraphs unless a fourth is necessary:
+1. role/company fit,
+2. capstone/technical engineering evidence,
+3. leadership/management plus Job Search Assistant evidence when relevant.
+Do not mention ChatGPT, Codex, or the writing/generation process. Do not summarize the resume — make the case for fit."""
 
         resp = self.llm.generate_json(LLMRequest(
             service="generation",
@@ -353,9 +364,19 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
     def _qa_cover_letter_json(self, data: dict) -> dict:
         cleaned = deepcopy(data)
         cleaned["salutation"] = self._clean_text(cleaned.get("salutation", "Dear Hiring Manager,"))
-        paragraphs = [self._clean_text(p) for p in cleaned.get("body_paragraphs", []) if self._clean_text(p)]
+        raw_paragraphs = cleaned.get("body_paragraphs", [])
+        paragraphs = [self._clean_text(p) for p in raw_paragraphs if self._clean_text(p)]
         cleaned["body_paragraphs"] = paragraphs[:4]
-        cleaned["closing"] = self._clean_text(cleaned.get("closing", "Sincerely,\nJames Morseman"))
+        cleaned["closing"] = self._clean_cover_closing(cleaned.get("closing", "Sincerely,\nJames Morseman"))
+        cleaned["rendering_diagnostics"] = {
+            "raw_body_paragraph_count": len(raw_paragraphs) if isinstance(raw_paragraphs, list) else 0,
+            "body_paragraph_count": len(cleaned["body_paragraphs"]),
+            "multi_paragraph_output": len(cleaned["body_paragraphs"]) > 1,
+            "closing_signature_separate": "\n" in cleaned["closing"],
+            "template_placeholders_present": self._contains_template_placeholder(
+                "\n".join([cleaned["salutation"], *cleaned["body_paragraphs"], cleaned["closing"]])
+            ),
+        }
         return cleaned
 
     def _clean_education(self, education: list, jd: str, warnings: list[str]) -> list[dict]:
@@ -449,7 +470,9 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         data["professional_summary"] = " ".join(data.get("professional_summary", "").split()[:60])
 
     def _trim_coursework_row(self, data: dict) -> bool:
-        coursework = self._selected_coursework(data)
+        coursework: list[str] = []
+        for edu in data.get("education", []):
+            coursework.extend(self._clean_string_list(edu.get("relevant_coursework", [])))
         if not coursework:
             return False
         rows = (len(coursework) + COURSEWORK_ROW_SIZE - 1) // COURSEWORK_ROW_SIZE
@@ -709,10 +732,49 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         return " ".join(parts)
 
     def _render_cover_text(self, data: dict) -> str:
-        parts = [data.get("salutation", "")]
-        parts += data.get("body_paragraphs", [])
-        parts.append(data.get("closing", ""))
-        return " ".join(parts)
+        parts = [self._clean_text(data.get("salutation", ""))]
+        parts += self._clean_string_list(data.get("body_paragraphs", []))
+        closing = self._clean_cover_closing(data.get("closing", ""))
+        if closing:
+            parts.append(closing)
+        rendered = "\n\n".join(part for part in parts if part)
+        self._reject_template_placeholders(rendered, "cover_letter_text")
+        return rendered
+
+    def save_cover_docx(self, cover_json: dict, output_path: str, job: CanonicalJob | None = None, today: str | None = None) -> None:
+        """Save a cover letter as DOCX while preserving paragraph and signature structure."""
+        doc = DocxDocument()
+        self._configure_cover_document(doc)
+        profile = self._profile or {}
+        identity = profile.get("identity", {})
+
+        self.add_name_header(doc, identity)
+        self.add_contact_line(doc, identity, include_linkedin=False, include_location=True)
+
+        if today:
+            self._add_cover_paragraph(doc, today)
+        if job:
+            employer_lines = [job.company]
+            location = ", ".join(part for part in [job.location_city, job.location_state] if part)
+            if location:
+                employer_lines.append(location)
+            for line in employer_lines:
+                self._add_cover_paragraph(doc, line, after=0)
+
+        salutation = self._clean_text(cover_json.get("salutation", "Dear Hiring Manager,"))
+        if salutation:
+            self._add_cover_paragraph(doc, salutation)
+
+        for paragraph in self._clean_string_list(cover_json.get("body_paragraphs", [])):
+            self._add_cover_paragraph(doc, paragraph)
+
+        closing = self._clean_cover_closing(cover_json.get("closing", "Sincerely,\nJames Morseman"))
+        for index, line in enumerate(closing.splitlines()):
+            self._add_cover_paragraph(doc, line, after=0 if index == 0 else 6)
+
+        rendered = "\n\n".join(p.text for p in doc.paragraphs if p.text)
+        self._reject_template_placeholders(rendered, "cover_docx")
+        doc.save(output_path)
 
     def save_docx(self, resume_json: dict, output_path: str) -> None:
         """Save the resume as a compact single-column .docx following the template spec."""
@@ -796,6 +858,19 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
             bullet.paragraph_format.space_before = Pt(0)
             bullet.paragraph_format.space_after = Pt(0)
 
+    def _configure_cover_document(self, doc) -> None:
+        section = doc.sections[0]
+        section.page_width = Inches(8.5)
+        section.page_height = Inches(11)
+        section.top_margin = Inches(0.75)
+        section.right_margin = Inches(0.75)
+        section.bottom_margin = Inches(0.75)
+        section.left_margin = Inches(0.75)
+
+        normal = doc.styles["Normal"]
+        normal.font.name = "Calibri"
+        normal.font.size = Pt(11)
+
     def add_name_header(self, doc, identity: dict) -> None:
         name = f"{identity.get('first_name', '')} {identity.get('last_name', '')}".strip()
         if not name:
@@ -836,8 +911,8 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         if not institution:
             return
         location = self._education_location(edu)
-        graduation = self._clean_text(edu.get("graduation", ""))
-        honors = self._clean_string_list(edu.get("honors", []))
+        graduation = self._education_graduation_date(edu.get("graduation", ""))
+        honors = self._education_honors(edu)
 
         p = doc.add_paragraph()
         self._set_spacing(p, line=1.0667)
@@ -852,21 +927,18 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         if degree:
             p2 = doc.add_paragraph()
             self._set_spacing(p2, line=1.0667)
-            p2.paragraph_format.first_line_indent = Inches(0.5)
+            p2.paragraph_format.left_indent = Inches(0.25)
+            self._add_right_tab(p2)
             p2.add_run(degree)
+            if honors:
+                self._format_run(p2.add_run(f"\t{'; '.join(honors)}"), italic=True)
             self._format_paragraph_runs(p2, size=10)
-        if honors:
-            p3 = doc.add_paragraph()
-            self._set_spacing(p3, line=1.0667)
-            self._add_right_tab(p3)
-            self._format_run(p3.add_run(f"\t{'; '.join(honors)}"), italic=True)
-            self._format_paragraph_runs(p3, size=10)
 
     def add_coursework_section(self, doc, coursework: list[str]) -> None:
         if not coursework:
             return
         self.add_section_heading(doc, "Relevant Coursework")
-        coursework = coursework[:MAX_RESUME_COURSEWORK]
+        coursework = self._arrange_coursework_for_table(coursework)[:MAX_RESUME_COURSEWORK]
         table = doc.add_table(rows=0, cols=3)
         table.alignment = WD_TABLE_ALIGNMENT.LEFT
         self._remove_table_borders(table)
@@ -1068,9 +1140,37 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         for edu in resume_json.get("education", []):
             coursework.extend(self._clean_string_list(edu.get("relevant_coursework", [])))
         limit = MAX_RESUME_COURSEWORK
-        if self._resume_word_count(resume_json) < RESUME_TARGET_WORD_FLOOR:
-            limit = MAX_RESUME_COURSEWORK_EXPANDED
-        return coursework[:limit]
+        return self._arrange_coursework_for_table(self._compact_coursework_list(coursework)[:limit])
+
+    @classmethod
+    def _arrange_coursework_for_table(cls, coursework: list[str]) -> list[str]:
+        compacted = cls._compact_coursework_list(coursework)
+        return sorted(compacted, key=lambda value: (len(value) > 28, len(value), value.lower()))
+
+    @classmethod
+    def _compact_coursework_list(cls, coursework: list[str]) -> list[str]:
+        compacted = []
+        seen = set()
+        for course in coursework:
+            label = cls._compact_coursework_label(course)
+            key = label.lower()
+            if key not in seen:
+                compacted.append(label)
+                seen.add(key)
+        return compacted
+
+    @staticmethod
+    def _compact_coursework_label(value: str) -> str:
+        text = DocumentGenerator._clean_text(value)
+        normalized = text.lower().replace("&", "and")
+        replacements = {
+            "field practices in civil engineering technology": "Field Practices in Civil Engineering",
+            "field practices in civil engineering": "Field Practices in Civil Engineering",
+            "soils and foundations": "Soils & Foundations",
+            "soil mechanics and foundations": "Soils & Foundations",
+            "soil mechanics & foundations": "Soils & Foundations",
+        }
+        return replacements.get(normalized, text)
 
     def _profile_education_entry(self, institution: str) -> dict | None:
         if not self._profile or not institution:
@@ -1088,6 +1188,9 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
 
     def _education_accreditation(self, edu: dict) -> str:
         candidates = []
+        institution = str(edu.get("institution", "")).strip().lower()
+        if "farmingdale" in institution:
+            candidates.append("ABET Accredited")
         if edu.get("accreditation"):
             candidates.append(edu.get("accreditation"))
         profile_edu = self._profile_education_entry(edu.get("institution", ""))
@@ -1131,7 +1234,33 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
             line = degree or major
         if accreditation and "abet" not in line.lower():
             line = f"{line} ({accreditation})" if line else accreditation
+        line = self._dedupe_abet_references(line)
         return line
+
+    @staticmethod
+    def _education_graduation_date(value: str) -> str:
+        text = DocumentGenerator._clean_text(value)
+        match = re.search(
+            r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+        if not match:
+            return text
+        return " ".join(part.capitalize() if idx == 0 else part for idx, part in enumerate(match.group(0).split()))
+
+    @staticmethod
+    def _education_honors(edu: dict) -> list[str]:
+        return [honor for honor in DocumentGenerator._clean_string_list(edu.get("honors", [])) if "abet" not in honor.lower()]
+
+    @staticmethod
+    def _dedupe_abet_references(value: str) -> str:
+        text = re.sub(r"\s+", " ", value).strip()
+        if "abet" not in text.lower():
+            return text
+        text = re.sub(r"\s*\([^)]*abet[^)]*\)", "", text, flags=re.IGNORECASE).strip()
+        text = re.sub(r"\s*[-\u2013\u2014,;:|]*\s*ABET[-\s]*Accredited\b", "", text, flags=re.IGNORECASE).strip()
+        return f"{text} (ABET Accredited)" if text else "ABET Accredited"
 
     def _group_skills(
         self,
@@ -1152,14 +1281,15 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
                 target_group = "Programming/Data" if separate_programming_data else "Software"
                 groups[target_group].append(skill)
             elif any(term in normalized for term in ["asce", "aisc", "aci", "astm", "osha", "code", "standard"]):
-                groups["Codes/Standards"].append(skill)
+                groups["Codes/Standards"].append(self._canonical_standard_skill(skill))
             elif any(term in normalized for term in ["autocad", "revit", "ram", "excel", "matlab", "project", "inventor", "civil 3d", "bluebeam"]):
                 groups["Software"].append(skill)
             else:
                 groups["Engineering"].append(skill)
         for standard in self._supported_standard_skills(resume_json):
-            if not any(standard.lower() == existing.lower() for existing in groups["Codes/Standards"]):
+            if not any(self._standard_key(standard) == self._standard_key(existing) for existing in groups["Codes/Standards"]):
                 groups["Codes/Standards"].append(standard)
+        groups["Codes/Standards"] = self._dedupe_standards(groups["Codes/Standards"])
         return {label: values for label, values in groups.items() if values}
 
     def _supported_standard_skills(self, resume_json: dict | None = None) -> list[str]:
@@ -1181,7 +1311,7 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         supported = evidence.lower()
         for label, signal in [
             ("ASCE 7", "asce"),
-            ("AISC", "aisc"),
+            ("AISC Steel Construction Manual", "aisc"),
             ("ACI 318", "aci"),
             ("ASTM D854", "astm d854"),
         ]:
@@ -1189,7 +1319,50 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
                 standards.append(label)
         return standards
 
+    @classmethod
+    def _dedupe_standards(cls, standards: list[str]) -> list[str]:
+        out: list[str] = []
+        seen = set()
+        for standard in standards:
+            canonical = cls._canonical_standard_skill(standard)
+            key = cls._standard_key(canonical)
+            if key and key not in seen:
+                out.append(canonical)
+                seen.add(key)
+        return out
+
+    @staticmethod
+    def _canonical_standard_skill(value: str) -> str:
+        text = DocumentGenerator._clean_text(value)
+        normalized = text.lower()
+        if "asce 7" in normalized or normalized.startswith("asce"):
+            return "ASCE 7"
+        if "aisc" in normalized:
+            return "AISC Steel Construction Manual"
+        if "aci 318" in normalized or normalized.startswith("aci"):
+            return "ACI 318"
+        if "astm d854" in normalized:
+            return "ASTM D854"
+        return text
+
+    @staticmethod
+    def _standard_key(value: str) -> str:
+        normalized = DocumentGenerator._clean_text(value).lower()
+        if "asce 7" in normalized or normalized.startswith("asce"):
+            return "asce 7"
+        if "aisc" in normalized:
+            return "aisc"
+        if "aci 318" in normalized or normalized.startswith("aci"):
+            return "aci 318"
+        if "astm d854" in normalized:
+            return "astm d854"
+        return normalized
+
     def _project_organization(self, project: dict) -> str:
+        if self._is_job_search_assistant_project(project):
+            return "Personal Project"
+        if self._is_bridge_construction_project(project):
+            return "Farmingdale State College"
         for key in ("organization", "program", "team", "context"):
             value = self._clean_text(project.get(key, ""))
             if value:
@@ -1206,11 +1379,13 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         return ""
 
     def _project_role(self, project: dict) -> str:
+        if self._is_job_search_assistant_project(project):
+            return "Project Architect / Lead Developer"
+        if self._is_bridge_construction_project(project):
+            return "Construction Planning Project"
         role = self._clean_text(project.get("role", ""))
         if role and role.lower() not in {"academic project", "class project", "student project", "personal project"}:
             return role
-        if self._is_job_search_assistant_project(project):
-            return "Software Automation Project"
         if self._is_academic_project(project):
             return "Student Project Contributor"
         if self._is_personal_project(project):
@@ -1237,6 +1412,11 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
     def _is_academic_project(project: dict) -> bool:
         text = json.dumps(project).lower()
         return any(term in text for term in ("academic", "student", "capstone", "class_project", "course", "farmingdale", "bridge replacement"))
+
+    @staticmethod
+    def _is_bridge_construction_project(project: dict) -> bool:
+        text = json.dumps(project).lower()
+        return "bridge" in text and any(term in text for term in ("construction", "management", "planning", "plan"))
 
     @staticmethod
     def _looks_like_project_date(value: str) -> bool:
@@ -1314,12 +1494,57 @@ Write the cover letter JSON. Make it compelling for a human engineering hiring m
         self._format_paragraph_runs(p, size=10)
         return p
 
+    def _add_cover_paragraph(self, doc, text: str, after: float = 8):
+        p = doc.add_paragraph(text)
+        self._set_spacing(p, after=after, line=1.0)
+        self._format_paragraph_runs(p, size=11)
+        return p
+
     def _add_bullet(self, doc, text: str):
         p = doc.add_paragraph(style="Resume Bullet")
         self._set_spacing(p)
         p.paragraph_format.left_indent = Inches(0.5)
         p.paragraph_format.first_line_indent = Inches(-0.25)
         p.paragraph_format.line_spacing = 1.0
-        run = p.add_run(text)
+        run = p.add_run(self._clean_bullet_text(text))
         self._format_run(run, size=10)
         return p
+
+    @staticmethod
+    def _clean_bullet_text(text: str) -> str:
+        cleaned = DocumentGenerator._clean_text(text)
+        return re.sub(r"\s*[|;:,]+\s*$", "", cleaned).strip()
+
+    def _clean_cover_closing(self, value: str) -> str:
+        text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+        if not text:
+            text = "Sincerely,\nJames Morseman"
+        lines = [DocumentGenerator._clean_text(line) for line in text.split("\n") if DocumentGenerator._clean_text(line)]
+        if len(lines) == 1:
+            match = re.match(r"^(Sincerely|Regards|Best regards|Respectfully),?\s+(.+)$", lines[0], flags=re.IGNORECASE)
+            if match:
+                closing = match.group(1)
+                name = match.group(2)
+                lines = [f"{closing[0].upper()}{closing[1:]},", name]
+        signature_name = self._cover_signature_name()
+        if lines:
+            if len(lines) == 1:
+                lines.append(signature_name)
+            else:
+                lines[-1] = signature_name
+        return "\n".join(lines)
+
+    def _cover_signature_name(self) -> str:
+        identity = (self._profile or {}).get("identity", {})
+        first = self._clean_text(identity.get("first_name", "")) or "James"
+        last = self._clean_text(identity.get("last_name", "")) or "Morseman"
+        return f"{first} {last}".strip()
+
+    @staticmethod
+    def _contains_template_placeholder(value: str) -> bool:
+        return bool(TEMPLATE_PLACEHOLDER_RE.search(value or ""))
+
+    @staticmethod
+    def _reject_template_placeholders(value: str, context: str) -> None:
+        if DocumentGenerator._contains_template_placeholder(value):
+            raise ValueError(f"Template placeholder leaked into {context}.")

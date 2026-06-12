@@ -1,6 +1,7 @@
 """Tests for SelectionProcessor sync logic (no live Sheet calls)."""
 
 import sqlite3
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -137,3 +138,66 @@ def test_col_letter_basic():
     assert SheetsLogger._col_letter(25) == "Z"
     assert SheetsLogger._col_letter(26) == "AA"
     assert SheetsLogger._col_letter(27) == "AB"
+
+
+def test_upload_docs_renders_cover_letter_as_docx(monkeypatch):
+    class FakeGenerator:
+        def __init__(self):
+            self.saved_resume = None
+            self.saved_cover = None
+
+        def save_docx(self, resume_json, output_path):
+            self.saved_resume = output_path
+            Path(output_path).write_bytes(b"resume")
+
+        def save_cover_docx(self, cover_json, output_path, job=None, today=None):
+            self.saved_cover = {
+                "path": output_path,
+                "cover_json": cover_json,
+                "job": job,
+                "today": today,
+            }
+            Path(output_path).write_bytes(b"cover")
+
+    uploaded = []
+
+    class FakeSheets:
+        def upload_document(self, local_path, filename, folder_id=None):
+            uploaded.append((local_path, filename, folder_id))
+            return f"https://example.invalid/{filename}"
+
+    monkeypatch.setattr("job_search.config.settings.DRIVE_ROOT_FOLDER_ID", "")
+    proc = SelectionProcessor()
+    proc.sheets = FakeSheets()
+    proc._generator = FakeGenerator()
+    job_row = {
+        "canonical_job_id": "job1",
+        "source": "test",
+        "source_job_id": "job1",
+        "firm_id": None,
+        "company": "Acme Engineering",
+        "title": "Civil Engineer",
+        "location_city": "New York",
+        "location_state": "NY",
+        "description_normalized": "Structural design.",
+        "description_raw": "",
+        "apply_url": "",
+        "ats_type": "unknown",
+    }
+    result = {
+        "resume_json": {"professional_summary": "Summary."},
+        "cover_letter_json": {
+            "salutation": "Dear Hiring Manager,",
+            "body_paragraphs": ["Paragraph one.", "Paragraph two."],
+            "closing": "Sincerely,\nJames Morseman",
+        },
+    }
+
+    resume_url, cover_url = proc._upload_docs(job_row, result, today="2026-06-12")
+
+    assert resume_url.endswith("_resume.docx")
+    assert cover_url.endswith("_cover.docx")
+    assert uploaded[0][1].endswith("_resume.docx")
+    assert uploaded[1][1].endswith("_cover.docx")
+    assert proc._generator.saved_cover["today"] == "2026-06-12"
+    assert proc._generator.saved_cover["job"].company == "Acme Engineering"
