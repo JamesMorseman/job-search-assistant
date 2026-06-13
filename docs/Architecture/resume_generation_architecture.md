@@ -392,10 +392,13 @@ Style guide expectations:
 - do not invent hiring-manager names
 - keep technical/project evidence as the main substance
 
-Current limitation:
+Current renderer behavior:
 
-- There is no dedicated cover-letter DOCX renderer. The selected-job workflow
-  writes `cover_letter_text` to a `.txt` file and uploads it.
+- Cover letters are rendered to DOCX through `DocumentGenerator.save_cover_docx()`.
+- Cover-letter QA rejects template placeholders and malformed paragraph
+  structures before text rendering or DOCX upload.
+- The renderer preserves salutation, separated body paragraphs, and a distinct
+  closing/signature block.
 
 ## Profile Integration
 
@@ -423,20 +426,17 @@ profile creation. They are not read directly during generation.
 
 ## Current Limitations
 
-- Cover letters are generated as JSON/text, not rendered to DOCX.
-- `generated_docs` tracks generated files, but the latest/current document
-  semantics are not yet explicit.
-- Regeneration and force-reapply behavior are not fully formalized in the state
-  workflow.
+- `generated_docs` remains append-only. Current/latest document behavior is
+  provided by `job_search.reporting.documents.get_latest_generated_doc()` and
+  `get_latest_generated_docs()` rather than an `is_current` column.
+- Regeneration is supported through `jsa generate --force JOB_ID`; `jsa apply`
+  is still a selection-plus-generation command and is not the regeneration path.
 - Evidence fallback sends the full profile when selected evidence is sparse.
 - Evidence selection scores are returned only indirectly through selected
   packets; score details are not persisted for debugging.
 - `EvidencePacket.to_prompt_dict()` currently omits certifications and
   education groups from its grouped output even though the loader can create
   those item types.
-- Style guide constants in `generator.py` use a lowercase `templates` path,
-  while the repository directory is `Templates`; this works on Windows but is a
-  portability risk on case-sensitive filesystems.
 - The renderer estimates page fit by word count and structure, not by visual
   DOCX pagination.
 - Contact rendering currently omits LinkedIn and location unless optional
@@ -450,11 +450,12 @@ profile creation. They are not read directly during generation.
 
 ## Future Enhancements
 
-- Add `jsa regenerate JOB_ID` or `jsa apply --force JOB_ID` with explicit
-  latest-document behavior.
-- Add `generated_docs.is_current` or a latest-document service query.
+- Add `jsa regenerate JOB_ID` as a clearer alias for
+  `jsa generate --force JOB_ID` if the command vocabulary needs to be more
+  discoverable.
+- Add `generated_docs.is_current` only if dashboard usage needs a materialized
+  current flag instead of the existing latest-document query.
 - Persist evidence packet metadata and selector scores for each generation.
-- Add a cover-letter DOCX renderer using the cover-letter style guide.
 - Add generation version metadata:
   - profile hash
   - evidence packet hash

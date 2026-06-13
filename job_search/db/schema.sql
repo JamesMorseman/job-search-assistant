@@ -114,6 +114,11 @@ CREATE TABLE IF NOT EXISTS generated_docs (
     generated_at     TEXT DEFAULT (datetime('now'))
 );
 
+CREATE INDEX IF NOT EXISTS idx_generated_docs_job_type_generated
+    ON generated_docs(canonical_job_id, doc_type, generated_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_generated_docs_job_generated
+    ON generated_docs(canonical_job_id, generated_at DESC, id DESC);
+
 -- ── Keyword extraction per job ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS job_keywords (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,

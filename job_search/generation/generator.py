@@ -24,14 +24,15 @@ from job_search.llm import get_llm_provider, resolve_service_config
 from job_search.llm.types import LLMMessage, LLMRequest
 from job_search.models import CanonicalJob
 
+from .audit import audit_generated_documents
 from .keywords import KeywordExtractor
 
 logger = logging.getLogger(__name__)
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-RESUME_RENDERING_SPEC_PATH = ROOT_DIR / "templates" / "resume" / "resume_rendering_spec.md"
-RESUME_CONTENT_RULES_PATH = ROOT_DIR / "templates" / "resume" / "resume_content_rules.md"
-COVER_LETTER_STYLE_GUIDE_PATH = ROOT_DIR / "templates" / "cover_letter" / "cover_letter_style_guide.md"
+RESUME_RENDERING_SPEC_PATH = ROOT_DIR / "Templates" / "resume" / "resume_rendering_spec.md"
+RESUME_CONTENT_RULES_PATH = ROOT_DIR / "Templates" / "resume" / "resume_content_rules.md"
+COVER_LETTER_STYLE_GUIDE_PATH = ROOT_DIR / "Templates" / "cover_letter" / "cover_letter_style_guide.md"
 
 MAX_RESUME_SKILLS = 14
 MAX_RESUME_EXPERIENCE = 2
@@ -45,8 +46,57 @@ RESUME_TARGET_WORD_FLOOR = 620
 RESUME_PAGE_UTILIZATION_TARGET = 0.75
 RESUME_SOFT_WORD_CAP = 760
 RESUME_HARD_WORD_CAP = 950
+RESUME_ONE_PAGE_WORD_CAP = 700
+RESUME_ONE_PAGE_COURSEWORK_CAP = 6
+RESUME_ONE_PAGE_SKILL_CAP = 14
+RESUME_ONE_PAGE_SUMMARY_WORD_CAP = 60
 RESUME_RIGHT_TAB_INCHES = 7.5
+RESUME_CONSTRUCTION_MANAGEMENT_PROJECT_NAME = "Bridge Replacement Construction Management Planning"
+COVER_LINE_SPACING = 1.15
+COVER_HEADER_AFTER_PT = 3
+COVER_CONTACT_AFTER_PT = 16
+COVER_DATE_AFTER_PT = 10
+COVER_EMPLOYER_AFTER_PT = 14
+COVER_SALUTATION_AFTER_PT = 11
+COVER_BODY_AFTER_PT = 11
+COVER_CLOSING_BEFORE_PT = 14
+COVER_CLOSING_AFTER_PT = 0
+COVER_SIGNATURE_BEFORE_PT = 4
+COVER_SIGNATURE_AFTER_PT = 8
 TEMPLATE_PLACEHOLDER_RE = re.compile(r"\b[\w-]*placeholder[\w-]*\b", re.IGNORECASE)
+TEMPLATE_MARKER_LABELS = (
+    "company",
+    "role",
+    "title",
+    "closing",
+    "signature",
+    "salutation",
+    "body",
+    "body_paragraph",
+    "body_paragraphs",
+    "hiring_manager",
+    "date",
+    "location",
+    "candidate",
+    "name",
+    "email",
+    "phone",
+    "linkedin",
+    "github",
+)
+TEMPLATE_MARKER_LABEL_RE = "|".join(TEMPLATE_MARKER_LABELS)
+UNRESOLVED_TEMPLATE_MARKER_RE = re.compile(
+    rf"""
+    \{{\{{\s*[\w.-]+\s*\}}\}}
+    |\$\{{\s*[\w.-]+\s*\}}
+    |\{{\s*(?:{TEMPLATE_MARKER_LABEL_RE})[\w\s.-]*\}}
+    |\[\s*(?:{TEMPLATE_MARKER_LABEL_RE})[\w\s.-]*\]
+    |<\s*(?:placeholder|{TEMPLATE_MARKER_LABEL_RE})[\w\s.-]*>
+    |(?:^|\n)\s*(?:{TEMPLATE_MARKER_LABEL_RE})\s*(?:\n|$)
+    |(?:^|[\s.])[\[\{{]\s*$
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
 SCHOOL_LOCATION_FALLBACKS = {
     "farmingdale state college": "Farmingdale, New York",
     "suffolk county community college": "Selden, New York",
@@ -167,12 +217,21 @@ class DocumentGenerator:
         self._reject_template_placeholders(cover_text, "cover_letter_text")
 
         coverage, hits, misses = self.extractor.compute_coverage(keywords, resume_text)
+        audit = audit_generated_documents(
+            resume_json=resume_json,
+            cover_letter_json=cover_json,
+            profile=self._profile or {},
+            job=job,
+            resume_text=resume_text,
+            cover_letter_text=cover_text,
+        )
 
         return {
             "resume_json": resume_json,
             "cover_letter_json": cover_json,
             "resume_text": resume_text,
             "cover_letter_text": cover_text,
+            "document_audit": audit,
             "keyword_coverage": coverage,
             "keywords_hit": hits,
             "keywords_missed": misses,
@@ -334,7 +393,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         warnings: list[str] = []
 
         cleaned["professional_summary"] = self._clean_text(cleaned.get("professional_summary", ""))
-        cleaned["skills"] = self._clean_string_list(cleaned.get("skills", []))[:MAX_RESUME_SKILLS]
+        cleaned["skills"] = self._prioritize_resume_skills(self._clean_string_list(cleaned.get("skills", [])))[:MAX_RESUME_SKILLS]
         cleaned["education"] = self._clean_education(cleaned.get("education", []), jd, warnings)
         cleaned["experience"] = self._clean_items(
             cleaned.get("experience", []),
@@ -353,9 +412,11 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         )[:1]
         cleaned["certifications"] = self._clean_string_list(cleaned.get("certifications", []))[:3]
 
+        self._preserve_project_identities(cleaned)
         self._allocate_resume_content(cleaned, warnings)
         self._restore_profile_work_experience_if_omitted(cleaned, warnings)
         self._trim_resume_to_length(cleaned, warnings)
+        self._enforce_one_page_resume(cleaned, warnings)
         qa = self._resume_qa(cleaned)
         qa["warnings"].extend(warnings)
         cleaned["rendering_qa"] = qa
@@ -365,19 +426,66 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         cleaned = deepcopy(data)
         cleaned["salutation"] = self._clean_text(cleaned.get("salutation", "Dear Hiring Manager,"))
         raw_paragraphs = cleaned.get("body_paragraphs", [])
-        paragraphs = [self._clean_text(p) for p in raw_paragraphs if self._clean_text(p)]
+        self._reject_template_placeholders(self._raw_cover_paragraph_text(raw_paragraphs), "cover_letter_raw_body")
+        paragraphs = self._clean_cover_body_paragraphs(raw_paragraphs)
         cleaned["body_paragraphs"] = paragraphs[:4]
         cleaned["closing"] = self._clean_cover_closing(cleaned.get("closing", "Sincerely,\nJames Morseman"))
+        self._validate_cover_letter_json(cleaned, raw_paragraphs)
         cleaned["rendering_diagnostics"] = {
             "raw_body_paragraph_count": len(raw_paragraphs) if isinstance(raw_paragraphs, list) else 0,
             "body_paragraph_count": len(cleaned["body_paragraphs"]),
             "multi_paragraph_output": len(cleaned["body_paragraphs"]) > 1,
             "closing_signature_separate": "\n" in cleaned["closing"],
-            "template_placeholders_present": self._contains_template_placeholder(
+            "template_placeholders_present": self._contains_unresolved_template_marker(
                 "\n".join([cleaned["salutation"], *cleaned["body_paragraphs"], cleaned["closing"]])
             ),
         }
         return cleaned
+
+    @staticmethod
+    def _raw_cover_paragraph_text(raw_paragraphs) -> str:
+        if isinstance(raw_paragraphs, str):
+            return raw_paragraphs
+        if isinstance(raw_paragraphs, list):
+            return "\n".join(str(item) for item in raw_paragraphs)
+        return str(raw_paragraphs or "")
+
+    def _clean_cover_body_paragraphs(self, raw_paragraphs) -> list[str]:
+        if isinstance(raw_paragraphs, str):
+            raw_items = re.split(r"\n\s*\n+", raw_paragraphs)
+        elif isinstance(raw_paragraphs, list):
+            raw_items = raw_paragraphs
+        else:
+            raw_items = []
+
+        paragraphs: list[str] = []
+        closing_re = re.compile(r"\b(Sincerely|Regards|Best regards|Respectfully),?\b", re.IGNORECASE)
+        for item in raw_items:
+            text = self._clean_text(item)
+            if not text:
+                continue
+            text = closing_re.split(text, maxsplit=1)[0].strip()
+            text = re.sub(r"\bJames\s+(?:Robert\s+)?Morseman\b\s*$", "", text, flags=re.IGNORECASE).strip()
+            if text:
+                paragraphs.append(text)
+        return paragraphs
+
+    def _validate_cover_letter_json(self, cleaned: dict, raw_paragraphs) -> None:
+        rendered = "\n".join([
+            cleaned.get("salutation", ""),
+            *cleaned.get("body_paragraphs", []),
+            cleaned.get("closing", ""),
+        ])
+        self._reject_template_placeholders(rendered, "cover_letter_json")
+        if not isinstance(raw_paragraphs, (list, str)):
+            raise ValueError("Cover letter body_paragraphs must be a list of paragraphs or newline-separated text.")
+        paragraph_count = len(cleaned.get("body_paragraphs", []))
+        if paragraph_count < 3:
+            raise ValueError("Cover letter must contain at least 3 separate body paragraphs.")
+        if paragraph_count > 4:
+            raise ValueError("Cover letter must contain no more than 4 body paragraphs.")
+        if "\n" not in cleaned.get("closing", ""):
+            raise ValueError("Cover letter closing and signature must be separate lines.")
 
     def _clean_education(self, education: list, jd: str, warnings: list[str]) -> list[dict]:
         out: list[dict] = []
@@ -467,7 +575,175 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             warnings.append(f"Third project removed before Work Experience during length trim: {removed.get('name', '')}".strip())
         if self._resume_word_count(data) <= RESUME_HARD_WORD_CAP:
             return
-        data["professional_summary"] = " ".join(data.get("professional_summary", "").split()[:60])
+        data["professional_summary"] = self._truncate_text_at_word_limit(data.get("professional_summary", ""), 60)
+
+    def _enforce_one_page_resume(self, data: dict, warnings: list[str]) -> None:
+        """Apply Phase 1 one-page policy before DOCX rendering."""
+        trim_notes: list[str] = []
+
+        def still_over() -> bool:
+            return self._resume_estimated_page_count(data) > 1
+
+        if not still_over():
+            return
+
+        if self._limit_coursework(data, RESUME_ONE_PAGE_COURSEWORK_CAP):
+            trim_notes.append("excess coursework")
+            data.setdefault("rendering_allocation", {}).pop("expanded_coursework", None)
+        if not still_over():
+            self._record_one_page_trim(data, warnings, trim_notes)
+            return
+
+        certs = self._clean_string_list(data.get("certifications", []))
+        if len(certs) > 1:
+            data["certifications"] = certs[:1]
+            trim_notes.append("professional development extras")
+        if not still_over():
+            self._record_one_page_trim(data, warnings, trim_notes)
+            return
+
+        summary_words = self._clean_text(data.get("professional_summary", "")).split()
+        if len(summary_words) > RESUME_ONE_PAGE_SUMMARY_WORD_CAP:
+            data["professional_summary"] = self._truncate_text_at_word_limit(
+                data.get("professional_summary", ""),
+                RESUME_ONE_PAGE_SUMMARY_WORD_CAP,
+            )
+            trim_notes.append("summary detail")
+        if not still_over():
+            self._record_one_page_trim(data, warnings, trim_notes)
+            return
+
+        skills = self._clean_string_list(data.get("skills", []))
+        if len(skills) > RESUME_ONE_PAGE_SKILL_CAP:
+            data["skills"] = self._prioritize_resume_skills(skills)[:RESUME_ONE_PAGE_SKILL_CAP]
+            trim_notes.append("lower-priority skills")
+        if not still_over():
+            self._record_one_page_trim(data, warnings, trim_notes)
+            return
+
+        for project in reversed(data.get("projects", [])):
+            if self._is_capstone_project(project) or self._is_job_search_assistant_project(project):
+                continue
+            bullets = project.get("bullets", [])
+            if len(bullets) > 1:
+                project["bullets"] = bullets[:1]
+                trim_notes.append("lowest-value project bullets")
+                if not still_over():
+                    self._record_one_page_trim(data, warnings, trim_notes)
+                    return
+
+        for exp in data.get("experience", []):
+            bullets = exp.get("bullets", [])
+            if len(bullets) > 2:
+                exp["bullets"] = bullets[:2]
+                trim_notes.append("work-experience bullets")
+        if not still_over():
+            self._record_one_page_trim(data, warnings, trim_notes)
+            return
+
+        jsa = next((p for p in data.get("projects", []) if self._is_job_search_assistant_project(p)), None)
+        if jsa and len(jsa.get("bullets", [])) > 1:
+            jsa["bullets"] = jsa.get("bullets", [])[:1]
+            trim_notes.append("Job Search Assistant extra bullets")
+        if not still_over():
+            self._record_one_page_trim(data, warnings, trim_notes)
+            return
+
+        capstone = next((p for p in data.get("projects", []) if self._is_capstone_project(p)), None)
+        if capstone and len(capstone.get("bullets", [])) > 4:
+            capstone["bullets"] = capstone.get("bullets", [])[:4]
+            trim_notes.append("capstone extra bullets")
+        if not still_over():
+            self._record_one_page_trim(data, warnings, trim_notes)
+            return
+
+        if len(data.get("projects", [])) > 2:
+            protected = [p for p in data.get("projects", []) if self._is_capstone_project(p) or self._is_job_search_assistant_project(p)]
+            unprotected = [p for p in data.get("projects", []) if p not in protected]
+            if unprotected:
+                data["projects"] = protected + unprotected[:1]
+                trim_notes.append("extra project entries")
+
+        self._record_one_page_trim(data, warnings, trim_notes)
+
+    def _record_one_page_trim(self, data: dict, warnings: list[str], trim_notes: list[str]) -> None:
+        data.setdefault("rendering_allocation", {})["one_page_enforced"] = True
+        if trim_notes:
+            warnings.append("One-page resume enforcement trimmed: " + ", ".join(dict.fromkeys(trim_notes)) + ".")
+
+    def _truncate_text_at_word_limit(self, text: str, word_limit: int) -> str:
+        cleaned = self._clean_text(text)
+        words = cleaned.split()
+        if len(words) <= word_limit:
+            return cleaned
+        clipped = " ".join(words[:word_limit]).strip()
+        sentence_match = re.match(r"^(.+[.!?])(?:\s+[^.!?]*)?$", clipped)
+        if sentence_match:
+            return sentence_match.group(1).strip()
+        return clipped
+
+    def _limit_coursework(self, data: dict, limit: int) -> bool:
+        changed = False
+        remaining = max(limit, 0)
+        for edu in data.get("education", []):
+            coursework = self._clean_string_list(edu.get("relevant_coursework", []))
+            if not coursework:
+                continue
+            keep = coursework[:remaining]
+            remaining = max(0, remaining - len(keep))
+            if len(keep) < len(coursework):
+                changed = True
+            if keep:
+                edu["relevant_coursework"] = keep
+            else:
+                edu.pop("relevant_coursework", None)
+        return changed
+
+    def _prioritize_resume_skills(self, skills: list[str]) -> list[str]:
+        compacted = self._clean_string_list(skills)
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for skill in compacted:
+            key = skill.lower()
+            if key in seen:
+                continue
+            deduped.append(skill)
+            seen.add(key)
+        return sorted(deduped, key=lambda skill: (self._resume_skill_priority(skill), deduped.index(skill)))
+
+    @staticmethod
+    def _resume_skill_priority(skill: str) -> int:
+        normalized = skill.lower()
+        high_value_terms = (
+            "ram structural system",
+            "autocad",
+            "revit",
+            "excel",
+            "google sheets",
+            "sqlite",
+            "python",
+            "automation",
+            "microsoft project",
+            "project scheduling",
+        )
+        if any(term in normalized for term in high_value_terms):
+            return 0
+        standards = ("asce", "aisc", "aci", "astm", "osha")
+        if any(term in normalized for term in standards):
+            return 1
+        engineering_terms = (
+            "structural",
+            "steel",
+            "concrete",
+            "foundation",
+            "construction",
+            "stormwater",
+            "hydraulic",
+            "civil",
+        )
+        if any(term in normalized for term in engineering_terms):
+            return 2
+        return 3
 
     def _trim_coursework_row(self, data: dict) -> bool:
         coursework: list[str] = []
@@ -530,7 +806,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
                 "title": title,
                 "dates": self._format_profile_date_range(entry),
                 "location": self._clean_text(str(entry.get("location", "")).replace(";", " | ")),
-                "bullets": self._profile_work_bullets(entry)[:2],
+                "bullets": self._profile_work_bullets(entry)[:MAX_RESUME_WORK_BULLETS],
             }
             out.append({k: v for k, v in item.items() if v not in ("", [], None)})
         return out
@@ -546,6 +822,27 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             if clean:
                 bullets.append(clean)
         return bullets
+
+    def _profile_project_items(self) -> list[dict]:
+        if not self._profile:
+            return []
+        out: list[dict] = []
+        for entry in self._profile.get("projects", []) or []:
+            if not isinstance(entry, dict):
+                continue
+            name = self._clean_text(entry.get("name", ""))
+            role = self._clean_text(entry.get("role", ""))
+            if not name:
+                continue
+            bullets = self._profile_work_bullets(entry)
+            item = {
+                "name": name,
+                "role": role or self._clean_text(str(entry.get("type", "")).replace("_", " ").title()),
+                "date": self._format_year_month(entry.get("date")),
+                "bullets": bullets[:1],
+            }
+            out.append({k: v for k, v in item.items() if v not in ("", [], None)})
+        return out
 
     def _format_profile_date_range(self, entry: dict) -> str:
         start = self._format_year_month(entry.get("start_date"))
@@ -586,10 +883,10 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
                 expansion_order.append(label)
 
         capstone = next((p for p in data.get("projects", []) if self._is_capstone_project(p)), None)
-        expand(capstone, self._matching_project(original_projects, capstone), 4, "capstone_bullets")
+        expand(capstone, self._matching_project(original_projects, capstone), MAX_RESUME_PROJECT_BULLETS, "capstone_bullets")
 
         jsa = next((p for p in data.get("projects", []) if self._is_job_search_assistant_project(p)), None)
-        expand(jsa, self._matching_project(original_projects, jsa), 2, "job_search_assistant_bullets")
+        expand(jsa, self._matching_project(original_projects, jsa), 3, "job_search_assistant_bullets")
 
         for project in data.get("projects", []):
             if self._is_capstone_project(project) or self._is_job_search_assistant_project(project):
@@ -601,10 +898,181 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             source = self._matching_item(original_experience, current, ("employer", "title"))
             expand(current, source, MAX_RESUME_WORK_BULLETS, "work_experience_bullets")
 
+        self._expand_profile_work_experience(data, expansion_order)
+        self._expand_profile_bullet_bank(data, expansion_order)
+        self._restore_profile_breadth_project(data, expansion_order)
+        self._expand_profile_coursework(data, expansion_order)
+        self._expand_profile_skills(data, expansion_order)
+        self._expand_profile_certifications(data, expansion_order)
+        self._expand_profile_summary(data, expansion_order)
+
         if expansion_order:
             data.setdefault("rendering_allocation", {})["expansion_order"] = expansion_order
         if self._resume_word_count(data) < RESUME_TARGET_WORD_FLOOR:
             warnings.append("Resume remains below page-utilization target after safe expansion.")
+
+    def _expand_profile_bullet_bank(self, data: dict, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        bank = self._profile.get("resume_bullet_bank", {}) or {}
+        if not isinstance(bank, dict):
+            return
+        capstone = next((p for p in data.get("projects", []) if self._is_capstone_project(p)), None)
+        if capstone:
+            before = len(capstone.get("bullets", []))
+            self._expand_bullets(capstone, bank.get("structural", []) + bank.get("leadership", []), MAX_RESUME_PROJECT_BULLETS)
+            if len(capstone.get("bullets", [])) > before and "capstone_bullets" not in expansion_order:
+                expansion_order.append("capstone_bullets")
+
+        if self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        jsa = next((p for p in data.get("projects", []) if self._is_job_search_assistant_project(p)), None)
+        if jsa:
+            before = len(jsa.get("bullets", []))
+            self._expand_bullets(jsa, bank.get("software_data_automation", []), 3)
+            if len(jsa.get("bullets", [])) > before and "job_search_assistant_bullets" not in expansion_order:
+                expansion_order.append("job_search_assistant_bullets")
+
+    def _restore_profile_breadth_project(self, data: dict, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        projects = data.setdefault("projects", [])
+        if len(projects) >= MAX_RESUME_PROJECTS:
+            return
+        existing = next((project for project in projects if self._is_construction_management_project(project)), None)
+        if existing:
+            self._canonicalize_construction_management_project(existing)
+            return
+        construction_project = next(
+            (project for project in self._profile_project_items() if self._is_construction_management_project(project)),
+            None,
+        )
+        if construction_project:
+            self._canonicalize_construction_management_project(construction_project)
+            projects.append(construction_project)
+            expansion_order.append("academic_project_bullets")
+
+    def _preserve_project_identities(self, data: dict) -> None:
+        for project in data.get("projects", []):
+            if self._is_construction_management_project(project):
+                self._canonicalize_construction_management_project(project)
+
+    def _canonicalize_construction_management_project(self, project: dict) -> None:
+        project["name"] = RESUME_CONSTRUCTION_MANAGEMENT_PROJECT_NAME
+        role = self._clean_text(project.get("role", ""))
+        if not role or "coursework" in role.lower():
+            project["role"] = "Construction Planning Project"
+
+    def _expand_profile_work_experience(self, data: dict, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR or not data.get("experience"):
+            return
+        current = data["experience"][0]
+        source = self._matching_item(self._profile_work_experience_items(), current, ("employer", "title"))
+        if not source:
+            return
+        before = len(current.get("bullets", []))
+        self._expand_bullets(current, source.get("bullets", []), MAX_RESUME_WORK_BULLETS)
+        if len(current.get("bullets", [])) > before and "work_experience_bullets" not in expansion_order:
+            expansion_order.append("work_experience_bullets")
+
+    def _expand_profile_coursework(self, data: dict, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        changed = False
+        for edu in data.get("education", []):
+            entry = self._profile_education_entry(str(edu.get("institution", "")))
+            source = self._clean_string_list((entry or {}).get("relevant_coursework", []))
+            if not source:
+                continue
+            current = self._clean_string_list(edu.get("relevant_coursework", []))
+            for course in source:
+                if len(current) >= MAX_RESUME_COURSEWORK_EXPANDED or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+                    break
+                if course not in current:
+                    current.append(course)
+                    changed = True
+            if current:
+                edu["relevant_coursework"] = current
+        if changed:
+            data.setdefault("rendering_allocation", {})["expanded_coursework"] = True
+            expansion_order.append("coursework_items")
+
+    def _expand_profile_skills(self, data: dict, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        candidates: list[str] = []
+        technical = self._profile.get("technical_skills", {}) or {}
+        if not isinstance(technical, dict):
+            technical = {}
+        for key in ("software_data_automation", "leadership_operations", "structural", "construction", "geotechnical_foundation", "water_site_civil"):
+            candidates.extend(self._clean_string_list(technical.get(key, [])))
+        software_tools = self._profile.get("software_tools", {}) or {}
+        tools = software_tools.get("verified", []) if isinstance(software_tools, dict) else software_tools
+        candidates = self._clean_string_list(tools) + candidates
+
+        skills = self._prioritize_resume_skills(self._clean_string_list(data.get("skills", [])))
+        before = len(skills)
+        seen = {skill.lower() for skill in skills}
+        for skill in self._prioritize_resume_skills(candidates):
+            if len(skills) >= MAX_RESUME_SKILLS or self._resume_word_count({**data, "skills": skills}) >= RESUME_TARGET_WORD_FLOOR:
+                break
+            key = skill.lower()
+            if key not in seen:
+                skills.append(skill)
+                seen.add(key)
+        if len(skills) > before:
+            data["skills"] = self._prioritize_resume_skills(skills)
+            expansion_order.append("skills_items")
+
+    def _expand_profile_certifications(self, data: dict, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        certs = self._clean_string_list(data.get("certifications", []))
+        profile_certs = self._profile.get("certifications", {}) or {}
+        if not isinstance(profile_certs, dict):
+            return
+        candidates = self._clean_string_list(profile_certs.get("professional_development", []))
+        before = len(certs)
+        seen = {cert.lower() for cert in certs}
+        for cert in candidates:
+            if len(certs) >= 3 or self._resume_word_count({**data, "certifications": certs}) >= RESUME_TARGET_WORD_FLOOR:
+                break
+            key = cert.lower()
+            if key not in seen:
+                certs.append(cert)
+                seen.add(key)
+        if len(certs) > before:
+            data["certifications"] = certs
+            expansion_order.append("professional_development_items")
+
+    def _expand_profile_summary(self, data: dict, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        profile_summary = self._profile.get("profile_summary", {}) or {}
+        if not isinstance(profile_summary, dict):
+            return
+        current = self._clean_text(data.get("professional_summary", ""))
+        candidates = [
+            profile_summary.get("current_status", ""),
+            profile_summary.get("positioning", ""),
+            *self._clean_string_list(profile_summary.get("primary_differentiators", [])),
+        ]
+        sentences = [current] if current else []
+        current_lower = current.lower()
+        for candidate in self._clean_string_list(candidates):
+            if self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+                break
+            if candidate.lower() in current_lower:
+                continue
+            sentences.append(candidate)
+            summary_words = " ".join(sentences).split()
+            if len(summary_words) >= 75:
+                sentences = [self._truncate_text_at_word_limit(" ".join(sentences), 75)]
+                break
+        expanded = " ".join(sentences).strip()
+        if expanded and expanded != current:
+            data["professional_summary"] = expanded
+            expansion_order.append("summary_detail")
 
     @staticmethod
     def _expand_bullets(target: dict, source_bullets, limit: int) -> None:
@@ -662,6 +1130,16 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         return "job search assistant" in text or "job-search automation" in text
 
     @staticmethod
+    def _is_construction_management_project(project: dict) -> bool:
+        text = json.dumps(project).lower()
+        return (
+            "construction management" in text
+            or "construction planning" in text
+            or ("traffic control" in text and "schedule" in text)
+            or ("bridge replacement" in text and "planning" in text)
+        )
+
+    @staticmethod
     def _project_topic(project: dict) -> str:
         text = json.dumps(project).lower()
         if any(term in text for term in ("python", "sqlite", "openai", "llm", "automation", "data ingestion")):
@@ -698,6 +1176,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         return {
             "estimated_words": word_count,
             "page_utilization_estimate": self._resume_page_utilization(data),
+            "estimated_page_count": self._resume_estimated_page_count(data),
             "length_risk": (
                 "hard_cap_risk" if word_count > RESUME_HARD_WORD_CAP
                 else "soft_cap_risk" if word_count > RESUME_SOFT_WORD_CAP
@@ -732,6 +1211,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         return " ".join(parts)
 
     def _render_cover_text(self, data: dict) -> str:
+        data = self._qa_cover_letter_json(data)
         parts = [self._clean_text(data.get("salutation", ""))]
         parts += self._clean_string_list(data.get("body_paragraphs", []))
         closing = self._clean_cover_closing(data.get("closing", ""))
@@ -741,36 +1221,68 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         self._reject_template_placeholders(rendered, "cover_letter_text")
         return rendered
 
-    def save_cover_docx(self, cover_json: dict, output_path: str, job: CanonicalJob | None = None, today: str | None = None) -> None:
+    def prepare_resume_for_rendering(self, resume_json: dict) -> tuple[dict, list[str]]:
+        rendered = deepcopy(resume_json)
+        warnings: list[str] = []
+        self._enforce_one_page_resume(rendered, warnings)
+        return rendered, warnings
+
+    def save_cover_docx(
+        self,
+        cover_json: dict,
+        output_path: str,
+        job: CanonicalJob | None = None,
+        today: str | None = None,
+        include_location: bool = True,
+        include_linkedin: bool = False,
+    ) -> None:
         """Save a cover letter as DOCX while preserving paragraph and signature structure."""
+        cover_json = self._qa_cover_letter_json(cover_json)
         doc = DocxDocument()
         self._configure_cover_document(doc)
         profile = self._profile or {}
         identity = profile.get("identity", {})
 
-        self.add_name_header(doc, identity)
-        self.add_contact_line(doc, identity, include_linkedin=False, include_location=True)
+        self.add_cover_name_header(doc, identity)
+        self.add_cover_contact_block(
+            doc,
+            identity,
+            include_location=include_location,
+            include_linkedin=include_linkedin,
+        )
 
         if today:
-            self._add_cover_paragraph(doc, today)
+            self._add_cover_paragraph(doc, today, after=COVER_DATE_AFTER_PT)
         if job:
             employer_lines = [job.company]
             location = ", ".join(part for part in [job.location_city, job.location_state] if part)
             if location:
                 employer_lines.append(location)
-            for line in employer_lines:
-                self._add_cover_paragraph(doc, line, after=0)
+            for index, line in enumerate(employer_lines):
+                self._add_cover_paragraph(
+                    doc,
+                    line,
+                    after=COVER_EMPLOYER_AFTER_PT if index == len(employer_lines) - 1 else 0,
+                )
 
         salutation = self._clean_text(cover_json.get("salutation", "Dear Hiring Manager,"))
         if salutation:
-            self._add_cover_paragraph(doc, salutation)
+            self._add_cover_paragraph(doc, salutation, after=COVER_SALUTATION_AFTER_PT)
 
         for paragraph in self._clean_string_list(cover_json.get("body_paragraphs", [])):
-            self._add_cover_paragraph(doc, paragraph)
+            self._add_cover_paragraph(doc, paragraph, after=COVER_BODY_AFTER_PT)
 
         closing = self._clean_cover_closing(cover_json.get("closing", "Sincerely,\nJames Morseman"))
         for index, line in enumerate(closing.splitlines()):
-            self._add_cover_paragraph(doc, line, after=0 if index == 0 else 6)
+            if index == 0:
+                self._add_cover_paragraph(
+                    doc,
+                    line,
+                    before=COVER_CLOSING_BEFORE_PT,
+                    after=COVER_CLOSING_AFTER_PT,
+                )
+            else:
+                self._add_cover_paragraph(doc, line, before=COVER_SIGNATURE_BEFORE_PT, after=COVER_SIGNATURE_AFTER_PT)
 
         rendered = "\n\n".join(p.text for p in doc.paragraphs if p.text)
         self._reject_template_placeholders(rendered, "cover_docx")
@@ -778,13 +1290,14 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
 
     def save_docx(self, resume_json: dict, output_path: str) -> None:
         """Save the resume as a compact single-column .docx following the template spec."""
+        resume_json, render_warnings = self.prepare_resume_for_rendering(resume_json)
         doc = DocxDocument()
         self._configure_resume_document(doc)
         profile = self._profile or {}
         identity = profile.get("identity", {})
 
         self.add_name_header(doc, identity)
-        self.add_contact_line(doc, identity)
+        self.add_resume_contact_block(doc, identity)
 
         summary = resume_json.get("professional_summary")
         if summary:
@@ -828,6 +1341,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             self.add_professional_development_line(doc, certs)
 
         qa = self.resume_renderer_qa(resume_json)
+        qa["warnings"].extend(render_warnings)
         if qa["warnings"]:
             logger.warning("Resume renderer QA warnings: %s", qa["warnings"])
 
@@ -870,6 +1384,9 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         normal = doc.styles["Normal"]
         normal.font.name = "Calibri"
         normal.font.size = Pt(11)
+        normal.paragraph_format.line_spacing = COVER_LINE_SPACING
+        normal.paragraph_format.space_before = Pt(0)
+        normal.paragraph_format.space_after = Pt(0)
 
     def add_name_header(self, doc, identity: dict) -> None:
         name = f"{identity.get('first_name', '')} {identity.get('last_name', '')}".strip()
@@ -880,6 +1397,16 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         self._set_spacing(p, line=1.0667)
         run = p.add_run(name)
         self._format_run(run, size=18)
+
+    def add_cover_name_header(self, doc, identity: dict) -> None:
+        name = f"{identity.get('first_name', '')} {identity.get('last_name', '')}".strip()
+        if not name:
+            return
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        self._set_spacing(p, after=COVER_HEADER_AFTER_PT, line=COVER_LINE_SPACING)
+        run = p.add_run(name)
+        self._format_run(run, size=16)
 
     def add_contact_line(self, doc, identity: dict, include_linkedin: bool = False, include_location: bool = False) -> None:
         contact_parts = [identity.get("email"), identity.get("phone")]
@@ -895,6 +1422,58 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         p = doc.add_paragraph(" | ".join(contact_parts))
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         self._set_spacing(p, line=1.0667)
+        self._format_paragraph_runs(p, size=10)
+
+    def add_resume_contact_block(self, doc, identity: dict) -> None:
+        """Render approved resume header contact lines from profile identity."""
+        primary_parts = [
+            self._clean_text(identity.get("phone", "")),
+            self._clean_text(identity.get("email", "")),
+        ]
+        self._add_centered_contact_line(doc, primary_parts)
+
+        link_parts = [
+            self._clean_text(identity.get("linkedin_url", "")),
+            self._clean_text(identity.get("github_url", "")),
+        ]
+        self._add_centered_contact_line(doc, link_parts)
+
+    def add_cover_contact_block(
+        self,
+        doc,
+        identity: dict,
+        include_location: bool = True,
+        include_linkedin: bool = False,
+    ) -> None:
+        """Render stable business-letter contact line from profile identity."""
+        contact_parts = [
+            self._clean_text(identity.get("phone", "")),
+            self._clean_text(identity.get("email", "")),
+        ]
+        if include_linkedin:
+            contact_parts.append(self._clean_text(identity.get("linkedin_url", "")))
+        if include_location:
+            location = identity.get("location", {})
+            loc_text = ", ".join([
+                self._clean_text(location.get("city", "")),
+                self._clean_text(location.get("state", "")),
+            ]).strip(", ")
+            contact_parts.append(loc_text)
+        self._add_centered_contact_line(doc, contact_parts, after=COVER_CONTACT_AFTER_PT, line=COVER_LINE_SPACING)
+
+    def _add_centered_contact_line(
+        self,
+        doc,
+        parts: list[str],
+        after: float = 0,
+        line: float = 1.0667,
+    ) -> None:
+        parts = [part for part in parts if part]
+        if not parts:
+            return
+        p = doc.add_paragraph(" | ".join(parts))
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        self._set_spacing(p, after=after, line=line)
         self._format_paragraph_runs(p, size=10)
 
     def add_section_heading(self, doc, title: str) -> None:
@@ -938,7 +1517,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         if not coursework:
             return
         self.add_section_heading(doc, "Relevant Coursework")
-        coursework = self._arrange_coursework_for_table(coursework)[:MAX_RESUME_COURSEWORK]
+        coursework = self._arrange_coursework_for_table(coursework)[:MAX_RESUME_COURSEWORK_EXPANDED]
         table = doc.add_table(rows=0, cols=3)
         table.alignment = WD_TABLE_ALIGNMENT.LEFT
         self._remove_table_borders(table)
@@ -1050,8 +1629,11 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         if self._education_has_deans_list(resume_json) and not self._deans_list_preserved(resume_json):
             warnings.append("deans_list_missing")
         utilization = self._resume_page_utilization(resume_json)
-        if utilization < RESUME_PAGE_UTILIZATION_TARGET:
+        if utilization < RESUME_PAGE_UTILIZATION_TARGET and not resume_json.get("rendering_allocation", {}).get("one_page_enforced"):
             warnings.append("low_page_utilization")
+        estimated_page_count = self._resume_estimated_page_count(resume_json)
+        if estimated_page_count > 1:
+            warnings.append("page_count_exceeded")
         missing_major = self._missing_major_sections(resume_json, sections)
         warnings.extend(f"missing_major_section:{section}" for section in missing_major)
         if not self._expansion_order_is_reasonable(resume_json):
@@ -1061,6 +1643,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             "warnings": warnings,
             "sections": sections,
             "page_utilization_estimate": utilization,
+            "estimated_page_count": estimated_page_count,
             "major_sections_present": [section for section in self._required_major_sections(resume_json) if section in sections],
             "expansion_order": resume_json.get("rendering_allocation", {}).get("expansion_order", []),
         }
@@ -1099,6 +1682,30 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
     def _resume_page_utilization(self, resume_json: dict) -> float:
         return round(min(self._resume_word_count(resume_json) / RESUME_SOFT_WORD_CAP, 1.25), 2)
 
+    def _resume_estimated_page_count(self, resume_json: dict) -> int:
+        if self._resume_word_count(resume_json) > RESUME_ONE_PAGE_WORD_CAP:
+            return 2
+        if len(self._selected_coursework(resume_json)) > RESUME_ONE_PAGE_COURSEWORK_CAP:
+            return 2
+        if len(self._clean_string_list(resume_json.get("skills", []))) > RESUME_ONE_PAGE_SKILL_CAP:
+            return 2
+        if len(self._clean_string_list(resume_json.get("certifications", []))) > 1:
+            return 2
+        if len(self._clean_text(resume_json.get("professional_summary", "")).split()) > RESUME_ONE_PAGE_SUMMARY_WORD_CAP:
+            return 2
+        for project in resume_json.get("projects", []):
+            bullets = project.get("bullets", [])
+            if self._is_capstone_project(project) and len(bullets) > 4:
+                return 2
+            if self._is_job_search_assistant_project(project) and len(bullets) > 1:
+                return 2
+            if not self._is_capstone_project(project) and not self._is_job_search_assistant_project(project) and len(bullets) > 1:
+                return 2
+        for entry in resume_json.get("experience", []):
+            if len(entry.get("bullets", [])) > 2:
+                return 2
+        return 1
+
     @staticmethod
     def _required_major_sections(resume_json: dict) -> list[str]:
         required = ["Education", "Engineering Experience", "Technical Skills"]
@@ -1119,9 +1726,12 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         priority = [
             "capstone_bullets",
             "job_search_assistant_bullets",
-            "academic_project_bullets",
             "work_experience_bullets",
+            "academic_project_bullets",
             "coursework_items",
+            "skills_items",
+            "professional_development_items",
+            "summary_detail",
         ]
         ranked = [priority.index(item) for item in order if item in priority]
         return ranked == sorted(ranked)
@@ -1139,7 +1749,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         coursework: list[str] = []
         for edu in resume_json.get("education", []):
             coursework.extend(self._clean_string_list(edu.get("relevant_coursework", [])))
-        limit = MAX_RESUME_COURSEWORK
+        limit = MAX_RESUME_COURSEWORK_EXPANDED if resume_json.get("rendering_allocation", {}).get("expanded_coursework") else MAX_RESUME_COURSEWORK
         return self._arrange_coursework_for_table(self._compact_coursework_list(coursework)[:limit])
 
     @classmethod
@@ -1180,6 +1790,8 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             if str(entry.get("institution", "")).strip().lower() == normalized:
                 return entry
         for key, entry in (self._profile.get("education_detail", {}) or {}).items():
+            if not isinstance(entry, dict):
+                continue
             key_text = str(key).replace("_", " ").lower()
             entry_name = str(entry.get("institution", "")).strip().lower()
             if normalized == entry_name or all(part in key_text for part in normalized.split()[:2]):
@@ -1494,9 +2106,9 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         self._format_paragraph_runs(p, size=10)
         return p
 
-    def _add_cover_paragraph(self, doc, text: str, after: float = 8):
+    def _add_cover_paragraph(self, doc, text: str, before: float = 0, after: float = COVER_BODY_AFTER_PT):
         p = doc.add_paragraph(text)
-        self._set_spacing(p, after=after, line=1.0)
+        self._set_spacing(p, before=before, after=after, line=COVER_LINE_SPACING)
         self._format_paragraph_runs(p, size=11)
         return p
 
@@ -1517,6 +2129,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
 
     def _clean_cover_closing(self, value: str) -> str:
         text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+        self._reject_template_placeholders(text, "cover_letter_closing")
         if not text:
             text = "Sincerely,\nJames Morseman"
         lines = [DocumentGenerator._clean_text(line) for line in text.split("\n") if DocumentGenerator._clean_text(line)]
@@ -1545,6 +2158,14 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         return bool(TEMPLATE_PLACEHOLDER_RE.search(value or ""))
 
     @staticmethod
+    def _contains_unresolved_template_marker(value: str) -> bool:
+        text = value or ""
+        return bool(
+            TEMPLATE_PLACEHOLDER_RE.search(text)
+            or UNRESOLVED_TEMPLATE_MARKER_RE.search(text)
+        )
+
+    @staticmethod
     def _reject_template_placeholders(value: str, context: str) -> None:
-        if DocumentGenerator._contains_template_placeholder(value):
-            raise ValueError(f"Template placeholder leaked into {context}.")
+        if DocumentGenerator._contains_unresolved_template_marker(value):
+            raise ValueError(f"Template placeholder or marker leaked into {context}.")

@@ -19,9 +19,19 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
+from docx import Document as DocxDocument
+
 from job_search.config import settings
 from job_search.db import get_db
 from job_search.generation import DocumentGenerator
+from job_search.generation.audit import (
+    AuditSeverity,
+    DocumentAuditCheck,
+    DocumentAuditFailure,
+    DocumentAuditResult,
+    audit_generated_documents,
+    cover_docx_formatting_metadata,
+)
 from job_search.llm import resolve_service_config
 from job_search.models import AppState, ATSType, CanonicalJob
 
@@ -177,6 +187,24 @@ class SelectionProcessor:
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _enforce_document_audit(result: dict) -> None:
+        audit = result.get("document_audit")
+        if not audit or audit.get("status") != "FAIL":
+            return
+        checks = tuple(
+            DocumentAuditCheck(
+                code=failure.get("code", "DOCUMENT_AUDIT_FAILURE"),
+                severity=AuditSeverity(failure.get("severity", "critical")),
+                requirement=failure.get("requirement", "Generated documents must pass Phase 1 audit."),
+                explanation=failure.get("explanation", "Generated document audit failed."),
+                recommended_fix=failure.get("recommended_fix", "Review document_audit failures."),
+                passed=False,
+            )
+            for failure in audit.get("failures", [])
+        )
+        raise DocumentAuditFailure(DocumentAuditResult(document_type="document_set", checks=checks))
+
     def _fetch_jobs_needing_docs(self, db, job_ids: list[str] | None, force: bool):
         if job_ids:
             placeholders = ",".join("?" * len(job_ids))
@@ -226,13 +254,18 @@ class SelectionProcessor:
             resume_path = str(Path(tmpdir) / f"{prefix}_resume.docx")
             cover_path = str(Path(tmpdir) / f"{prefix}_cover.docx")
 
-            self._generator.save_docx(result["resume_json"], resume_path)
+            if hasattr(self._generator, "prepare_resume_for_rendering"):
+                rendered_resume_json, _ = self._generator.prepare_resume_for_rendering(result["resume_json"])
+            else:
+                rendered_resume_json = result["resume_json"]
+            self._generator.save_docx(rendered_resume_json, resume_path)
             self._generator.save_cover_docx(
                 result["cover_letter_json"],
                 cover_path,
                 job=self._hydrate_canonical_job(job_row),
                 today=today,
             )
+            self._audit_rendered_docs(job_row, result, resume_path, cover_path, rendered_resume_json=rendered_resume_json)
 
             folder_id = self._get_or_create_drive_folder(prefix)
             resume_url = self.sheets.upload_document(
@@ -242,6 +275,26 @@ class SelectionProcessor:
                 cover_path, f"{prefix}_cover.docx", folder_id
             )
         return resume_url, cover_url
+
+    def _audit_rendered_docs(self, job_row, result: dict, resume_path: str, cover_path: str, rendered_resume_json: dict | None = None) -> None:
+        if not hasattr(self._generator, "_profile"):
+            return
+        job = self._hydrate_canonical_job(job_row)
+        audit = audit_generated_documents(
+            resume_json=rendered_resume_json or result["resume_json"],
+            cover_letter_json=result["cover_letter_json"],
+            profile=getattr(self._generator, "_profile", {}) or {},
+            job=job,
+            resume_text=self._docx_text(resume_path),
+            cover_letter_text=self._docx_text(cover_path),
+            cover_formatting_metadata=cover_docx_formatting_metadata(cover_path),
+        )
+        result["document_audit"] = audit
+        self._enforce_document_audit(result)
+
+    @staticmethod
+    def _docx_text(path: str) -> str:
+        return "\n".join(paragraph.text for paragraph in DocxDocument(path).paragraphs if paragraph.text)
 
     def _get_or_create_drive_folder(self, name: str) -> str | None:
         if not settings.DRIVE_ROOT_FOLDER_ID:

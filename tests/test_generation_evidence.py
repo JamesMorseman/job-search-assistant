@@ -144,6 +144,9 @@ def test_cover_letter_pipeline_preserves_generated_body_paragraphs():
     cover = result["cover_letter_json"]
 
     assert len(fake.requests) == 2
+    assert result["document_audit"]["status"] in {"PASS", "FAIL"}
+    assert "resume" in result["document_audit"]
+    assert "cover_letter" in result["document_audit"]
     assert len(cover["body_paragraphs"]) == 3
     assert cover["rendering_diagnostics"]["raw_body_paragraph_count"] == 3
     assert cover["rendering_diagnostics"]["body_paragraph_count"] == 3
@@ -155,14 +158,14 @@ def test_cover_letter_text_rendering_keeps_paragraphs_and_signature_separate():
     generator = DocumentGenerator(llm_provider=FakeLLMProvider())
     cover = generator._qa_cover_letter_json({
         "salutation": "Dear Hiring Manager,",
-        "body_paragraphs": ["Paragraph one.", "Paragraph two."],
+        "body_paragraphs": ["Paragraph one.", "Paragraph two.", "Paragraph three."],
         "closing": "Sincerely, James Morseman",
     })
 
     rendered = generator._render_cover_text(cover)
 
     assert "Paragraph one.\n\nParagraph two." in rendered
-    assert "Paragraph two.\n\nSincerely,\nJames Morseman" in rendered
+    assert "Paragraph three.\n\nSincerely,\nJames Morseman" in rendered
     assert "body_paragraphs_placeholder" not in rendered
 
 
@@ -223,6 +226,16 @@ def test_cover_letter_docx_rendering_uses_multiple_paragraphs_without_placeholde
     assert texts.index("Sincerely,") < texts.index("James Morseman")
     assert not any("placeholder" in text.lower() for text in texts)
 
+    doc = Document(path)
+    paragraphs = {p.text: p for p in doc.paragraphs if p.text}
+    assert paragraphs["Paragraph one."].paragraph_format.line_spacing == 1.15
+    assert paragraphs["Paragraph one."].paragraph_format.space_after.pt == 11
+    assert paragraphs["Sincerely,"].paragraph_format.space_before.pt == 14
+    assert paragraphs["Sincerely,"].paragraph_format.space_after.pt == 0
+    assert paragraphs["James Morseman"].paragraph_format.line_spacing == 1.15
+    assert paragraphs["James Morseman"].paragraph_format.space_before.pt == 4
+    assert paragraphs["James Morseman"].paragraph_format.space_after.pt == 8
+
 
 def test_cover_letter_renderer_rejects_template_placeholders():
     generator = DocumentGenerator(llm_provider=FakeLLMProvider())
@@ -235,9 +248,138 @@ def test_cover_letter_renderer_rejects_template_placeholders():
     try:
         generator._render_cover_text(cover)
     except ValueError as exc:
-        assert "placeholder leaked" in str(exc)
+        assert "placeholder or marker leaked" in str(exc).lower()
     else:
         raise AssertionError("Expected placeholder leakage to fail rendering.")
+
+
+def test_cover_letter_renderer_rejects_unresolved_bracket_markers():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    cover = {
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": [
+            "Paragraph one.",
+            "Paragraph two.",
+            "Paragraph three closing. [",
+        ],
+        "closing": "Sincerely,\nJames Morseman",
+    }
+
+    try:
+        generator._render_cover_text(cover)
+    except ValueError as exc:
+        assert "placeholder or marker leaked" in str(exc).lower()
+    else:
+        raise AssertionError("Expected unresolved bracket marker to fail rendering.")
+
+
+def test_cover_letter_renderer_rejects_standalone_closing_schema_label():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    cover = {
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": [
+            "Paragraph one.",
+            "Paragraph two.",
+            "Paragraph three.",
+        ],
+        "closing": "closing",
+    }
+
+    try:
+        generator._render_cover_text(cover)
+    except ValueError as exc:
+        assert "cover_letter_closing" in str(exc)
+    else:
+        raise AssertionError("Expected standalone closing schema label to fail rendering.")
+
+
+def test_cover_letter_renderer_allows_legitimate_bracketed_company_name():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    cover = generator._qa_cover_letter_json({
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": [
+            "I am interested in the engineering role at Acme [Infrastructure Group].",
+            "Paragraph two connects technical project work to the role.",
+            "Paragraph three closes with interest in contributing to the team.",
+        ],
+        "closing": "Sincerely,\nJames Morseman",
+    })
+
+    rendered = generator._render_cover_text(cover)
+
+    assert "Acme [Infrastructure Group]" in rendered
+
+
+def test_cover_letter_qa_rejects_too_few_body_paragraphs():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    cover = {
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": ["Paragraph one.", "Paragraph two."],
+        "closing": "Sincerely,\nJames Morseman",
+    }
+
+    try:
+        generator._qa_cover_letter_json(cover)
+    except ValueError as exc:
+        assert "at least 3 separate body paragraphs" in str(exc)
+    else:
+        raise AssertionError("Expected short cover letter body to fail QA.")
+
+
+def test_cover_letter_qa_repairs_closing_merged_into_body():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    cover = generator._qa_cover_letter_json({
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": [
+            "Paragraph one.",
+            "Paragraph two.",
+            "Paragraph three. Sincerely, James Morseman",
+        ],
+        "closing": "Sincerely, James Morseman",
+    })
+
+    assert cover["body_paragraphs"] == ["Paragraph one.", "Paragraph two.", "Paragraph three."]
+    assert cover["closing"] == "Sincerely,\nJames Morseman"
+
+
+def test_cover_letter_docx_header_has_stable_contact_block(tmp_path):
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = {
+        "identity": {
+            "first_name": "James",
+            "last_name": "Morseman",
+            "phone": "(631) 559-5622",
+            "email": "Jamesmorseman@gmail.com",
+            "linkedin_url": "https://www.linkedin.com/in/james-morseman-82a449344/",
+            "location": {"city": "Stony Brook", "state": "New York"},
+        }
+    }
+    cover = generator._qa_cover_letter_json({
+        "salutation": "Dear Hiring Manager,",
+        "body_paragraphs": ["Paragraph one.", "Paragraph two.", "Paragraph three."],
+        "closing": "Sincerely, James Morseman",
+    })
+    path = tmp_path / "cover.docx"
+
+    generator.save_cover_docx(
+        cover,
+        str(path),
+        include_location=False,
+        include_linkedin=True,
+    )
+    texts = [p.text for p in Document(path).paragraphs if p.text]
+
+    assert texts[0] == "James Morseman"
+    assert texts[1] == (
+        "(631) 559-5622 | Jamesmorseman@gmail.com | "
+        "https://www.linkedin.com/in/james-morseman-82a449344/"
+    )
+    assert "Stony Brook" not in texts[1]
+
+    doc = Document(path)
+    assert doc.paragraphs[0].paragraph_format.line_spacing == 1.15
+    assert doc.paragraphs[1].paragraph_format.line_spacing == 1.15
+    assert doc.paragraphs[1].paragraph_format.space_after.pt == 16
 
 
 def test_cover_letter_prompt_includes_leadership_capstone_and_jsa_evidence():
@@ -268,6 +410,365 @@ def test_cover_letter_prompt_includes_leadership_capstone_and_jsa_evidence():
     assert "capstone" in prompt
     assert "personal_jsa" in prompt
     assert "Job Search Assistant" in prompt
+
+
+def test_resume_qa_expands_underfilled_resume_from_verified_profile_facts():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = {
+        "education": [{
+            "institution": "Farmingdale State College",
+            "relevant_coursework": [
+                "Structural Design",
+                "Reinforced Concrete Design",
+                "Soils, Foundations, and Earth Structures",
+                "Civil Engineering Materials",
+                "Hydraulics",
+                "Transportation Engineering",
+                "Field Practices in Civil Engineering Technology",
+                "Technical Writing",
+                "Engineering Economics",
+            ],
+        }],
+        "resume_bullet_bank": {
+            "structural": [
+                "Built and analyzed RAM Structural System models for a proposed three-story classroom addition, supporting gravity/lateral load evaluation and preliminary steel framing decisions.",
+                "Applied ASCE 7-22 loading criteria and AISC steel design methodology while evaluating framing layouts, tributary areas, line loads, axial loads, and serviceability behavior.",
+                "Designed steel beam and column members for a five-story residential building project using ASCE 7-16 LRFD load combinations and AISC Steel Construction Manual checks.",
+            ],
+            "construction": [
+                "Prepared construction management planning content for a bridge replacement project, including schedule logic, traffic control, safety, equipment needs, permitting awareness, and cost discussion.",
+            ],
+            "leadership": [
+                "Led structural scope and coordinated multidisciplinary capstone deliverables, including task delegation, milestone tracking, report integration, and final presentation support.",
+            ],
+            "software_data_automation": [
+                "Built a Python job-search automation platform with multi-source ingestion, SQLite persistence, fit grading, document generation, and a CLI workflow.",
+                "Integrated Google Drive and Sheets workflows and maintained an automated test suite with 100+ passing tests.",
+            ],
+        },
+        "technical_skills": {
+            "structural": ["Structural analysis and design", "Steel beam design", "Gravity load development"],
+            "construction": ["Construction planning", "Project scheduling"],
+        },
+        "software_tools": {"verified": ["RAM Structural System", "AutoCAD", "Microsoft Excel"]},
+        "projects": [{
+            "name": "Construction Management Project of Bridge Replacement - Spencer",
+            "type": "CLASS_PROJECT",
+            "date": "2025",
+            "role": "Student project team member",
+            "bullets": [
+                {
+                    "text": (
+                        "Reviewed bridge replacement scope, traffic control, schedule logic, "
+                        "equipment, cost, safety, and construction-phase considerations."
+                    )
+                }
+            ],
+        }],
+        "certifications": {
+            "professional_development": [
+                "Expected next step after FE passage is Engineer-in-Training certification.",
+                "Long-term professional goal is Professional Engineer licensure after qualifying experience.",
+            ],
+        },
+        "profile_summary": {
+            "current_status": "Recent Civil Engineering Technology graduate preparing for the FE Civil examination.",
+            "positioning": (
+                "Applied civil engineering graduate with strong structural interest, "
+                "capstone leadership, hands-on laboratory exposure, and operations experience."
+            ),
+            "primary_differentiators": [
+                "Structural Engineering Lead and functional project leader for multidisciplinary capstone project.",
+                "Built and worked with RAM Structural System models for an educational facility addition project.",
+            ],
+        },
+    }
+    resume = {
+        "professional_summary": "Civil engineering graduate focused on structural work.",
+        "skills": ["RAM Structural System"],
+        "education": [{
+            "institution": "Farmingdale State College",
+            "degree": "Bachelor of Science",
+            "major": "Civil Engineering Technology",
+            "graduation": "May 2026",
+            "relevant_coursework": ["Structural Design"],
+        }],
+        "experience": [{
+            "employer": "Urban Air Adventure Park",
+            "title": "Event Coordination Department Head",
+            "dates": "September 2021 - Present",
+            "location": "Lake Grove, New York",
+            "bullets": ["Coordinated staffing and logistics for event operations."],
+        }],
+        "projects": [
+            {
+                "name": "Senior Capstone Project",
+                "role": "Structural Design Lead",
+                "date": "Spring 2026",
+                "bullets": ["Modeled a proposed Baldwin High School addition."],
+            },
+            {
+                "name": "Job Search Assistant",
+                "role": "Automation Project",
+                "date": "2026",
+                "bullets": ["Built a Python workflow for job-search tracking."],
+            },
+        ],
+        "certifications": ["FE Civil Exam Candidate"],
+    }
+
+    original_word_count = generator._resume_word_count(resume)
+    cleaned = generator._qa_resume_json(resume, "structural civil construction engineering role")
+    qa = generator.resume_renderer_qa(cleaned)
+
+    assert generator._resume_word_count(cleaned) > original_word_count
+    assert qa["page_utilization_estimate"] > generator._resume_page_utilization(resume)
+    assert cleaned["rendering_allocation"]["one_page_enforced"] is True
+    assert "skills_items" in cleaned["rendering_allocation"]["expansion_order"]
+    assert "professional_development_items" in cleaned["rendering_allocation"]["expansion_order"]
+    assert "summary_detail" in cleaned["rendering_allocation"]["expansion_order"]
+    project_names = [project["name"] for project in cleaned["projects"]]
+    assert "Bridge Replacement Construction Management Planning" in project_names
+    assert "Structural and Construction Coursework" not in project_names
+
+
+def test_resume_qa_enforces_one_page_policy_with_protected_evidence():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = sample_profile()
+    resume = {
+        "professional_summary": " ".join(["Civil structural candidate"] * 35),
+        "skills": [f"Skill {index}" for index in range(18)],
+        "education": [{
+            "institution": "Farmingdale State College",
+            "degree": "Bachelor of Science",
+            "major": "Civil Engineering Technology",
+            "graduation": "May 2026",
+            "relevant_coursework": [
+                "Structural Design",
+                "Reinforced Concrete Design",
+                "Soils, Foundations, and Earth Structures",
+                "Civil Engineering Materials",
+                "Hydraulics",
+                "Transportation Engineering",
+                "Field Practices in Civil Engineering Technology",
+                "Technical Writing",
+                "Engineering Economics",
+            ],
+        }],
+        "experience": [{
+            "employer": "Urban Air Adventure Park",
+            "title": "Event Coordination Department Head",
+            "dates": "September 2021 - Present",
+            "location": "Lake Grove, New York",
+            "bullets": ["Work bullet one.", "Work bullet two.", "Work bullet three."],
+        }],
+        "projects": [
+            {
+                "name": "Senior Capstone Project",
+                "role": "Structural Design Lead",
+                "date": "Spring 2026",
+                "bullets": ["Capstone one.", "Capstone two.", "Capstone three.", "Capstone four.", "Capstone five."],
+            },
+            {
+                "name": "Job Search Assistant",
+                "role": "Automation Project",
+                "date": "2026",
+                "bullets": ["JSA one.", "JSA two.", "JSA three."],
+            },
+            {
+                "name": "Bridge Replacement Project",
+                "role": "Student Designer",
+                "date": "2025",
+                "bullets": ["Bridge one.", "Bridge two.", "Bridge three."],
+            },
+        ],
+        "certifications": [
+            "FE Civil Exam Candidate",
+            "Expected next step after FE passage is Engineer-in-Training certification.",
+            "Long-term professional goal is Professional Engineer licensure after qualifying experience.",
+        ],
+    }
+
+    cleaned = generator._qa_resume_json(resume, "structural civil engineering role")
+    qa = generator.resume_renderer_qa(cleaned)
+
+    assert qa["estimated_page_count"] == 1
+    assert "page_count_exceeded" not in qa["warnings"]
+    assert cleaned["rendering_allocation"]["one_page_enforced"] is True
+    assert any(generator._is_capstone_project(project) for project in cleaned["projects"])
+    assert any(generator._is_job_search_assistant_project(project) for project in cleaned["projects"])
+    assert cleaned["experience"]
+    assert len(generator._selected_coursework(cleaned)) <= 6
+    assert len(cleaned["certifications"]) <= 1
+    assert len(cleaned["experience"][0]["bullets"]) <= 2
+
+
+def test_resume_trimming_preserves_accepted_project_identities():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = sample_profile()
+    resume = {
+        "professional_summary": "Civil engineering candidate with structural, automation, and construction management breadth.",
+        "skills": ["RAM Structural System", "Python automation", "SQLite", "Construction planning"],
+        "education": [{
+            "institution": "Farmingdale State College",
+            "degree": "Bachelor of Science",
+            "major": "Civil Engineering Technology",
+            "graduation": "May 2026",
+            "relevant_coursework": ["Structural Design", "Field Practices in Civil Engineering Technology"],
+        }],
+        "experience": [{
+            "employer": "Urban Air Adventure Park",
+            "title": "Event Coordination Department Head",
+            "bullets": ["Coordinated staffing.", "Improved tracking."],
+        }],
+        "projects": [
+            {
+                "name": "Senior Capstone Project",
+                "role": "Structural Design Lead",
+                "bullets": ["Capstone one.", "Capstone two.", "Capstone three.", "Capstone four."],
+            },
+            {
+                "name": "Job Search Assistant",
+                "role": "Automation Project",
+                "bullets": ["JSA one.", "JSA two."],
+            },
+            {
+                "name": "Bridge Replacement Construction Management Planning",
+                "role": "Student project team member",
+                "bullets": ["Bridge planning one.", "Bridge planning two.", "Bridge planning three."],
+            },
+        ],
+        "certifications": ["FE Civil Exam Candidate"],
+    }
+
+    cleaned = generator._qa_resume_json(resume, "entry-level infrastructure role")
+    project_names = [project["name"] for project in cleaned["projects"]]
+
+    assert "Senior Capstone Project" in project_names
+    assert "Job Search Assistant" in project_names
+    assert "Bridge Replacement Construction Management Planning" in project_names
+    assert "Structural and Construction Coursework" not in project_names
+    assert cleaned["projects"][2]["name"] == "Bridge Replacement Construction Management Planning"
+    assert len(cleaned["projects"][2]["bullets"]) <= 1
+
+
+def test_resume_qa_restores_drifted_construction_management_project_identity():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    resume = {
+        "professional_summary": "Civil engineering candidate with construction planning evidence.",
+        "skills": ["Construction management planning"],
+        "education": [{
+            "institution": "Farmingdale State College",
+            "degree": "Bachelor of Science",
+        }],
+        "experience": [],
+        "projects": [{
+            "name": "Bridge Replacement Construction Management Plan",
+            "role": "Construction Planning Project",
+            "bullets": [
+                "Prepared construction management planning content for a bridge replacement project, "
+                "including schedule logic, traffic control, safety, equipment needs, and cost discussion."
+            ],
+        }],
+        "certifications": [],
+    }
+
+    cleaned = generator._qa_resume_json(resume, "construction management planning role")
+
+    assert cleaned["projects"][0]["name"] == "Bridge Replacement Construction Management Planning"
+
+
+def test_resume_summary_trim_avoids_sentence_fragments():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    summary = (
+        "Recent Civil Engineering Technology graduate preparing for the FE Civil exam. "
+        + " ".join(["Applied civil engineering candidate"] * 25)
+    )
+    data = {
+        "professional_summary": summary,
+        "skills": [f"Skill {index}" for index in range(18)],
+        "education": [{
+            "institution": "Farmingdale State College",
+            "degree": "Bachelor of Science",
+            "relevant_coursework": [f"Course {index}" for index in range(10)],
+        }],
+        "experience": [{
+            "employer": "Urban Air Adventure Park",
+            "title": "Event Coordination Department Head",
+            "bullets": ["Work bullet one.", "Work bullet two.", "Work bullet three."],
+        }],
+        "projects": [
+            {"name": "Senior Capstone Project", "bullets": ["Capstone"] * 5},
+            {"name": "Job Search Assistant", "bullets": ["JSA"] * 3},
+        ],
+        "certifications": ["FE Civil Exam Candidate", "Professional Engineer licensure goal"],
+    }
+
+    cleaned = generator._qa_resume_json(data, "civil engineering role")
+
+    assert cleaned["professional_summary"].endswith(".")
+    assert not cleaned["professional_summary"].endswith("Applied civil")
+
+
+def test_resume_one_page_trim_preserves_high_value_ats_skills():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = sample_profile()
+    resume = {
+        "professional_summary": "Civil engineering candidate with structural project and workflow automation evidence.",
+        "skills": [
+            "Generic skill 1",
+            "Generic skill 2",
+            "Generic skill 3",
+            "Generic skill 4",
+            "Generic skill 5",
+            "Generic skill 6",
+            "Generic skill 7",
+            "Generic skill 8",
+            "Generic skill 9",
+            "Generic skill 10",
+            "Generic skill 11",
+            "RAM Structural System",
+            "Excel",
+            "Google Sheets",
+            "SQLite",
+            "Python automation",
+        ],
+        "education": [{
+            "institution": "Farmingdale State College",
+            "degree": "Bachelor of Science",
+            "major": "Civil Engineering Technology",
+            "graduation": "May 2026",
+            "relevant_coursework": ["Structural Design"] * 9,
+        }],
+        "experience": [{
+            "employer": "Urban Air Adventure Park",
+            "title": "Event Coordination Department Head",
+            "bullets": ["Supervised teams.", "Improved tracking.", "Coordinated logistics."],
+        }],
+        "projects": [
+            {
+                "name": "Senior Capstone Project",
+                "role": "Structural Design Lead",
+                "bullets": ["Capstone one.", "Capstone two.", "Capstone three.", "Capstone four."],
+            },
+            {
+                "name": "Job Search Assistant",
+                "role": "Automation Project",
+                "bullets": ["Built automation.", "Maintained SQLite workflow."],
+            },
+        ],
+        "certifications": ["FE Civil Exam Candidate"],
+    }
+
+    cleaned = generator._qa_resume_json(resume, "civil structural role using data tracking and automation")
+    skills_text = " | ".join(cleaned["skills"])
+
+    assert generator.resume_renderer_qa(cleaned)["estimated_page_count"] == 1
+    assert "RAM Structural System" in skills_text
+    assert "Excel" in skills_text
+    assert "Google Sheets" in skills_text
+    assert "SQLite" in skills_text
+    assert "Python automation" in skills_text
 
 
 def test_generator_falls_back_to_full_profile_when_evidence_is_sparse():
@@ -398,7 +899,7 @@ def test_resume_qa_expands_project_evidence_before_extra_work_depth():
     assert out["experience"]
     assert len(out["experience"][0]["bullets"]) >= 2
     assert len(out["projects"][0]["bullets"]) == 4
-    assert len(out["projects"][1]["bullets"]) == 2
+    assert len(out["projects"][1]["bullets"]) == 1
     assert order.index("capstone_bullets") < order.index("academic_project_bullets")
     if "work_experience_bullets" in order:
         assert order.index("academic_project_bullets") < order.index("work_experience_bullets")

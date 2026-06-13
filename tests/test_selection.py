@@ -8,6 +8,7 @@ import pytest
 
 from job_search.db.connection import init_db
 from job_search.models import CanonicalJob
+from job_search.reporting.documents import get_latest_generated_doc, get_latest_generated_docs
 from job_search.reporting.selection import SelectionProcessor
 from job_search.reporting.sheets import SheetsLogger
 from job_search.tracking import advance_state
@@ -201,3 +202,50 @@ def test_upload_docs_renders_cover_letter_as_docx(monkeypatch):
     assert uploaded[1][1].endswith("_cover.docx")
     assert proc._generator.saved_cover["today"] == "2026-06-12"
     assert proc._generator.saved_cover["job"].company == "Acme Engineering"
+
+
+def test_fetch_jobs_skips_existing_docs_unless_force(db):
+    _insert_job(db, "job1", "selected")
+    conn = sqlite3.connect(db)
+    conn.row_factory = sqlite3.Row
+    conn.execute(
+        "INSERT INTO generated_docs (canonical_job_id, doc_type, drive_url) VALUES (?, 'resume', ?)",
+        ("job1", "https://example.invalid/old_resume.docx"),
+    )
+    conn.commit()
+
+    proc = SelectionProcessor()
+
+    assert proc._fetch_jobs_needing_docs(conn, ["job1"], force=False) == []
+    forced = proc._fetch_jobs_needing_docs(conn, ["job1"], force=True)
+    assert [row["canonical_job_id"] for row in forced] == ["job1"]
+    assert _check_state(db, "job1") == "selected"
+    conn.close()
+
+
+def test_latest_generated_docs_are_identifiable(db):
+    _insert_job(db, "job1", "selected")
+    conn = sqlite3.connect(db)
+    conn.row_factory = sqlite3.Row
+    conn.executemany(
+        """
+        INSERT INTO generated_docs
+          (canonical_job_id, doc_type, drive_url, generated_at)
+        VALUES (?, ?, ?, ?)
+        """,
+        [
+            ("job1", "resume", "https://example.invalid/resume-old.docx", "2026-06-10 09:00:00"),
+            ("job1", "cover_letter", "https://example.invalid/cover-old.docx", "2026-06-10 09:00:00"),
+            ("job1", "resume", "https://example.invalid/resume-new.docx", "2026-06-11 09:00:00"),
+            ("job1", "cover_letter", "https://example.invalid/cover-new.docx", "2026-06-11 09:00:00"),
+        ],
+    )
+    conn.commit()
+
+    latest_resume = get_latest_generated_doc(conn, "job1", "resume")
+    latest_docs = get_latest_generated_docs(conn, "job1")
+
+    assert latest_resume["drive_url"].endswith("resume-new.docx")
+    assert latest_docs["resume"]["drive_url"].endswith("resume-new.docx")
+    assert latest_docs["cover_letter"]["drive_url"].endswith("cover-new.docx")
+    conn.close()

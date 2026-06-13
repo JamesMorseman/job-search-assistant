@@ -119,8 +119,9 @@ Optional but useful. The current implementation appends rows to
 `generated_docs`; the dashboard needs a clear latest/current document per
 `canonical_job_id` and `doc_type`.
 
-Alternative for MVP: compute current document with a query using max
-`generated_at` per job/doc type.
+MVP behavior: compute current documents with
+`job_search.reporting.documents.get_latest_generated_doc()` /
+`get_latest_generated_docs()`, ordered by `generated_at` and `id`.
 
 ### Score Reason Columns
 
@@ -273,7 +274,8 @@ Acceptance criteria:
 - Long-running operations are synchronous today.
 - Some orchestration mixes DB writes, Google API calls, temp files, and LLM
   calls in one method.
-- `generated_docs` stores snapshots but has no current/latest flag.
+- `generated_docs` stores append-only snapshots; current/latest behavior is
+  query-based for the MVP, not materialized as an `is_current` flag.
 - Google Sheets should remain a mirror, not the UI source of truth.
 - CLI actions are not all idempotent; `apply` currently fails for already
   selected jobs.
@@ -289,4 +291,3 @@ Acceptance criteria:
 - Firm intelligence drilldown.
 - Score explanations and calibration charts.
 - Weekly digest screen grounded in DB metrics.
-

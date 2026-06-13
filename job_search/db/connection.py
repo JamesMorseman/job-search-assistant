@@ -4,9 +4,9 @@ from pathlib import Path
 
 from job_search.config import settings
 
-# Columns added after the original `jobs` schema shipped. `CREATE TABLE IF NOT
-# EXISTS` cannot add columns to a pre-existing table, so these are applied via
-# idempotent ALTER TABLE on every init. (New *tables* are handled by schema.sql.)
+# Columns/indexes added after the original schema shipped. `CREATE TABLE IF NOT
+# EXISTS` handles new tables, but existing databases still need idempotent
+# ALTER/CREATE INDEX statements on init.
 _JOBS_ADDED_COLUMNS: dict[str, str] = {
     "llm_grade": "TEXT",
     "llm_fit_score": "REAL",
@@ -15,13 +15,26 @@ _JOBS_ADDED_COLUMNS: dict[str, str] = {
     "llm_model": "TEXT",
 }
 
+_ADDED_INDEXES: tuple[str, ...] = (
+    """
+    CREATE INDEX IF NOT EXISTS idx_generated_docs_job_type_generated
+        ON generated_docs(canonical_job_id, doc_type, generated_at DESC, id DESC)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_generated_docs_job_generated
+        ON generated_docs(canonical_job_id, generated_at DESC, id DESC)
+    """,
+)
+
 
 def _apply_migrations(conn: sqlite3.Connection) -> None:
-    """Idempotently add any missing `jobs` columns. Safe to run every init."""
+    """Idempotently apply lightweight schema migrations. Safe every init."""
     existing = {row[1] for row in conn.execute("PRAGMA table_info(jobs)")}
     for col, decl in _JOBS_ADDED_COLUMNS.items():
         if col not in existing:
             conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {decl}")
+    for sql in _ADDED_INDEXES:
+        conn.execute(sql)
 
 
 def init_db(db_path: str | None = None) -> None:

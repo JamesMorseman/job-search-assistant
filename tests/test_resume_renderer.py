@@ -82,7 +82,8 @@ def make_generator():
             "last_name": "Morseman",
             "email": "Jamesmorseman@gmail.com",
             "phone": "(631) 559-5622",
-            "linkedin_url": "https://example.invalid/not-rendered",
+            "linkedin_url": "https://www.linkedin.com/in/james-morseman-82a449344/",
+            "github_url": "https://github.com/JamesMorseman",
             "location": {"city": "Stony Brook", "state": "New York"},
         },
         "education": [
@@ -114,15 +115,48 @@ def paragraph_texts(doc):
     return [p.text for p in doc.paragraphs]
 
 
-def test_header_matches_template_default_contact(tmp_path):
+def test_header_matches_approved_contact_format(tmp_path):
     doc = render_doc(tmp_path)
 
     assert doc.paragraphs[0].text == "James Morseman"
     assert doc.paragraphs[0].alignment == WD_ALIGN_PARAGRAPH.CENTER
     assert doc.paragraphs[0].runs[0].font.size.pt == 18
-    assert doc.paragraphs[1].text == "Jamesmorseman@gmail.com | (631) 559-5622"
-    assert "linkedin" not in doc.paragraphs[1].text.lower()
+    assert doc.paragraphs[1].text == "(631) 559-5622 | Jamesmorseman@gmail.com"
+    assert doc.paragraphs[2].text == (
+        "https://www.linkedin.com/in/james-morseman-82a449344/ | "
+        "https://github.com/JamesMorseman"
+    )
+    assert "Jamesmorseman@gmail.com" in doc.paragraphs[1].text.split(" | ")[1]
+    assert "linkedin.com" in doc.paragraphs[2].text.split(" | ")[0]
+    assert "github.com" in doc.paragraphs[2].text.split(" | ")[1]
     assert "Stony Brook" not in doc.paragraphs[1].text
+    assert "Stony Brook" not in doc.paragraphs[2].text
+
+
+def test_header_renders_available_profile_links_without_placeholders(tmp_path):
+    generator = make_generator()
+    generator._profile["identity"]["github_url"] = ""
+    path = tmp_path / "resume.docx"
+
+    generator.save_docx(sample_resume_json(), str(path))
+    doc = Document(path)
+
+    assert doc.paragraphs[1].text == "(631) 559-5622 | Jamesmorseman@gmail.com"
+    assert doc.paragraphs[2].text == "https://www.linkedin.com/in/james-morseman-82a449344/"
+    assert "github" not in doc.paragraphs[2].text.lower()
+
+
+def test_header_format_is_deterministic(tmp_path):
+    path1 = tmp_path / "resume1.docx"
+    path2 = tmp_path / "resume2.docx"
+    make_generator().save_docx(sample_resume_json(), str(path1))
+    make_generator().save_docx(sample_resume_json(), str(path2))
+
+    doc1 = Document(path1)
+    doc2 = Document(path2)
+
+    assert [p.text for p in doc1.paragraphs[:3]] == [p.text for p in doc2.paragraphs[:3]]
+    assert [p.alignment for p in doc1.paragraphs[:3]] == [p.alignment for p in doc2.paragraphs[:3]]
 
 
 def test_education_order_deans_list_and_coursework_section(tmp_path):
