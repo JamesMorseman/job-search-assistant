@@ -298,3 +298,69 @@ def stats():
         for label, days in stats.median_days.items():
             if days is not None:
                 console.print(f"  {label:25s} {days:.1f} days")
+
+
+# ── Firm repository commands ───────────────────────────────────────────────────
+
+@cli.group()
+def firms():
+    """Firm intelligence repository — discover, draft, review, and approve firm profiles."""
+    pass
+
+
+@firms.command(name="discover")
+@click.option("--min-jobs", default=1, show_default=True, type=int, help="Minimum job count to surface a candidate.")
+@click.option("--source", default=None, metavar="SOURCE", help="Filter candidates by ingestion source name.")
+@click.option("--out", default=None, type=click.Path(), help="Write TSV output to this file path.")
+@click.option("--config", "config_path", default="config/firms.yaml", show_default=True, help="Path to approved firms YAML.")
+def firms_discover(min_jobs: int, source: str | None, out: str | None, config_path: str):
+    """List companies in the job DB that do not have an approved firm profile.
+
+    \b
+    NOTE — Alias limitation (MVP):
+    Comparison is against approved firm_id slugs only. Firms already approved
+    under a different name or alias may still appear as candidates. Alias-aware
+    filtering is planned for a later step.
+    """
+    from pathlib import Path as _Path
+
+    from job_search.firms.discovery import discover_missing_firms
+
+    candidates = discover_missing_firms(
+        min_jobs=min_jobs,
+        source_filter=source,
+        config_path=config_path,
+    )
+
+    if not candidates:
+        console.print("[green]No missing firms found — all discovered companies match an approved profile.[/green]")
+        return
+
+    from rich.table import Table
+    t = Table(
+        show_header=True,
+        header_style="bold",
+        title=f"Missing firm candidates ({len(candidates)})",
+    )
+    t.add_column("Company", no_wrap=True)
+    t.add_column("Suggested firm_id")
+    t.add_column("Jobs", justify="right")
+    t.add_column("Sources")
+    t.add_column("Sample URL", max_width=60)
+
+    tsv_rows = ["company\tsuggested_firm_id\tjob_count\tsources\tsample_url"]
+    for c in candidates:
+        sample_url = c.sample_urls[0] if c.sample_urls else ""
+        sources_str = ", ".join(c.sources)
+        t.add_row(c.company, c.suggested_firm_id, str(c.job_count), sources_str, sample_url)
+        tsv_rows.append(f"{c.company}\t{c.suggested_firm_id}\t{c.job_count}\t{sources_str}\t{sample_url}")
+
+    console.print(t)
+    console.print(
+        "\n[dim]Alias limitation (MVP): comparison is against approved firm_id slugs only. "
+        "Use [bold]jsa firms draft <firm_id>[/bold] to generate a draft profile.[/dim]"
+    )
+
+    if out:
+        _Path(out).write_text("\n".join(tsv_rows), encoding="utf-8")
+        console.print(f"[green]Wrote {len(candidates)} candidates to {out}[/green]")
