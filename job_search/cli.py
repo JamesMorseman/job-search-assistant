@@ -594,3 +594,69 @@ def firms_reject(firm_id: str, notes: str, drafts_dir: str | None):
         f"[yellow]✗ {draft.name} ({firm_id}) marked as rejected.[/yellow]\n"
         "  Draft preserved with evidence intact."
     )
+
+
+@firms.command(name="draft")
+@click.argument("company_name")
+@click.option("--firm-id", default=None, metavar="SLUG",
+              help="Override the auto-generated firm_id slug.")
+@click.option("--website", default=None, help="Company website URL.")
+@click.option("--careers-url", default=None, help="Direct careers/jobs page URL.")
+@click.option("--force", is_flag=True, default=False,
+              help="Overwrite an existing draft for the same firm_id.")
+@click.option("--drafts-dir", default=None, type=click.Path(),
+              help="Override default draft directory (data/firm_drafts/).")
+def firms_draft(company_name: str, firm_id: str | None, website: str | None,
+                careers_url: str | None, force: bool, drafts_dir: str | None):
+    """Generate a skeleton draft firm profile for COMPANY_NAME.
+
+    \b
+    Creates data/firm_drafts/<firm_id>.yaml with status pending_review.
+    Benefits and trajectory are left empty for manual or LLM-assisted fill-in.
+    Use --firm-id to override the auto-generated slug.
+    Use --force to overwrite an existing draft for the same firm.
+
+    \b
+    Next steps:
+      jsa firms review <firm_id>    — inspect the draft
+      jsa firms approve <firm_id>   — promote to config/firms.yaml
+    """
+    from job_search.firms.repository import (
+        DraftExistsError,
+        _company_to_firm_id,
+        create_draft,
+    )
+
+    # Show the slug that will be used before any I/O so the user can abort.
+    resolved_id = firm_id or _company_to_firm_id(company_name)
+
+    try:
+        draft, path = create_draft(
+            company_name,
+            firm_id=firm_id,
+            website=website,
+            careers_url=careers_url,
+            drafts_dir=drafts_dir,
+            force=force,
+        )
+    except DraftExistsError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise SystemExit(1)
+    except ValueError as exc:
+        console.print(f"[red]Validation error:[/red] {exc}")
+        raise SystemExit(1)
+
+    console.print(
+        f"[green]✓ Skeleton draft created:[/green] [bold]{draft.firm_id}[/bold] → {path}\n"
+        f"  Name:      {draft.name}\n"
+        f"  Generated: {draft.generated_at}\n"
+        f"  Status:    {draft.draft_status.value}"
+    )
+    if website or careers_url:
+        console.print(
+            f"  Website:   {draft.website or '—'}\n"
+            f"  Careers:   {draft.careers_url or '—'}"
+        )
+    console.print(
+        f"\n[dim]Review with: [bold]jsa firms review {draft.firm_id}[/bold][/dim]"
+    )

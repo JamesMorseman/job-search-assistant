@@ -371,3 +371,63 @@ def reject_draft(
 
     logger.info("reject_draft: %r marked rejected", firm_id)
     return draft
+
+
+# ── Skeleton draft generation ──────────────────────────────────────────────────
+
+# Non-alphanumeric run → underscore (same logic as discovery._make_firm_id_slug,
+# kept local to avoid cross-module coupling inside the firms package).
+_SLUG_NON_ALNUM: re.Pattern[str] = re.compile(r"[^a-z0-9]+")
+
+
+def _company_to_firm_id(name: str) -> str:
+    """Derive a safe firm_id slug from a company name."""
+    slug = _SLUG_NON_ALNUM.sub("_", name.lower()).strip("_")[:40]
+    return slug or "unknown"
+
+
+class DraftExistsError(FileExistsError):
+    """Raised when a draft file already exists and force=False."""
+
+
+def create_draft(
+    company_name: str,
+    *,
+    firm_id: str | None = None,
+    website: str | None = None,
+    careers_url: str | None = None,
+    drafts_dir: Path | str | None = None,
+    force: bool = False,
+) -> tuple[DraftFirmProfile, Path]:
+    """Generate a skeleton DraftFirmProfile and write it to the drafts directory.
+
+    firm_id is derived from company_name if not provided.
+    Benefits and trajectory are left empty; the human reviewer fills them in
+    (or a future LLM extraction step populates them before review).
+
+    Raises DraftExistsError if a draft already exists and force is False.
+    Returns (draft, path_written).
+    """
+    if firm_id is None:
+        firm_id = _company_to_firm_id(company_name)
+    _validate_firm_id(firm_id)
+
+    path = draft_path(firm_id, drafts_dir)
+    if path.exists() and not force:
+        raise DraftExistsError(
+            f"Draft already exists for {firm_id!r} at {path}. "
+            "Pass force=True / --force to overwrite."
+        )
+
+    draft = DraftFirmProfile(
+        firm_id=firm_id,
+        name=company_name,
+        draft_status=DraftStatus.PENDING_REVIEW,
+        generated_at=date.today().isoformat(),
+        generator_version="skeleton-v1",
+        website=website,
+        careers_url=careers_url,
+    )
+    written = write_draft(draft, drafts_dir)
+    logger.info("create_draft: skeleton draft written for %r at %s", firm_id, written)
+    return draft, written
