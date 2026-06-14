@@ -17,6 +17,14 @@ _JOBS_ADDED_COLUMNS: dict[str, str] = {
     "trajectory_reasons": "TEXT",
 }
 
+_FIRMS_ADDED_COLUMNS: dict[str, str] = {
+    "aliases": "TEXT DEFAULT '[]'",
+    "benefits_json": "TEXT DEFAULT '{}'",
+    "trajectory_json": "TEXT DEFAULT '{}'",
+    "manual_priority": "TEXT DEFAULT 'neutral'",
+    "last_verified": "TEXT",
+}
+
 _ADDED_INDEXES: tuple[str, ...] = (
     """
     CREATE INDEX IF NOT EXISTS idx_generated_docs_job_type_generated
@@ -31,10 +39,17 @@ _ADDED_INDEXES: tuple[str, ...] = (
 
 def _apply_migrations(conn: sqlite3.Connection) -> None:
     """Idempotently apply lightweight schema migrations. Safe every init."""
-    existing = {row[1] for row in conn.execute("PRAGMA table_info(jobs)")}
+    existing_jobs = {row[1] for row in conn.execute("PRAGMA table_info(jobs)")}
     for col, decl in _JOBS_ADDED_COLUMNS.items():
-        if col not in existing:
+        if col not in existing_jobs:
             conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {decl}")
+
+    existing_firms = {row[1] for row in conn.execute("PRAGMA table_info(firms)")}
+    if existing_firms:  # table exists — safe to ALTER
+        for col, decl in _FIRMS_ADDED_COLUMNS.items():
+            if col not in existing_firms:
+                conn.execute(f"ALTER TABLE firms ADD COLUMN {col} {decl}")
+
     for sql in _ADDED_INDEXES:
         conn.execute(sql)
 

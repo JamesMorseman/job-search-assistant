@@ -30,6 +30,12 @@ CREATE TABLE IF NOT EXISTS firms (
     consecutive_failures INTEGER DEFAULT 0,
     last_successful_fetch TEXT,                  -- ISO datetime
     last_fingerprinted TEXT,                     -- ISO datetime
+    -- Firm intelligence (populated by sync_approved_firms from approved FirmProfile records)
+    aliases          TEXT DEFAULT '[]',          -- JSON array of alternate company names
+    benefits_json    TEXT DEFAULT '{}',          -- JSON object keyed by benefit_key → FirmBenefit dict
+    trajectory_json  TEXT DEFAULT '{}',          -- JSON object keyed by trajectory_key → FirmTrajectoryPrior dict
+    manual_priority  TEXT DEFAULT 'neutral',     -- target|watch|neutral|ignore
+    last_verified    TEXT,                       -- ISO date from FirmApproval.last_verified
     created_at       TEXT DEFAULT (datetime('now')),
     updated_at       TEXT DEFAULT (datetime('now'))
 );
