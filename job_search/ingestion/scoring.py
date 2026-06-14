@@ -259,8 +259,8 @@ TRAJECTORY_RULES: list[SignalRule] = [
         ),
     ),
     SignalRule(
-        key="rotation_or_growth",
-        label="Rotation or growth path",
+        key="internal_mobility",
+        label="Internal mobility / rotation",
         weight=0.07,
         patterns=(
             r"\brotational program\b",

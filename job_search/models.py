@@ -7,7 +7,7 @@ import json
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class ATSTier(str, Enum):
@@ -167,6 +167,198 @@ class CanonicalJob(BaseModel):
             "ats_type": self.ats_type.value,
         }
 
+
+# ── Firm repository controlled vocabulary ─────────────────────────────────────
+
+FIRM_BENEFIT_KEYS: frozenset[str] = frozenset({
+    "tuition_reimbursement",
+    "graduate_degree_assistance",
+    "fe_exam_reimbursement",
+    "pe_exam_reimbursement",
+    "pe_prep_reimbursement",
+    "licensing_reimbursement",
+    "continuing_education",
+    "student_loan_assistance",
+    "relocation_assistance",
+    "signing_bonus",
+    "housing_assistance",
+})
+
+FIRM_TRAJECTORY_KEYS: frozenset[str] = frozenset({
+    "eit_pe_path",
+    "mentorship",
+    "technical_training",
+    "new_grad_program",
+    "design_responsibility",
+    "project_scale",
+    "internal_mobility",
+    "graduate_school_support",
+    "leadership_development",
+    "structural_practice_depth",
+})
+
+# ── Firm intelligence enums ────────────────────────────────────────────────────
+
+class FirmBenefitStatus(str, Enum):
+    CONFIRMED = "confirmed"
+    LIKELY = "likely"
+    UNKNOWN = "unknown"
+    NOT_OFFERED = "not_offered"
+
+
+class FirmSourceType(str, Enum):
+    BENEFITS_PAGE = "benefits_page"
+    CAREERS_PAGE = "careers_page"
+    JOB_POSTING = "job_posting"
+    RECRUITER_NOTE = "recruiter_note"
+    MANUAL_RESEARCH = "manual_research"
+    UNKNOWN = "unknown"
+
+
+class FirmPriority(str, Enum):
+    TARGET = "target"
+    WATCH = "watch"
+    NEUTRAL = "neutral"
+    IGNORE = "ignore"
+
+
+class DraftStatus(str, Enum):
+    PENDING_REVIEW = "pending_review"
+    REJECTED = "rejected"
+
+
+# ── Firm intelligence sub-models ───────────────────────────────────────────────
+
+class FirmBenefit(BaseModel):
+    status: FirmBenefitStatus = FirmBenefitStatus.UNKNOWN
+    confidence: float = 0.0
+    source_url: str | None = None
+    source_type: FirmSourceType = FirmSourceType.UNKNOWN
+    last_verified: str | None = None
+    extraction_note: str | None = None
+
+    @field_validator("confidence")
+    @classmethod
+    def clamp_confidence(cls, v: float) -> float:
+        return max(0.0, min(1.0, v))
+
+
+class FirmTrajectoryPrior(BaseModel):
+    status: FirmBenefitStatus = FirmBenefitStatus.UNKNOWN
+    confidence: float = 0.0
+    source_url: str | None = None
+    source_type: FirmSourceType = FirmSourceType.UNKNOWN
+    last_verified: str | None = None
+    extraction_note: str | None = None
+    rating: str | None = None  # high | medium | low — for ordered qualities (e.g. structural_practice_depth)
+
+    @field_validator("confidence")
+    @classmethod
+    def clamp_confidence(cls, v: float) -> float:
+        return max(0.0, min(1.0, v))
+
+
+class FirmATS(BaseModel):
+    type: ATSType = ATSType.UNKNOWN
+    tier: ATSTier = ATSTier.UNKNOWN
+    board_token: str | None = None
+    tenant: str | None = None
+    site: str | None = None
+
+
+class FirmProfileMeta(BaseModel):
+    enr_rank: int | None = None
+    employee_count: str | None = None
+    disciplines: list[str] = Field(default_factory=list)
+    markets: list[str] = Field(default_factory=list)
+    office_regions: list[str] = Field(default_factory=list)
+
+
+class FirmNotes(BaseModel):
+    reputation: str = ""
+    caveats: list[str] = Field(default_factory=list)
+    source_notes: list[str] = Field(default_factory=list)
+
+
+class FirmApproval(BaseModel):
+    approved_at: str
+    approved_by: str
+    last_verified: str
+
+
+# ── Approved firm profile ──────────────────────────────────────────────────────
+
+class FirmProfile(BaseModel):
+    """Approved firm intelligence record. Only approved FirmProfiles affect scoring."""
+    firm_id: str
+    name: str
+    aliases: list[str] = Field(default_factory=list)
+    website: str | None = None
+    careers_url: str | None = None
+    ats: FirmATS = Field(default_factory=FirmATS)
+    profile: FirmProfileMeta = Field(default_factory=FirmProfileMeta)
+    benefits: dict[str, FirmBenefit] = Field(default_factory=dict)
+    trajectory: dict[str, FirmTrajectoryPrior] = Field(default_factory=dict)
+    notes: FirmNotes = Field(default_factory=FirmNotes)
+    manual_priority: FirmPriority = FirmPriority.NEUTRAL
+    approval: FirmApproval
+
+    @model_validator(mode="after")
+    def validate_vocab_keys(self) -> "FirmProfile":
+        bad_benefit = set(self.benefits) - FIRM_BENEFIT_KEYS
+        if bad_benefit:
+            raise ValueError(f"Unknown benefit key(s): {sorted(bad_benefit)}")
+        bad_traj = set(self.trajectory) - FIRM_TRAJECTORY_KEYS
+        if bad_traj:
+            raise ValueError(f"Unknown trajectory key(s): {sorted(bad_traj)}")
+        return self
+
+
+# ── Draft firm profile ─────────────────────────────────────────────────────────
+
+class DraftReview(BaseModel):
+    approved: bool = False
+    approved_at: str | None = None
+    approved_by: str | None = None
+    reviewer_notes: list[str] = Field(default_factory=list)
+
+
+class DraftEvidenceSummary(BaseModel):
+    source_urls: list[str] = Field(default_factory=list)
+    extraction_notes: list[str] = Field(default_factory=list)
+
+
+class DraftFirmProfile(BaseModel):
+    """Machine-generated firm profile awaiting human review. Never affects scoring."""
+    firm_id: str
+    draft_status: DraftStatus = DraftStatus.PENDING_REVIEW
+    generated_at: str | None = None
+    generator_version: str | None = None
+    review: DraftReview = Field(default_factory=DraftReview)
+    evidence_summary: DraftEvidenceSummary = Field(default_factory=DraftEvidenceSummary)
+    name: str
+    aliases: list[str] = Field(default_factory=list)
+    website: str | None = None
+    careers_url: str | None = None
+    ats: FirmATS = Field(default_factory=FirmATS)
+    profile: FirmProfileMeta = Field(default_factory=FirmProfileMeta)
+    benefits: dict[str, FirmBenefit] = Field(default_factory=dict)
+    trajectory: dict[str, FirmTrajectoryPrior] = Field(default_factory=dict)
+    notes: FirmNotes = Field(default_factory=FirmNotes)
+    manual_priority: FirmPriority = FirmPriority.NEUTRAL
+
+    @model_validator(mode="after")
+    def validate_vocab_keys(self) -> "DraftFirmProfile":
+        bad_benefit = set(self.benefits) - FIRM_BENEFIT_KEYS
+        if bad_benefit:
+            raise ValueError(f"Unknown benefit key(s): {sorted(bad_benefit)}")
+        bad_traj = set(self.trajectory) - FIRM_TRAJECTORY_KEYS
+        if bad_traj:
+            raise ValueError(f"Unknown trajectory key(s): {sorted(bad_traj)}")
+        return self
+
+
+# ── Legacy ATS/ingestion config (kept for Ingestor compatibility) ──────────────
 
 class FirmConfig(BaseModel):
     """Config record for one employer in the registry (config-as-code)."""

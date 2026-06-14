@@ -165,13 +165,13 @@ def test_trajectory_mentor_bare_word_no_score():
 def test_trajectory_promotion_bare_word_no_score():
     result = _match_signal_rules("promotion of sustainable design practices", _TRAJECTORY_COMPILED)
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" not in keys
+    assert "internal_mobility" not in keys
 
 
 def test_trajectory_rotation_program_phrase():
     result = _match_signal_rules("our rotational program places engineers across disciplines", _TRAJECTORY_COMPILED)
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 # ── Group C: Double-count prevention ─────────────────────────────────────────
@@ -334,7 +334,7 @@ def test_rotation_career_path_bare_no_score():
         "we offer competitive salary and a clear career path for growth", _TRAJECTORY_COMPILED
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" not in keys
+    assert "internal_mobility" not in keys
 
 
 def test_rotation_growth_path_bare_no_score():
@@ -342,7 +342,7 @@ def test_rotation_growth_path_bare_no_score():
         "excellent growth path opportunities available for motivated engineers", _TRAJECTORY_COMPILED
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" not in keys
+    assert "internal_mobility" not in keys
 
 
 def test_rotation_advancement_opportunity_bare_no_score():
@@ -350,7 +350,7 @@ def test_rotation_advancement_opportunity_bare_no_score():
         "we provide advancement opportunities for high performers", _TRAJECTORY_COMPILED
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" not in keys
+    assert "internal_mobility" not in keys
 
 
 def test_rotation_generic_boilerplate_block_no_score():
@@ -360,7 +360,7 @@ def test_rotation_generic_boilerplate_block_no_score():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" not in keys
+    assert "internal_mobility" not in keys
 
 
 # Existing tight patterns must still score.
@@ -371,7 +371,7 @@ def test_rotation_rotational_program_still_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 def test_rotation_rotation_program_still_scores():
@@ -380,7 +380,7 @@ def test_rotation_rotation_program_still_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 def test_rotation_job_rotation_still_scores():
@@ -389,7 +389,7 @@ def test_rotation_job_rotation_still_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 # New tighter replacement patterns must score.
@@ -400,7 +400,7 @@ def test_rotation_career_ladder_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 def test_rotation_career_development_program_scores():
@@ -409,7 +409,7 @@ def test_rotation_career_development_program_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 def test_rotation_structured_career_path_scores():
@@ -418,7 +418,7 @@ def test_rotation_structured_career_path_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 def test_rotation_structured_advancement_program_scores():
@@ -427,7 +427,7 @@ def test_rotation_structured_advancement_program_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 def test_rotation_structured_growth_track_scores():
@@ -436,7 +436,7 @@ def test_rotation_structured_growth_track_scores():
         _TRAJECTORY_COMPILED,
     )
     keys = [h.key for h in result.hits]
-    assert "rotation_or_growth" in keys
+    assert "internal_mobility" in keys
 
 
 # Score isolation: boilerplate-only JD scores lower than structured-program JD.
