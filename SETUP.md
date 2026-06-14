@@ -94,9 +94,22 @@ Each writes to `config/firms.yaml`; commit periodically so the registry is versi
 ```bash
 jsa ingest --dry-run     # verify sources answer; no DB writes
 jsa ingest               # real run
-jsa report               # generate today's documents + report
+jsa grade                # grade new viable postings for fit
+jsa report               # present today's top jobs; no document generation
 jsa stats                # confirm jobs landed
 ```
+
+After reviewing the report, James selects jobs in the Sheet by setting status
+to `apply` / `selected`, then runs:
+
+```bash
+jsa sync-sheet           # pull Sheet status edits into SQLite
+jsa generate             # generate resume + cover letter for selected jobs
+```
+
+`jsa apply JOB_ID` is a CLI shortcut for selecting a job and generating its
+documents. It does not submit the application. James submits applications
+manually outside the tool, then marks them `applied`.
 
 ## 8. Cron (after several manual runs succeed)
 

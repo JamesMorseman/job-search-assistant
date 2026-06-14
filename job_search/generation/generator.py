@@ -42,7 +42,7 @@ MAX_RESUME_PROJECT_BULLETS = 5
 MAX_RESUME_COURSEWORK = 6
 MAX_RESUME_COURSEWORK_EXPANDED = 9
 COURSEWORK_ROW_SIZE = 3
-RESUME_TARGET_WORD_FLOOR = 620
+RESUME_TARGET_WORD_FLOOR = 660
 RESUME_PAGE_UTILIZATION_TARGET = 0.75
 RESUME_SOFT_WORD_CAP = 760
 RESUME_HARD_WORD_CAP = 950
@@ -52,6 +52,7 @@ RESUME_ONE_PAGE_SKILL_CAP = 14
 RESUME_ONE_PAGE_SUMMARY_WORD_CAP = 60
 RESUME_RIGHT_TAB_INCHES = 7.5
 RESUME_CONSTRUCTION_MANAGEMENT_PROJECT_NAME = "Bridge Replacement Construction Management Planning"
+RESUME_STORMWATER_PROJECT_NAME = "Stormwater Detention / Cistern Design Project"
 COVER_LINE_SPACING = 1.15
 COVER_HEADER_AFTER_PT = 3
 COVER_CONTACT_AFTER_PT = 16
@@ -413,7 +414,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         cleaned["certifications"] = self._clean_string_list(cleaned.get("certifications", []))[:3]
 
         self._preserve_project_identities(cleaned)
-        self._allocate_resume_content(cleaned, warnings)
+        self._allocate_resume_content(cleaned, warnings, jd)
         self._restore_profile_work_experience_if_omitted(cleaned, warnings)
         self._trim_resume_to_length(cleaned, warnings)
         self._enforce_one_page_resume(cleaned, warnings)
@@ -765,7 +766,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
                 edu.pop("relevant_coursework", None)
         return True
 
-    def _allocate_resume_content(self, data: dict, warnings: list[str]) -> None:
+    def _allocate_resume_content(self, data: dict, warnings: list[str], jd: str) -> None:
         original_experience = deepcopy(data.get("experience", []))
         original_projects = deepcopy(data.get("projects", []))
         data["projects"] = self._allocate_projects(deepcopy(original_projects), warnings)
@@ -777,7 +778,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
                 project["bullets"] = project.get("bullets", [])[:3]
             else:
                 project["bullets"] = project.get("bullets", [])[:1 if data.get("experience") else 2]
-        self._expand_underfilled_resume(data, original_experience, original_projects, warnings)
+        self._expand_underfilled_resume(data, original_experience, original_projects, warnings, jd)
 
     def _restore_profile_work_experience_if_omitted(self, data: dict, warnings: list[str]) -> None:
         if data.get("experience") or not self._profile:
@@ -834,15 +835,23 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             role = self._clean_text(entry.get("role", ""))
             if not name:
                 continue
-            bullets = self._profile_work_bullets(entry)
+            bullets = self._profile_project_bullets(entry)
             item = {
                 "name": name,
                 "role": role or self._clean_text(str(entry.get("type", "")).replace("_", " ").title()),
                 "date": self._format_year_month(entry.get("date")),
-                "bullets": bullets[:1],
+                "bullets": bullets[:2],
             }
             out.append({k: v for k, v in item.items() if v not in ("", [], None)})
         return out
+
+    def _profile_project_bullets(self, entry: dict) -> list[str]:
+        bullets = self._profile_work_bullets(entry)
+        if len(bullets) < 2:
+            return bullets
+        first = bullets[0].rstrip(".")
+        second = bullets[1][0].lower() + bullets[1][1:] if bullets[1] else bullets[1]
+        return [f"{first}; {second}", *bullets[2:]]
 
     def _format_profile_date_range(self, entry: dict) -> str:
         start = self._format_year_month(entry.get("start_date"))
@@ -869,6 +878,7 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         original_experience: list[dict],
         original_projects: list[dict],
         warnings: list[str],
+        jd: str,
     ) -> None:
         if self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
             return
@@ -885,6 +895,8 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         capstone = next((p for p in data.get("projects", []) if self._is_capstone_project(p)), None)
         expand(capstone, self._matching_project(original_projects, capstone), MAX_RESUME_PROJECT_BULLETS, "capstone_bullets")
 
+        self._expand_profile_bullet_bank(data, expansion_order)
+
         jsa = next((p for p in data.get("projects", []) if self._is_job_search_assistant_project(p)), None)
         expand(jsa, self._matching_project(original_projects, jsa), 3, "job_search_assistant_bullets")
 
@@ -893,14 +905,15 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
                 continue
             expand(project, self._matching_project(original_projects, project), 2, "academic_project_bullets")
 
+        self._restore_profile_relevant_project(data, jd, expansion_order)
+        self._restore_profile_breadth_project(data, expansion_order)
+
         if data.get("experience"):
             current = data["experience"][0]
             source = self._matching_item(original_experience, current, ("employer", "title"))
             expand(current, source, MAX_RESUME_WORK_BULLETS, "work_experience_bullets")
 
         self._expand_profile_work_experience(data, expansion_order)
-        self._expand_profile_bullet_bank(data, expansion_order)
-        self._restore_profile_breadth_project(data, expansion_order)
         self._expand_profile_coursework(data, expansion_order)
         self._expand_profile_skills(data, expansion_order)
         self._expand_profile_certifications(data, expansion_order)
@@ -952,16 +965,47 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             projects.append(construction_project)
             expansion_order.append("academic_project_bullets")
 
+    def _restore_profile_relevant_project(self, data: dict, jd: str, expansion_order: list[str]) -> None:
+        if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR:
+            return
+        projects = data.setdefault("projects", [])
+        if len(projects) >= MAX_RESUME_PROJECTS:
+            return
+        existing_topics = {self._project_topic(project) for project in projects}
+        for project in self._profile_project_items():
+            if self._is_capstone_project(project) or self._is_job_search_assistant_project(project):
+                continue
+            topic = self._project_topic(project)
+            if topic in existing_topics:
+                continue
+            if not self._profile_project_matches_job(project, jd):
+                continue
+            if self._is_construction_management_project(project):
+                self._canonicalize_construction_management_project(project)
+            if self._is_stormwater_project(project):
+                self._canonicalize_stormwater_project(project)
+            projects.append(project)
+            expansion_order.append("academic_project_bullets")
+            return
+
     def _preserve_project_identities(self, data: dict) -> None:
         for project in data.get("projects", []):
             if self._is_construction_management_project(project):
                 self._canonicalize_construction_management_project(project)
+            if self._is_stormwater_project(project):
+                self._canonicalize_stormwater_project(project)
 
     def _canonicalize_construction_management_project(self, project: dict) -> None:
         project["name"] = RESUME_CONSTRUCTION_MANAGEMENT_PROJECT_NAME
         role = self._clean_text(project.get("role", ""))
         if not role or "coursework" in role.lower():
             project["role"] = "Construction Planning Project"
+
+    def _canonicalize_stormwater_project(self, project: dict) -> None:
+        project["name"] = RESUME_STORMWATER_PROJECT_NAME
+        role = self._clean_text(project.get("role", ""))
+        if not role or "coursework" in role.lower():
+            project["role"] = "Academic Hydrology / Stormwater Project"
 
     def _expand_profile_work_experience(self, data: dict, expansion_order: list[str]) -> None:
         if not self._profile or self._resume_word_count(data) >= RESUME_TARGET_WORD_FLOOR or not data.get("experience"):
@@ -1138,6 +1182,35 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             or ("traffic control" in text and "schedule" in text)
             or ("bridge replacement" in text and "planning" in text)
         )
+
+    @staticmethod
+    def _is_stormwater_project(project: dict) -> bool:
+        text = json.dumps(project).lower()
+        return (
+            "stormwater" in text
+            or "cistern" in text
+            or ("runoff" in text and "drainage" in text)
+        )
+
+    @staticmethod
+    def _profile_project_matches_job(project: dict, jd: str) -> bool:
+        project_text = json.dumps(project).lower()
+        jd_text = str(jd or "").lower()
+        matches = (
+            (("transportation" in jd_text or "bridge" in jd_text or "roadway" in jd_text) and any(
+                term in project_text for term in ("transportation", "bridge", "traffic control", "roadway")
+            ))
+            or (("construction" in jd_text or "field" in jd_text or "schedule" in jd_text) and any(
+                term in project_text for term in ("construction", "schedule", "traffic control", "safety")
+            ))
+            or (("land development" in jd_text or "site civil" in jd_text or "stormwater" in jd_text or "drainage" in jd_text) and any(
+                term in project_text for term in ("stormwater", "drainage", "site_civil", "water_resources", "cistern")
+            ))
+            or (("water" in jd_text or "wastewater" in jd_text) and any(
+                term in project_text for term in ("water_resources", "stormwater", "cistern", "runoff")
+            ))
+        )
+        return bool(matches)
 
     @staticmethod
     def _project_topic(project: dict) -> str:
@@ -1726,8 +1799,8 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
         priority = [
             "capstone_bullets",
             "job_search_assistant_bullets",
-            "work_experience_bullets",
             "academic_project_bullets",
+            "work_experience_bullets",
             "coursework_items",
             "skills_items",
             "professional_development_items",

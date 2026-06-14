@@ -110,6 +110,8 @@ class CanonicalJob(BaseModel):
     stretch_category: StretchCategory | None = None
     benefit_score: float = 0.0
     career_trajectory_score: float = 0.0
+    benefit_reasons: str = "[]"       # JSON array of SignalHit dicts
+    trajectory_reasons: str = "[]"    # JSON array of SignalHit dicts
 
     # State
     app_state: AppState = AppState.DISCOVERED
@@ -159,6 +161,8 @@ class CanonicalJob(BaseModel):
             "stretch_category": self.stretch_category.value if self.stretch_category else None,
             "benefit_score": self.benefit_score,
             "career_trajectory_score": self.career_trajectory_score,
+            "benefit_reasons": self.benefit_reasons,
+            "trajectory_reasons": self.trajectory_reasons,
             "app_state": self.app_state.value,
             "ats_type": self.ats_type.value,
         }

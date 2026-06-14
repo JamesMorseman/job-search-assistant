@@ -7,6 +7,7 @@ applications submitted, not jobs surfaced.
 
 from __future__ import annotations
 
+import json
 import logging
 import tempfile
 from datetime import date
@@ -101,18 +102,42 @@ class DailyReporter:
         ko_parts = self._format_knockouts(job_dict)
         stretch = job_dict.get("stretch_category", "")
         grade = job_dict.get("llm_grade") or "—"
+        benefit_pct = job_dict.get("benefit_score", 0)
+        trajectory_pct = job_dict.get("career_trajectory_score", 0)
+        benefit_reasons = self._format_reasons(job_dict.get("benefit_reasons"))
+        trajectory_reasons = self._format_reasons(job_dict.get("trajectory_reasons"))
+        benefit_line = (
+            f"{benefit_pct:.1%} — {benefit_reasons}" if benefit_reasons
+            else (f"{benefit_pct:.1%} — no explicit benefit signals" if benefit_pct == 0 else f"{benefit_pct:.1%}")
+        )
+        trajectory_line = (
+            f"{trajectory_pct:.1%} — {trajectory_reasons}" if trajectory_reasons
+            else (f"{trajectory_pct:.1%} — no explicit trajectory signals" if trajectory_pct == 0 else f"{trajectory_pct:.1%}")
+        )
         return (
             f"## {job_dict['title']} @ {job_dict['company']}\n"
             f"- **Fit grade:** {grade}  "
             f"**Score:** {job_dict.get('match_score', 0):.1%}  "
-            f"**Stretch:** {stretch}  "
-            f"**Benefit:** {job_dict.get('benefit_score', 0):.1%}  "
-            f"**Trajectory:** {job_dict.get('career_trajectory_score', 0):.1%}\n"
+            f"**Stretch:** {stretch}\n"
+            f"- **Benefit:** {benefit_line}\n"
+            f"- **Trajectory:** {trajectory_line}\n"
             f"- **Location:** {job_dict.get('location_city', '')}, {job_dict.get('location_state', '')}\n"
             f"- **Apply:** {job_dict.get('apply_url', 'N/A')}\n"
             f"- **Knockouts:** {ko_parts or 'none detected'}\n"
             f"- **Job ID:** `{job_dict['canonical_job_id']}`\n"
         )
+
+    def _format_reasons(self, reasons_json: str | None, n: int = 3) -> str:
+        """Return top-n reason labels from a JSON reasons column. Graceful on NULL/malformed."""
+        if not reasons_json:
+            return ""
+        try:
+            hits = json.loads(reasons_json)
+        except (ValueError, TypeError):
+            return ""
+        if not isinstance(hits, list) or not hits:
+            return ""
+        return ", ".join(h["label"] for h in hits[:n] if isinstance(h, dict) and "label" in h)
 
     def _format_knockouts(self, job_dict: dict) -> str:
         parts = []

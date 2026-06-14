@@ -29,6 +29,7 @@ nano .env
 | `USAJOBS_API_KEY` | https://developer.usajobs.gov/apirequest/ (free, instant) |
 | `ADZUNA_APP_ID/KEY` | https://developer.adzuna.com/ (free tier) |
 | `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
+| Google OAuth2 | Google Cloud Console → OAuth2 desktop credentials → download `credentials.json` |
 
 LLM services are provider-configurable. OpenAI is the current supported default:
 `AI_DEFAULT_PROVIDER=openai` and `AI_DEFAULT_MODEL=gpt-5.4`, with optional
@@ -36,7 +37,6 @@ per-service overrides for `GENERATION_*`, `GRADING_*`, `PROFILE_*`, and
 `EXTRACTION_*`. Recommended production defaults keep document generation on
 `GENERATION_MODEL=gpt-5.4` and high-volume fit grading on
 `GRADING_MODEL=gpt-5.4-mini`.
-| Google OAuth2 | Google Cloud Console → OAuth2 desktop credentials → download `credentials.json` |
 
 ### Google OAuth2 first-time auth
 
@@ -75,13 +75,19 @@ The real `profile/james_profile.yaml` is gitignored — never commit it.
 
 ## 6. Cron jobs
 
+The daily cron supports the review workflow. It ingests jobs, syncs prior Sheet
+selections, generates documents only for jobs James already selected, surfaces
+follow-ups, grades new viable postings, and presents new top jobs. It does not
+submit applications.
+
 ```bash
 crontab -e
 ```
 
 Add:
 ```cron
-# Daily ingestion + report (7 AM server time)
+# Daily ingestion, selected-job generation, follow-ups, grading, and report
+# Application submission remains manual.
 0 7 * * * /path/to/.venv/bin/python /path/to/job-search-assistant/scripts/run_daily.py >> /var/log/jsa_daily.log 2>&1
 
 # Weekly employer discovery (Sunday 9 AM)
@@ -94,12 +100,23 @@ Add:
 # Manual run with verbose output
 LOG_LEVEL=DEBUG jsa ingest --dry-run
 
+# Present top jobs without generating documents
+jsa report
+
+# Pull James's Sheet selections into SQLite and generate selected docs
+jsa sync-sheet
+jsa generate
+
 # Check funnel stats
 jsa stats
 
 # Surface today's follow-up actions
 jsa followup
 ```
+
+After document generation, James reviews the generated resume and cover letter,
+submits the application manually through the employer's application flow, then
+marks the job `applied`.
 
 ## 8. Updating
 

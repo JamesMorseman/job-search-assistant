@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026
+Version: June 2026 — updated Phase 2 closure
 
 ## Purpose
 
@@ -26,16 +26,13 @@ Build an automated engineering job-search platform for James Morseman that:
 
 ## Current Objectives
 
-The project is transitioning from knowledge collection into operational project
-state management and multi-chat execution.
+Phase 1 and Phase 2 are complete. The project is ready to begin Phase 3.
 
 Current objectives:
 
-- finish Phase 1 resume and cover-letter generation quality
+- begin Phase 3 firm repository implementation
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
-- move next to benefit and trajectory scoring after Phase 1 exit criteria are
-  met
 - keep the repository suitable for eventual portfolio presentation
 
 ## Active Architecture
@@ -99,18 +96,21 @@ Implemented:
 - follow-up workflows
 - evidence selection system
 - deterministic resume renderer
-
-Near completion:
-
-- resume refinement
-- cover-letter refinement
+- benefit scoring — signal engine, reason persistence, report display (Phase 2)
+- trajectory scoring — signal engine, reason persistence, report display (Phase 2)
+- document generation audit layer
 
 Architecture complete, implementation pending:
 
-- benefit scoring
-- trajectory scoring
-- firm repository
-- dashboard
+- firm repository (Phase 3 — next active phase)
+- dashboard (Phase 4)
+
+Deferred — post-Phase-1 resume optimization backlog:
+
+- resume density optimization
+- render-aware utilization measurement
+- adaptive evidence budgeting
+- role-family-specific resume archetypes
 
 Future:
 
@@ -159,8 +159,6 @@ Deferred implementation decisions:
 
 - dashboard implementation details
 - firm repository implementation
-- benefit scoring implementation
-- trajectory scoring implementation
 - LinkedIn generation
 - capstone publication
 - portfolio hosting approach
@@ -169,9 +167,9 @@ Deferred implementation decisions:
 
 Current roadmap:
 
-1. Phase 1 - Resume and Cover Letter
-2. Phase 2 - Benefit / Trajectory Scoring
-3. Phase 3 - Firm Repository
+1. Phase 1 - Resume and Cover Letter ✓ Complete
+2. Phase 2 - Benefit / Trajectory Scoring ✓ Complete
+3. Phase 3 - Firm Repository ← Next active phase
 4. Phase 4 - Dashboard
 5. Phase 5 - Portfolio Ecosystem
 6. Phase 6 - LinkedIn Generation
@@ -183,8 +181,6 @@ Known technical debt:
 
 - dashboard is not implemented
 - firm repository is not implemented
-- benefit scoring is not implemented
-- trajectory scoring is not implemented
 - some orchestration classes remain large
 - no pipeline run tracking table exists yet
 - no background-job architecture exists yet
@@ -365,26 +361,53 @@ Architecture:
 - SQLite mirror
 - human-reviewed firm intelligence
 
-## Benefit / Trajectory Scoring Planning
+## Benefit / Trajectory Scoring
 
-Status:
+Status: implemented (Phase 2 complete)
 
-- architecture complete
-- implementation pending
+Architecture:
 
-Goals:
+- `SignalRule` frozen dataclass: key, label, weight, patterns (tuple), negative_patterns, category
+- `SignalHit` frozen dataclass: key, label, source, weight, confidence, matched_text, reason
+- `SignalScore` frozen dataclass: score (float), hits (list[SignalHit]), missing_priority_keys
+- 11 `BENEFIT_RULES` and 10 `TRAJECTORY_RULES` with calibrated weights
+- Pre-compiled regex at module load; one hit per key; negative-pattern guards
+- Score normalization: `sum(weight * confidence) / sum(all_rule_weights)`, clamped [0.0, 1.0]
+- Reason persistence: JSON arrays in `jobs.benefit_reasons` and `jobs.trajectory_reasons` TEXT columns
+- Daily report display: top-3 reason labels shown alongside score percentages
+- Phase 2.1 calibration: tightened `rotation_or_growth` patterns to remove boilerplate matches
 
-- tuition support
-- PE/EIT support
+Covered signals (benefit):
+
+- tuition reimbursement
+- PE exam reimbursement
+- graduate degree assistance
+- FE exam reimbursement
+- licensing reimbursement
+- continuing education
+- student loan assistance
+- relocation assistance
+- signing bonus
+- housing assistance
+- retention bonus
+
+Covered signals (trajectory):
+
+- EIT/PE path
 - mentorship
-- advancement
-- graduate education support
-- relocation support
+- new graduate program
+- technical training
+- design responsibility
+- large-scale project
+- graduate school support
+- leadership development
+- rotation or growth (tightened — rotational programs, career ladder, structured programs only)
+- structural engineering practice
 
 Future integration:
 
-- job-level signals
-- firm-level signals
+- job-level signals from firm repository
+- firm-level benefit intelligence from YAML source
 
 ## GitHub Strategy
 

@@ -678,6 +678,82 @@ def test_resume_qa_restores_drifted_construction_management_project_identity():
     assert cleaned["projects"][0]["name"] == "Bridge Replacement Construction Management Planning"
 
 
+def test_resume_qa_restores_drifted_stormwater_project_identity():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    resume = {
+        "professional_summary": "Civil engineering candidate with stormwater evidence.",
+        "skills": ["Stormwater runoff calculations"],
+        "education": [{
+            "institution": "Farmingdale State College",
+            "degree": "Bachelor of Science",
+        }],
+        "experience": [],
+        "projects": [{
+            "name": "Campus Stormwater Cistern Design",
+            "role": "Academic Hydrology / Stormwater Project",
+            "bullets": [
+                "Calculated roof runoff and evaluated cistern storage, filtration, pumping, overflow, and irrigation reuse."
+            ],
+        }],
+        "certifications": [],
+    }
+
+    cleaned = generator._qa_resume_json(resume, "land development stormwater drainage role")
+
+    assert cleaned["projects"][0]["name"] == "Stormwater Detention / Cistern Design Project"
+
+
+def test_resume_qa_restores_role_relevant_profile_project_before_supporting_content():
+    generator = DocumentGenerator(llm_provider=FakeLLMProvider())
+    generator._profile = {
+        "projects": [
+            {
+                "name": "Stormwater Detention / Cistern Design Project",
+                "type": "CLASS_PROJECT",
+                "date": "2026-05",
+                "role": "Student project team member",
+                "bullets": [
+                    {"text": "Evaluated roof catchment, runoff volume, cistern storage, and overflow routing."},
+                    {"text": "Compared detention pond, infiltration trench, green roof, and cistern system alternatives."},
+                ],
+            },
+        ],
+        "technical_skills": {"water_site_civil": ["Stormwater design", "Drainage planning"]},
+    }
+    resume = {
+        "professional_summary": "Civil engineering candidate focused on land development and site civil work.",
+        "skills": ["Stormwater design"],
+        "education": [{"institution": "Farmingdale State College", "degree": "Bachelor of Science"}],
+        "experience": [{
+            "employer": "Urban Air Adventure Park",
+            "title": "Event Coordination Department Head",
+            "bullets": ["Coordinated staffing.", "Improved tracking."],
+        }],
+        "projects": [
+            {"name": "Senior Capstone Project", "role": "Structural Design Lead", "bullets": ["Capstone one."]},
+            {"name": "Job Search Assistant", "role": "Automation Project", "bullets": ["JSA one."]},
+        ],
+        "certifications": [],
+    }
+
+    cleaned = generator._qa_resume_json(
+        resume,
+        "Civil Engineer land development site civil stormwater drainage role.",
+    )
+    project_names = [project["name"] for project in cleaned["projects"]]
+    order = cleaned["rendering_allocation"]["expansion_order"]
+    stormwater_bullet = cleaned["projects"][2]["bullets"][0]
+
+    assert "Stormwater Detention / Cistern Design Project" in project_names
+    assert len(cleaned["projects"][2]["bullets"]) == 1
+    assert "runoff volume" in stormwater_bullet
+    assert "detention pond" in stormwater_bullet
+    assert "academic_project_bullets" in order
+    if "work_experience_bullets" in order:
+        assert order.index("academic_project_bullets") < order.index("work_experience_bullets")
+    assert "expansion_order_risk" not in generator.resume_renderer_qa(cleaned)["warnings"]
+
+
 def test_resume_summary_trim_avoids_sentence_fragments():
     generator = DocumentGenerator(llm_provider=FakeLLMProvider())
     summary = (

@@ -1,5 +1,12 @@
 # Benefit And Career Trajectory Scoring Design
 
+> **Implementation status: IMPLEMENTED — Phase 2 complete (June 2026)**
+>
+> This document records the design that was implemented. The active implementation
+> is in `job_search/ingestion/scoring.py`. Architecture details and Phase 2.1
+> calibration decisions are recorded in `PROJECT_HISTORY.md`.
+
+
 ## Purpose
 
 Replace the current placeholder benefit and career trajectory scoring with an

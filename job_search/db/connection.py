@@ -13,6 +13,8 @@ _JOBS_ADDED_COLUMNS: dict[str, str] = {
     "llm_rationale": "TEXT",
     "llm_graded_at": "TEXT",
     "llm_model": "TEXT",
+    "benefit_reasons": "TEXT",
+    "trajectory_reasons": "TEXT",
 }
 
 _ADDED_INDEXES: tuple[str, ...] = (

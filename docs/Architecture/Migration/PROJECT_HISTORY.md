@@ -61,6 +61,44 @@ Firm data is no longer expected to be manually authored from scratch.
 The current direction is machine-assisted discovery and drafting with human
 approval before firm intelligence affects scoring.
 
+## Phase Implementation History
+
+### Phase 1 — Resume and Cover Letter (complete)
+
+Delivered deterministic resume rendering, cover letter generation pipeline,
+evidence selection system, and Drive upload integration.
+
+Key lessons:
+- LLM-controlled layout introduces non-deterministic formatting; code rendering is required for ATS safety.
+- Evidence packets outperform full-profile injection for generation quality and auditability.
+- One-page ATS formatting must be maintained as an active invariant, not a goal.
+
+### Phase 2 — Benefit / Trajectory Scoring (complete, June 2026)
+
+Replaced weak substring-matching benefit and trajectory scoring with a full
+signal engine.
+
+Architecture delivered:
+- `SignalRule`, `SignalHit`, `SignalScore` frozen dataclasses for deterministic, testable scoring
+- 11 benefit rules and 10 trajectory rules with calibrated weights
+- Pre-compiled regex at module load; one hit per key; negative-pattern guards prevent false positives
+- Score normalization: `sum(weight * confidence) / sum(all_rule_weights)`, clamped [0.0, 1.0]
+- Reason persistence: JSON arrays in `jobs.benefit_reasons` and `jobs.trajectory_reasons`
+- Daily report enrichment: top-3 reason labels shown alongside score percentages
+
+Phase 2.1 calibration decision:
+The initial `rotation_or_growth` rule included three boilerplate phrases (`\bcareer path\b`,
+`\bgrowth path\b`, `\badvancement opportunity\b`) that matched nearly every job description.
+These were removed and replaced with three tighter patterns (`\bcareer ladder\b`,
+`\bcareer development program\b`, `\bstructured (?:career|advancement|growth) (?:path|program|framework|track)\b`)
+that require explicit structural commitment.
+
+Key lessons:
+- Generic career vocabulary is nearly universal; scores only when structural commitment is explicit.
+- Negative-pattern guards are essential for benefit signals with dual meaning (e.g., "new graduate" vs. "graduate degree assistance").
+- One-hit-per-key prevents the same signal from double-counting across synonym patterns.
+- Frozen dataclasses enforce scoring immutability — determinism is a design property, not just a test property.
+
 ## Rejected Decisions
 
 Rejected decisions:

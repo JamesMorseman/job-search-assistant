@@ -69,6 +69,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     stretch_category    TEXT,                    -- qualified|competitive_stretch|long_shot
     benefit_score       REAL DEFAULT 0.0,
     career_trajectory_score REAL DEFAULT 0.0,
+    benefit_reasons     TEXT DEFAULT '[]',      -- JSON array of SignalHit-like dicts
+    trajectory_reasons  TEXT DEFAULT '[]',      -- JSON array of SignalHit-like dicts
     -- LLM fit grade (augments, does not replace, match_score)
     llm_grade           TEXT,                    -- Strong|Good|Marginal|Pass
     llm_fit_score       REAL,                    -- 1-5

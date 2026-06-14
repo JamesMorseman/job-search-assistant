@@ -9,6 +9,7 @@ Weights are configurable in config/scoring.yaml.
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass, field
@@ -21,6 +22,367 @@ from job_search.location.models import SchemeName
 from job_search.models import CanonicalJob, StretchCategory
 
 logger = logging.getLogger(__name__)
+
+
+# ── Signal engine dataclasses ─────────────────────────────────────────────────
+
+@dataclass(frozen=True)
+class SignalRule:
+    key: str
+    label: str
+    weight: float
+    patterns: tuple[str, ...]
+    negative_patterns: tuple[str, ...] = ()
+    category: str = "job_description"
+
+
+@dataclass(frozen=True)
+class SignalHit:
+    key: str
+    label: str
+    source: str
+    weight: float
+    confidence: float
+    matched_text: str | None
+    reason: str
+
+
+@dataclass(frozen=True)
+class SignalScore:
+    score: float
+    hits: list[SignalHit]
+    missing_priority_keys: list[str]
+
+
+# ── Benefit signal rules ──────────────────────────────────────────────────────
+
+BENEFIT_RULES: list[SignalRule] = [
+    SignalRule(
+        key="tuition_reimbursement",
+        label="Tuition reimbursement",
+        weight=0.18,
+        patterns=(
+            r"\btuition reimbursement\b",
+            r"\btuition assistance\b",
+            r"\beducation assistance program\b",
+            r"\beducational reimbursement\b",
+        ),
+    ),
+    SignalRule(
+        key="graduate_degree_assistance",
+        label="Graduate degree assistance",
+        weight=0.16,
+        patterns=(
+            r"\bgraduate degree assistance\b",
+            r"\bmaster'?s degree assistance\b",
+            r"\bgraduate school reimbursement\b",
+            r"\bpaid graduate study\b",
+        ),
+        negative_patterns=(
+            r"\bnew graduate\b",
+            r"\brecent graduate\b",
+            r"\bgraduate engineer\b",
+        ),
+    ),
+    SignalRule(
+        key="pe_exam_reimbursement",
+        label="PE exam reimbursement",
+        weight=0.14,
+        patterns=(
+            r"\bpe exam reimbursement\b",
+            r"\bpe exam fee\b",
+            r"\bprofessional engineer exam reimbursement\b",
+            r"\bpe licensure reimbursement\b",
+            r"\bpe exam costs?\b",
+        ),
+    ),
+    SignalRule(
+        key="pe_prep_reimbursement",
+        label="PE prep support",
+        weight=0.12,
+        patterns=(
+            r"\bpe prep\b",
+            r"\bpe exam prep\b",
+            r"\bpe study materials?\b",
+            r"\bpe review course\b",
+        ),
+    ),
+    SignalRule(
+        key="fe_exam_reimbursement",
+        label="FE exam reimbursement",
+        weight=0.10,
+        patterns=(
+            r"\bfe exam reimbursement\b",
+            r"\bfe exam fee\b",
+            r"\bfundamentals of engineering exam\b",
+            r"\bfe licensure\b",
+        ),
+    ),
+    SignalRule(
+        key="licensing_reimbursement",
+        label="Licensing reimbursement",
+        weight=0.10,
+        patterns=(
+            r"\blicensing reimbursement\b",
+            r"\blicense reimbursement\b",
+            r"\bprofessional licensure support\b",
+            r"\blicensure fees? reimbursed\b",
+        ),
+    ),
+    SignalRule(
+        key="continuing_education",
+        label="Continuing education",
+        weight=0.08,
+        patterns=(
+            r"\bcontinuing education\b",
+            r"\bprofessional development reimbursement\b",
+            r"\bprofessional development allowance\b",
+            r"\bconference reimbursement\b",
+        ),
+    ),
+    SignalRule(
+        key="student_loan_assistance",
+        label="Student loan assistance",
+        weight=0.05,
+        patterns=(
+            r"\bstudent loan assistance\b",
+            r"\bstudent loan repayment\b",
+            r"\bstudent debt assistance\b",
+        ),
+    ),
+    SignalRule(
+        key="relocation_assistance",
+        label="Relocation assistance",
+        weight=0.04,
+        patterns=(
+            r"\brelocation assistance\b",
+            r"\brelocation package\b",
+            r"\brelocation reimbursement\b",
+            r"\bmoving expense\b",
+        ),
+    ),
+    SignalRule(
+        key="signing_bonus",
+        label="Signing bonus",
+        weight=0.02,
+        patterns=(
+            r"\bsigning bonus\b",
+            r"\bsign.?on bonus\b",
+        ),
+    ),
+    SignalRule(
+        key="housing_assistance",
+        label="Housing assistance",
+        weight=0.01,
+        patterns=(
+            r"\bhousing assistance\b",
+            r"\bhousing allowance\b",
+            r"\bhousing stipend\b",
+        ),
+    ),
+]
+
+# ── Trajectory signal rules ───────────────────────────────────────────────────
+
+TRAJECTORY_RULES: list[SignalRule] = [
+    SignalRule(
+        key="eit_pe_path",
+        label="EIT/PE path",
+        weight=0.20,
+        patterns=(
+            r"\bengineers? in training\b",
+            r"\beit\b",
+            r"\bpe track\b",
+            r"\bprofessional engineer path\b",
+            r"\bwork under (a )?licensed professional engineer\b",
+            r"\bpe licensure support\b",
+        ),
+    ),
+    SignalRule(
+        key="mentorship",
+        label="Mentorship program",
+        weight=0.16,
+        patterns=(
+            r"\bmentorship program\b",
+            r"\bformal mentorship\b",
+            r"\bmentoring program\b",
+            r"\bpaired with (a )?senior engineer\b",
+            r"\bmentor.mentee\b",
+        ),
+    ),
+    SignalRule(
+        key="technical_training",
+        label="Technical training",
+        weight=0.13,
+        patterns=(
+            r"\btechnical training\b",
+            r"\btraining program\b",
+            r"\binternal training\b",
+            r"\bonboarding training\b",
+            r"\bskills development program\b",
+        ),
+    ),
+    SignalRule(
+        key="new_grad_program",
+        label="New grad program",
+        weight=0.12,
+        patterns=(
+            r"\bnew graduate program\b",
+            r"\brecent graduate program\b",
+            r"\bentry.?level development program\b",
+            r"\bearly career program\b",
+            r"\bcampus hire program\b",
+        ),
+    ),
+    SignalRule(
+        key="design_responsibility",
+        label="Design responsibility",
+        weight=0.12,
+        patterns=(
+            r"\bdesign responsibility\b",
+            r"\bindependent design\b",
+            r"\blead design\b",
+            r"\bown.{0,20}design\b",
+            r"\bfull design\b",
+        ),
+    ),
+    SignalRule(
+        key="project_scale",
+        label="Large project exposure",
+        weight=0.08,
+        patterns=(
+            r"\blarge.?scale project\b",
+            r"\bmajor infrastructure\b",
+            r"\bmulti.?million.?dollar project\b",
+            r"\bhigh.?profile project\b",
+            r"\bsignificant project\b",
+        ),
+    ),
+    SignalRule(
+        key="rotation_or_growth",
+        label="Rotation or growth path",
+        weight=0.07,
+        patterns=(
+            r"\brotational program\b",
+            r"\brotation program\b",
+            r"\bjob rotation\b",
+            r"\bcareer ladder\b",
+            r"\bcareer development program\b",
+            r"\bstructured (?:career|advancement|growth) (?:path|program|framework|track)\b",
+        ),
+    ),
+    SignalRule(
+        key="graduate_school_support",
+        label="Graduate school support",
+        weight=0.06,
+        patterns=(
+            r"\bgraduate school support\b",
+            r"\bgraduate study support\b",
+            r"\bmaster'?s program support\b",
+            r"\bpaid graduate study\b",
+        ),
+    ),
+    SignalRule(
+        key="leadership_development",
+        label="Leadership development",
+        weight=0.04,
+        patterns=(
+            r"\bleadership development\b",
+            r"\bleadership training\b",
+            r"\bleadership program\b",
+            r"\bfuture leader\b",
+        ),
+    ),
+    SignalRule(
+        key="structural_practice_depth",
+        label="Structural practice depth",
+        weight=0.02,
+        patterns=(
+            r"\bstructural engineering practice\b",
+            r"\bstructural depth\b",
+            r"\badvanced structural\b",
+            r"\bcomplex structural\b",
+        ),
+    ),
+]
+
+# Pre-compile all patterns at module load time for performance.
+_BENEFIT_COMPILED: list[tuple[SignalRule, list[re.Pattern[str]], list[re.Pattern[str]]]] = [
+    (
+        rule,
+        [re.compile(p, re.IGNORECASE) for p in rule.patterns],
+        [re.compile(p, re.IGNORECASE) for p in rule.negative_patterns],
+    )
+    for rule in BENEFIT_RULES
+]
+
+_TRAJECTORY_COMPILED: list[tuple[SignalRule, list[re.Pattern[str]], list[re.Pattern[str]]]] = [
+    (
+        rule,
+        [re.compile(p, re.IGNORECASE) for p in rule.patterns],
+        [re.compile(p, re.IGNORECASE) for p in rule.negative_patterns],
+    )
+    for rule in TRAJECTORY_RULES
+]
+
+
+def _match_signal_rules(
+    text: str,
+    compiled_rules: list[tuple[SignalRule, list[re.Pattern[str]], list[re.Pattern[str]]]],
+) -> SignalScore:
+    """Match compiled signal rules against normalized text. One hit per key."""
+    hits: list[SignalHit] = []
+    total_weight = sum(rule.weight for rule, _, _ in compiled_rules)
+
+    for rule, pos_patterns, neg_patterns in compiled_rules:
+        matched_text: str | None = None
+        for pat in pos_patterns:
+            m = pat.search(text)
+            if m:
+                matched_text = m.group(0)[:60]
+                break
+        if matched_text is None:
+            continue
+        if any(neg.search(text) for neg in neg_patterns):
+            continue
+        hits.append(SignalHit(
+            key=rule.key,
+            label=rule.label,
+            source="job_description",
+            weight=rule.weight,
+            confidence=1.0,
+            matched_text=matched_text,
+            reason=f"Job post mentions {rule.label.lower()}.",
+        ))
+
+    hits.sort(key=lambda h: h.weight, reverse=True)
+    raw = sum(h.weight * h.confidence for h in hits)
+    score = round(min(max(raw / total_weight if total_weight else 0.0, 0.0), 1.0), 6)
+    return SignalScore(score=score, hits=hits, missing_priority_keys=[])
+
+
+def _serialize_hits(hits: list[SignalHit]) -> str:
+    """Serialize SignalHits to a compact, stable JSON string for persistence."""
+    return json.dumps(
+        [
+            {
+                "key": h.key,
+                "label": h.label,
+                "source": h.source,
+                "weight": h.weight,
+                "confidence": h.confidence,
+                "matched_text": h.matched_text,
+                "reason": h.reason,
+            }
+            for h in hits
+        ],
+        sort_keys=True,
+    )
+
+
+def format_top_reasons(hits: list[SignalHit], n: int = 3) -> str:
+    """Return a compact comma-separated label string for the top n hits."""
+    return ", ".join(h.label for h in hits[:n])
 
 
 # ── Discipline detection (used by Scorer) ─────────────────────────────────────
@@ -47,39 +409,6 @@ DEFAULT_MATCH_FORMULA = {
     "trajectory_weight": 0.10,
 }
 
-# ── Benefit keywords → benefit_score contribution ────────────────────────────
-BENEFIT_SIGNALS: dict[str, float] = {
-    "relocation": 0.08,
-    "signing bonus": 0.06,
-    "tuition": 0.10,
-    "graduate": 0.08,
-    "fe exam": 0.05,
-    "pe exam": 0.07,
-    "pe prep": 0.07,
-    "licensing": 0.05,
-    "continuing education": 0.05,
-    "student loan": 0.05,
-    "housing": 0.04,
-}
-
-# ── Career trajectory signals ─────────────────────────────────────────────────
-TRAJECTORY_SIGNALS: dict[str, float] = {
-    "pe track": 0.10,
-    "engineer in training": 0.08,
-    "eit": 0.06,
-    "mentorship": 0.08,
-    "mentor": 0.06,
-    "design responsibility": 0.07,
-    "rotational": 0.08,
-    "promotion": 0.05,
-    "advancement": 0.05,
-    "graduate study": 0.07,
-    "tuition": 0.07,
-    "leadership development": 0.07,
-    "large project": 0.05,
-    "significant project": 0.05,
-}
-
 # ── Degree requirement patterns ───────────────────────────────────────────────
 DEGREE_EXACT = re.compile(r"\bbs\s+civil\s+engineering\b", re.IGNORECASE)
 DEGREE_RELATED = re.compile(
@@ -98,6 +427,8 @@ class ScoringContext:
     knockout_issues: list[str] = field(default_factory=list)
     benefit_score: float = 0.0
     trajectory_score: float = 0.0
+    benefit_hits: list[SignalHit] = field(default_factory=list)
+    trajectory_hits: list[SignalHit] = field(default_factory=list)
     stretch_category: StretchCategory = StretchCategory.QUALIFIED
 
 
@@ -123,6 +454,8 @@ class Scorer:
         job.benefit_score = ctx.benefit_score
         job.career_trajectory_score = ctx.trajectory_score
         job.stretch_category = ctx.stretch_category
+        job.benefit_reasons = _serialize_hits(ctx.benefit_hits)
+        job.trajectory_reasons = _serialize_hits(ctx.trajectory_hits)
         return job
 
     def score_location(self, job: CanonicalJob) -> LocationScore | None:
@@ -144,8 +477,12 @@ class Scorer:
         if self.location_scorer:
             ctx.location = self.location_scorer.score(job.location_city, job.location_state)
         ctx.knockout_ok, ctx.knockout_issues = self._check_knockouts(job)
-        ctx.benefit_score = self._compute_benefit_score(ctx.text)
-        ctx.trajectory_score = self._compute_trajectory_score(ctx.text)
+        benefit_signal = _match_signal_rules(ctx.text, _BENEFIT_COMPILED)
+        trajectory_signal = _match_signal_rules(ctx.text, _TRAJECTORY_COMPILED)
+        ctx.benefit_score = benefit_signal.score
+        ctx.benefit_hits = benefit_signal.hits
+        ctx.trajectory_score = trajectory_signal.score
+        ctx.trajectory_hits = trajectory_signal.hits
         ctx.stretch_category = self._classify_stretch(job, ctx.text)
         return ctx
 
@@ -186,20 +523,6 @@ class Scorer:
         if ko.clearance and ko.clearance.lower() not in ("none", ""):
             issues.append(f"Security clearance required: {ko.clearance}")
         return len(issues) == 0, issues
-
-    def _compute_benefit_score(self, text: str) -> float:
-        score = 0.0
-        for signal, bump in BENEFIT_SIGNALS.items():
-            if signal in text:
-                score += bump
-        return min(score, 1.0)
-
-    def _compute_trajectory_score(self, text: str) -> float:
-        score = 0.0
-        for signal, bump in TRAJECTORY_SIGNALS.items():
-            if signal in text:
-                score += bump
-        return min(score, 1.0)
 
     def _classify_stretch(self, job: CanonicalJob, text: str) -> StretchCategory:
         if DEGREE_RELATED.search(text):
