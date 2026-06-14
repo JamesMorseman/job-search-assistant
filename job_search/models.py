@@ -225,6 +225,7 @@ class FirmPriority(str, Enum):
 class DraftStatus(str, Enum):
     PENDING_REVIEW = "pending_review"
     REJECTED = "rejected"
+    APPROVED = "approved"
 
 
 # ── Firm intelligence sub-models ───────────────────────────────────────────────

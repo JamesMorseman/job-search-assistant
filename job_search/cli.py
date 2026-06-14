@@ -364,3 +364,233 @@ def firms_discover(min_jobs: int, source: str | None, out: str | None, config_pa
     if out:
         _Path(out).write_text("\n".join(tsv_rows), encoding="utf-8")
         console.print(f"[green]Wrote {len(candidates)} candidates to {out}[/green]")
+
+
+@firms.command(name="review")
+@click.argument("firm_id", required=False, default=None)
+@click.option("--drafts-dir", default=None, type=click.Path(), help="Override default draft directory.")
+@click.option("--all-statuses", is_flag=True, default=False, help="Show all drafts, not just pending_review.")
+def firms_review(firm_id: str | None, drafts_dir: str | None, all_statuses: bool):
+    """Review pending draft firm profiles.
+
+    \b
+    Without FIRM_ID: lists all pending drafts (or all drafts with --all-statuses).
+    With FIRM_ID:    shows a detailed panel for that draft.
+    """
+    from pathlib import Path as _Path
+    from rich.table import Table
+    from rich.panel import Panel
+
+    from job_search.firms.repository import (
+        DraftNotFoundError,
+        list_drafts,
+        read_draft,
+    )
+    from job_search.models import DraftStatus
+
+    if firm_id:
+        # ── Single-firm detail view ─────────────────────────────────────────
+        try:
+            draft = read_draft(firm_id, drafts_dir=drafts_dir)
+        except DraftNotFoundError as exc:
+            console.print(f"[red]Error:[/red] {exc}")
+            raise SystemExit(1)
+
+        status_color = {
+            "pending_review": "yellow",
+            "rejected": "red",
+            "approved": "green",
+        }.get(draft.draft_status.value, "white")
+
+        lines = [
+            f"[bold]firm_id:[/bold]     {draft.firm_id}",
+            f"[bold]name:[/bold]        {draft.name}",
+            f"[bold]status:[/bold]      [{status_color}]{draft.draft_status.value}[/{status_color}]",
+            f"[bold]generated_at:[/bold] {draft.generated_at or '—'}",
+            f"[bold]website:[/bold]     {draft.website or '—'}",
+            f"[bold]careers_url:[/bold] {draft.careers_url or '—'}",
+            f"[bold]aliases:[/bold]     {', '.join(draft.aliases) or '—'}",
+            f"[bold]priority:[/bold]    {draft.manual_priority.value}",
+        ]
+
+        if draft.profile.enr_rank or draft.profile.employee_count or draft.profile.disciplines:
+            lines += [
+                "",
+                "[bold]Profile[/bold]",
+                f"  enr_rank:      {draft.profile.enr_rank or '—'}",
+                f"  employee_count:{draft.profile.employee_count or '—'}",
+                f"  disciplines:   {', '.join(draft.profile.disciplines) or '—'}",
+                f"  markets:       {', '.join(draft.profile.markets) or '—'}",
+            ]
+
+        if draft.benefits:
+            lines += ["", "[bold]Benefits[/bold]"]
+            for key, b in draft.benefits.items():
+                lines.append(
+                    f"  {key:<35s} {b.status.value:<12s} conf={b.confidence:.2f}"
+                    + (f"  [{b.source_type.value}]" if b.source_url else "")
+                )
+
+        if draft.trajectory:
+            lines += ["", "[bold]Career Trajectory[/bold]"]
+            for key, t in draft.trajectory.items():
+                lines.append(
+                    f"  {key:<35s} {t.status.value:<12s} conf={t.confidence:.2f}"
+                    + (f"  rating={t.rating}" if t.rating else "")
+                )
+
+        if draft.evidence_summary.source_urls:
+            lines += ["", "[bold]Evidence URLs[/bold]"]
+            for url in draft.evidence_summary.source_urls:
+                lines.append(f"  {url}")
+
+        if draft.evidence_summary.extraction_notes:
+            lines += ["", "[bold]Extraction Notes[/bold]"]
+            for note in draft.evidence_summary.extraction_notes:
+                lines.append(f"  • {note}")
+
+        if draft.notes.reputation:
+            lines += ["", f"[bold]Reputation:[/bold] {draft.notes.reputation}"]
+
+        if draft.review.reviewer_notes:
+            lines += ["", "[bold]Reviewer Notes[/bold]"]
+            for note in draft.review.reviewer_notes:
+                lines.append(f"  • {note}")
+
+        console.print(Panel("\n".join(lines), title=f"Draft Review — {firm_id}", expand=False))
+        console.print(
+            "\n[dim]To approve:  [bold]jsa firms approve "
+            + firm_id
+            + " --approved-by <name>[/bold][/dim]"
+        )
+        console.print(
+            f"[dim]To reject:   [bold]jsa firms reject {firm_id}[/bold][/dim]"
+        )
+        return
+
+    # ── List view ──────────────────────────────────────────────────────────
+    all_ids = list_drafts(drafts_dir=drafts_dir)
+    if not all_ids:
+        console.print("[green]No draft firm profiles found.[/green]")
+        return
+
+    rows = []
+    for fid in all_ids:
+        try:
+            d = read_draft(fid, drafts_dir=drafts_dir)
+        except Exception:
+            continue
+        if not all_statuses and d.draft_status.value != "pending_review":
+            continue
+        rows.append(d)
+
+    if not rows:
+        console.print("[green]No pending draft firm profiles. Use --all-statuses to see all.[/green]")
+        return
+
+    t = Table(show_header=True, header_style="bold", title=f"Draft Firm Profiles ({len(rows)})")
+    t.add_column("firm_id", no_wrap=True)
+    t.add_column("Name")
+    t.add_column("Status")
+    t.add_column("Benefits")
+    t.add_column("Trajectory")
+    t.add_column("Generated")
+
+    status_color = {"pending_review": "yellow", "rejected": "red", "approved": "green"}
+    for d in rows:
+        sc = status_color.get(d.draft_status.value, "white")
+        t.add_row(
+            d.firm_id,
+            d.name,
+            f"[{sc}]{d.draft_status.value}[/{sc}]",
+            str(len(d.benefits)),
+            str(len(d.trajectory)),
+            d.generated_at or "—",
+        )
+
+    console.print(t)
+    console.print(
+        "\n[dim]Run [bold]jsa firms review <firm_id>[/bold] for a detailed view, "
+        "or [bold]jsa firms approve <firm_id>[/bold] to promote.[/dim]"
+    )
+
+
+@firms.command(name="approve")
+@click.argument("firm_id")
+@click.option("--approved-by", required=True, prompt="Approved by", help="Name or identifier of the approver.")
+@click.option("--last-verified", default=None, help="ISO date of last manual verification (defaults to today).")
+@click.option("--drafts-dir", default=None, type=click.Path(), help="Override default draft directory.")
+@click.option("--config", "config_path", default="config/firms.yaml", show_default=True, help="Path to approved firms YAML.")
+def firms_approve(firm_id: str, approved_by: str, last_verified: str | None,
+                  drafts_dir: str | None, config_path: str):
+    """Approve a pending draft and promote it to config/firms.yaml.
+
+    \b
+    The draft is validated, converted to an approved FirmProfile, written into
+    config/firms.yaml, and synced to SQLite.  The draft file is preserved with
+    status 'approved' for audit purposes.
+    """
+    from job_search.db.connection import get_db
+    from job_search.firms.repository import (
+        DraftNotFoundError,
+        DraftStatusError,
+        approve_draft,
+    )
+
+    try:
+        with get_db() as db:
+            profile = approve_draft(
+                firm_id,
+                approved_by=approved_by,
+                last_verified=last_verified,
+                drafts_dir=drafts_dir,
+                config_path=config_path,
+                db=db,
+            )
+    except DraftNotFoundError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise SystemExit(1)
+    except DraftStatusError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise SystemExit(1)
+    except ValueError as exc:
+        console.print(f"[red]Validation error:[/red] {exc}")
+        raise SystemExit(1)
+
+    console.print(
+        f"[green]✓ {profile.name} ({firm_id}) approved by {approved_by}.[/green]\n"
+        f"  Written to [bold]{config_path}[/bold] and synced to SQLite."
+    )
+
+
+@firms.command(name="reject")
+@click.argument("firm_id")
+@click.option("--notes", default="", help="Reviewer notes to record on the draft.")
+@click.option("--drafts-dir", default=None, type=click.Path(), help="Override default draft directory.")
+def firms_reject(firm_id: str, notes: str, drafts_dir: str | None):
+    """Reject a pending draft firm profile.
+
+    \b
+    The draft YAML is preserved with status 'rejected' and the notes recorded.
+    Evidence is never deleted.  A rejected draft can be re-reviewed or deleted
+    manually.
+    """
+    from job_search.firms.repository import (
+        DraftNotFoundError,
+        DraftStatusError,
+        reject_draft,
+    )
+
+    try:
+        draft = reject_draft(firm_id, reviewer_notes=notes, drafts_dir=drafts_dir)
+    except DraftNotFoundError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise SystemExit(1)
+    except DraftStatusError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise SystemExit(1)
+
+    console.print(
+        f"[yellow]✗ {draft.name} ({firm_id}) marked as rejected.[/yellow]\n"
+        "  Draft preserved with evidence intact."
+    )

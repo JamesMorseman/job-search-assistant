@@ -18,7 +18,9 @@ from pathlib import Path
 
 import yaml
 
-from job_search.models import DraftFirmProfile, FirmProfile
+from datetime import date
+
+from job_search.models import DraftFirmProfile, DraftStatus, FirmApproval, FirmProfile
 
 logger = logging.getLogger(__name__)
 
@@ -217,3 +219,155 @@ def _upsert_firm(db: sqlite3.Connection, profile: FirmProfile) -> None:
             "last_verified":        profile.approval.last_verified,
         },
     )
+
+
+# ── Approved firms YAML I/O ────────────────────────────────────────────────────
+
+_DEFAULT_CONFIG = Path("config/firms.yaml")
+
+
+def load_firms_yaml(config_path: str | Path = _DEFAULT_CONFIG) -> list[dict]:
+    """Return the raw list of firm dicts from config/firms.yaml, or [] if missing."""
+    try:
+        with open(config_path, encoding="utf-8") as fh:
+            raw = yaml.safe_load(fh) or {}
+        return raw.get("firms", [])
+    except FileNotFoundError:
+        return []
+
+
+def save_firms_yaml(firms: list[dict], config_path: str | Path = _DEFAULT_CONFIG) -> None:
+    """Overwrite config/firms.yaml with the given list of firm dicts.
+
+    Uses yaml.dump with model-serialised dicts so no Python-specific tags appear.
+    Preserves YAML key order (sort_keys=False).
+    """
+    path = Path(config_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as fh:
+        yaml.dump(
+            {"firms": firms},
+            fh,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=False,
+        )
+
+
+# ── Review and approval workflow ───────────────────────────────────────────────
+
+class DraftNotFoundError(FileNotFoundError):
+    """Raised when a draft file does not exist for the given firm_id."""
+
+
+class DraftStatusError(ValueError):
+    """Raised when a draft is not in the expected status for the requested operation."""
+
+
+def approve_draft(
+    firm_id: str,
+    approved_by: str,
+    last_verified: str | None = None,
+    *,
+    drafts_dir: Path | str | None = None,
+    config_path: str | Path = _DEFAULT_CONFIG,
+    db: sqlite3.Connection | None = None,
+) -> FirmProfile:
+    """Promote a pending draft to an approved FirmProfile.
+
+    Workflow:
+    1. Read the draft; raise DraftNotFoundError if absent.
+    2. Raise DraftStatusError if not PENDING_REVIEW.
+    3. Build a FirmProfile with a new FirmApproval block.
+    4. Upsert the profile into config/firms.yaml (by firm_id).
+    5. Mark the draft file as APPROVED (preserves evidence trail).
+    6. If a db connection is provided, call sync_approved_firms() to keep
+       SQLite current.
+
+    Returns the approved FirmProfile.
+    """
+    _validate_firm_id(firm_id)
+
+    # 1. Load draft
+    path = draft_path(firm_id, drafts_dir)
+    if not path.exists():
+        raise DraftNotFoundError(f"No draft found for firm_id={firm_id!r}. Expected: {path}")
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh)
+    draft = DraftFirmProfile(**raw)
+
+    # 2. Status guard
+    if draft.draft_status != DraftStatus.PENDING_REVIEW:
+        raise DraftStatusError(
+            f"Draft {firm_id!r} has status {draft.draft_status.value!r}; "
+            "only pending_review drafts can be approved."
+        )
+
+    # 3. Build FirmProfile
+    today = date.today().isoformat()
+    approval = FirmApproval(
+        approved_at=today,
+        approved_by=approved_by,
+        last_verified=last_verified or today,
+    )
+    profile_data = draft.model_dump(mode="json", exclude={"draft_status", "generated_at",
+                                                           "generator_version", "review",
+                                                           "evidence_summary"})
+    profile_data["approval"] = approval.model_dump(mode="json")
+    profile = FirmProfile(**profile_data)  # validates vocab keys + approval
+
+    # 4. Upsert into config/firms.yaml
+    existing = load_firms_yaml(config_path)
+    profile_dict = profile.model_dump(mode="json")
+    updated = [f for f in existing if f.get("firm_id") != firm_id]
+    updated.append(profile_dict)
+    save_firms_yaml(updated, config_path)
+
+    # 5. Mark draft as APPROVED (preserve evidence trail)
+    draft.draft_status = DraftStatus.APPROVED
+    draft.review.approved = True
+    draft.review.approved_at = today
+    draft.review.approved_by = approved_by
+    write_draft(draft, drafts_dir)
+
+    # 6. Sync SQLite if connection provided
+    if db is not None:
+        _upsert_firm(db, profile)
+
+    logger.info("approve_draft: %r approved by %s; synced to config/firms.yaml", firm_id, approved_by)
+    return profile
+
+
+def reject_draft(
+    firm_id: str,
+    reviewer_notes: str = "",
+    *,
+    drafts_dir: Path | str | None = None,
+) -> DraftFirmProfile:
+    """Mark a draft as REJECTED.
+
+    The draft YAML file is preserved with its evidence intact.
+    The status is changed to 'rejected' and the reviewer_notes appended.
+    Returns the updated DraftFirmProfile.
+    """
+    _validate_firm_id(firm_id)
+
+    path = draft_path(firm_id, drafts_dir)
+    if not path.exists():
+        raise DraftNotFoundError(f"No draft found for firm_id={firm_id!r}. Expected: {path}")
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh)
+    draft = DraftFirmProfile(**raw)
+
+    if draft.draft_status == DraftStatus.APPROVED:
+        raise DraftStatusError(
+            f"Draft {firm_id!r} is already approved; rejection is not permitted."
+        )
+
+    draft.draft_status = DraftStatus.REJECTED
+    if reviewer_notes:
+        draft.review.reviewer_notes.append(reviewer_notes)
+    write_draft(draft, drafts_dir)
+
+    logger.info("reject_draft: %r marked rejected", firm_id)
+    return draft
