@@ -99,6 +99,98 @@ belongs in `PROJECT_HISTORY.md`.
   repository, and LinkedIn remains the primary professional profile.
 - State reference: `PROJECT_STATE.md`
 
+### Draft Firm Profiles Sync To SQLite And Remain Inert
+
+- Status: accepted
+- Area: firm repository / dashboard
+- Phase: Phase 3 — recorded June 2026
+- Decision: SQLite remains the source of truth for all dashboard queries. Draft
+  firm profiles may sync to SQLite. Draft profiles are operationally inert.
+- Inert means: draft profiles must not participate in scoring, matching, benefit
+  calculations, trajectory calculations, or ingestion behavior. They may
+  participate in review queues, governance workflows, and dashboard review views.
+- Constraint: the inert constraint must be explicit and enforced at every
+  integration point. It is not sufficient to rely on convention. Any code path
+  that loads firm data for scoring, matching, or ingestion must filter on
+  approval status before use.
+- Implementation: `_load_approved_profiles()` in `scoring.py` requires a valid
+  `FirmApproval` block to construct `FirmProfile`; `DraftFirmProfile` structurally
+  lacks this block and is rejected at the type boundary. Draft isolation is
+  enforced structurally, not by convention.
+- Rationale: The dashboard architecture requires SQLite as the authoritative
+  source for all UI queries, including the firm review queue. Storing drafts
+  only on the filesystem would force the review queue to read from the filesystem
+  directly — an exception that grows more expensive as the dashboard matures.
+  Syncing drafts to SQLite resolves the conflict cleanly; the inert constraint
+  is enforced at the query and service layer, not by data location.
+- State reference: `PROJECT_STATE.md §Firm Repository`
+
+### ATS Quarantine Tier Mapping Deferred To Dashboard Design
+
+- Status: deferred
+- Area: firm repository / dashboard / source health
+- Phase: Phase 3 — recorded June 2026
+- Decision: The mapping from ATS tier values (`green`, `yellow`, `red`,
+  `unknown`) to the "quarantined" display state on the dashboard Source Health
+  screen is not defined at this time.
+- Reason: This decision has a dashboard dependency. The Source Health screen
+  design will determine what "quarantined" means visually and what tier values
+  or source health flags drive it. Defining the mapping before the screen is
+  designed risks producing a definition that does not match the screen's
+  eventual behavior.
+- Constraint: This decision must be closed before the Source Health screen is
+  implemented in Phase 4 or 5.
+- State reference: `PROJECT_STATE.md §Technical Debt`
+
+### DraftFirmProfile And FirmProfile Maintain Structural Parity
+
+- Status: accepted
+- Area: firm repository
+- Phase: Phase 3 — recorded June 2026
+- Decision: `DraftFirmProfile` and `FirmProfile` maintain structural parity
+  wherever practical. Fields that exist in one should have a corresponding field
+  or documented absence in the other.
+- Draft-only metadata fields — `draft_status`, `generated_at`,
+  `generator_version`, and the `review` block — are documented as draft-only
+  and must be explicitly excluded from diff workflows. No diff of a draft
+  against an approved profile should surface these fields as substantive
+  differences.
+- Constraint: The list of draft-only exclusions is short and stable; any diff
+  implementation should normalize on this list rather than performing ad hoc
+  field filtering.
+- Rationale: The dashboard firm review queue requires a diff between a draft and
+  the currently approved profile for the same firm. A diff is only meaningful
+  when the two documents share a common structure. If drafts carry fields that
+  approved profiles do not, or if field nesting diverges, the diff logic must
+  normalize at render time or produce a misleading result that flags structural
+  differences as content differences. Establishing parity now costs nothing and
+  prevents the diff implementation from becoming an ad hoc normalization exercise.
+- State reference: `PROJECT_STATE.md §Firm Repository`
+
+### Benefit And Trajectory Keys Must Be Directly Human-Renderable
+
+- Status: accepted
+- Area: firm repository / scoring / dashboard
+- Phase: Phase 3 — recorded June 2026
+- Decision: Benefit keys and trajectory keys must be directly human-readable.
+  Every key must be renderable as a user-facing label without a translation
+  table.
+- Compliant examples: `tuition_reimbursement`, `pe_exam_reimbursement`,
+  `eit_pe_path`, `internal_mobility`.
+- Non-compliant examples: `ben_001`, `traj_c`, `PE_REIMB`.
+- Constraint: Keys must be descriptive nouns or noun phrases, lowercase, using
+  underscores as separators.
+- Implementation: enforced via `FIRM_BENEFIT_KEYS` and `FIRM_TRAJECTORY_KEYS`
+  frozensets in `job_search/models.py`; Pydantic validators reject unknown keys
+  at model construction time.
+- Rationale: The dashboard Job Detail screen renders `benefit_reasons` and
+  `trajectory_reasons` as matched-signal summaries. If keys are human-readable,
+  the dashboard renders them directly. If they are internal codes, the dashboard
+  requires a translation layer — a mapping table that must be maintained in sync
+  with the vocabulary, distributed to the frontend, and updated whenever a key
+  is added or renamed. Keeping keys human-readable eliminates this layer entirely.
+- State reference: `PROJECT_STATE.md §Firm Repository`
+
 ## Superseded Decisions
 
 ### PDF As Active Profile Source

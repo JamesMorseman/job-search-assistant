@@ -152,7 +152,26 @@ Approved direction:
 - No de-prioritization of capstone evidence for generic work-history prose.
 - No treating Job Search Assistant as civil design experience.
 
-## 4. Acceptance Criteria For Future Refinement
+## 4. Completed Evidence Synchronization History
+
+### Phase 2 and Phase 3 Job Search Assistant Evidence Synchronization — June 2026
+
+Completed as part of Phase 3 closure and governance consolidation.
+
+Changes made to `profile/james_profile.example.yaml`:
+
+- Added `proj_jsa` project entry with Phase 2 and Phase 3 evidence bullets covering:
+  signal scoring engine (21 rules, confidence-weighted, reason persistence),
+  firm repository lifecycle (discover / draft / review / approve / reject),
+  firm-prior scoring integration, provider-agnostic LLM architecture,
+  and 500+ automated tests
+- Added 6 software entries (Python, SQLite, Pydantic, PyYAML, OpenAI API, Anthropic Claude API)
+- Added `resume_bullet_bank.software_data_automation` with 10 employer-facing bullets
+  spanning Phase 2 scoring, Phase 3 firm repository, pipeline, and testing
+- Added `cover_letter_fragment_bank` with 4 fragments covering signal scoring,
+  firm intelligence, governance architecture, and human-reviewed data quality
+
+## 5. Acceptance Criteria For Future Refinement
 
 Future resume refinement work is acceptable when:
 

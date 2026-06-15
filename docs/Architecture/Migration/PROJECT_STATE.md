@@ -374,7 +374,7 @@ Deferred enhancements (Phase 4+):
 - firm alias matching for public-source jobs
 - grading prompt firm-intelligence enrichment
 - draft↔approved diff display in review command
-- ATS quarantine tier mapping (open decision from governance addendum)
+- ATS quarantine tier mapping (deferred — see `DECISION_LOG.md §ATS Quarantine Tier Mapping Deferred To Dashboard Design`)
 - firm review queue in dashboard
 
 ## Benefit / Trajectory Scoring

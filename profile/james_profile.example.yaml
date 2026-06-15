@@ -124,6 +124,25 @@ software:
   - name: Microsoft Office Suite
     acronym: MS Office
     proficiency: PROFICIENT
+  # ── Software / automation tools (for JSA and data-workflow roles) ─────────
+  - name: Python
+    acronym: Python
+    proficiency: PROFICIENT
+  - name: SQLite
+    acronym: SQLite
+    proficiency: PROFICIENT
+  - name: Pydantic
+    acronym: Pydantic
+    proficiency: PROFICIENT
+  - name: PyYAML
+    acronym: YAML
+    proficiency: PROFICIENT
+  - name: OpenAI API
+    acronym: OpenAI
+    proficiency: FAMILIAR
+  - name: Anthropic Claude API
+    acronym: Claude
+    proficiency: FAMILIAR
   # ADD MORE
 
 # ── Discipline focus (weighted) ───────────────────────────────────────────────
@@ -174,6 +193,103 @@ projects:
         discipline_tags: []
         keywords: []
     software_used: []             # subset of software acronyms above
+
+  # ── Job Search Assistant (personal automation project) ────────────────────
+  # The generator identifies this project by the phrase "Job Search Assistant"
+  # or "job-search automation" anywhere in the project JSON.
+  # Phase 2 and Phase 3 evidence updated June 2026.
+  - id: proj_jsa
+    name: "Job Search Assistant"
+    type: PERSONAL
+    date: "2026"
+    discipline_tags: [software_automation, data_engineering]
+    role: "Sole Developer"
+    description: >
+      End-to-end automated job-search pipeline built in Python: multi-source
+      ingestion, deterministic scoring, LLM fit grading, resume and cover-letter
+      generation, Drive upload, application tracking, and a human-reviewed
+      employer intelligence repository.
+    bullets:
+      # ── Core pipeline ──────────────────────────────────────────────────────
+      - text: >
+          Built a multi-source job ingestion pipeline across 10+ ATS adapters
+          (Greenhouse, Lever, Workday, USAJOBS, Adzuna, email alerts) with
+          deduplication, repost detection, and a self-healing circuit breaker.
+        discipline_tags: [software_automation, data_engineering]
+        keywords: [Python, SQLite, automation, pipeline, data ingestion, API integration]
+
+      # ── Phase 2: Signal scoring engine ────────────────────────────────────
+      - text: >
+          Designed a confidence-weighted signal scoring engine with 21 calibrated
+          rules (11 benefit, 10 trajectory) using pre-compiled regex, one-hit-per-key
+          deduplication, negative-pattern guards to eliminate false positives,
+          and score normalization across the full rule weight distribution.
+        discipline_tags: [software_automation]
+        keywords: [Python, regex, scoring, signal extraction, data analysis]
+
+      - text: >
+          Implemented explainable scoring: each job's benefit and trajectory
+          scores persist as structured JSON reason arrays in SQLite, enabling
+          transparent score attribution and calibration — Phase 2.1 reduced
+          false-positive rate by removing boilerplate career vocabulary matches.
+        discipline_tags: [software_automation, data_engineering]
+        keywords: [Python, SQLite, JSON, explainability, calibration]
+
+      # ── Phase 3: Firm repository ───────────────────────────────────────────
+      - text: >
+          Built a human-reviewed employer intelligence repository with a complete
+          lifecycle: automated discovery, skeleton draft generation, CLI review
+          and approval workflow, YAML-to-SQLite synchronization, and structural
+          enforcement that prevents unapproved drafts from affecting scoring or
+          ingestion.
+        discipline_tags: [software_automation, data_engineering]
+        keywords: [Python, YAML, SQLite, Pydantic, data governance, workflow automation]
+
+      - text: >
+          Integrated firm-prior scoring: approved employer benefit and career
+          trajectory intelligence blends with job-description signals (70/30
+          benefit, 65/35 trajectory) using Pydantic-validated controlled
+          vocabulary and confidence-weighted priors.
+        discipline_tags: [software_automation]
+        keywords: [Python, Pydantic, YAML, scoring integration, data quality]
+
+      # ── Generation and testing ─────────────────────────────────────────────
+      - text: >
+          Implemented provider-agnostic LLM architecture supporting Anthropic
+          Claude and OpenAI; generates tailored resumes and cover letters with
+          deterministic DOCX rendering, keyword coverage tracking, and Drive
+          upload with full generation audit trail.
+        discipline_tags: [software_automation]
+        keywords: [Python, LLM, OpenAI, Claude, automation, document generation]
+
+      - text: >
+          Maintained 500+ automated tests across 30 test files covering scoring,
+          generation, firm repository, evidence selection, ingestion, and
+          database migrations; all tests pass on main branch.
+        discipline_tags: [software_automation]
+        keywords: [Python, pytest, testing, quality assurance, automation]
+
+    software_used: [Python, SQLite, Pydantic, YAML, OpenAI, Claude]
+
+    # Evidence pools used by resume_bullet_bank expansion (see below)
+    jsa_evidence_summary:
+      phase_2_scoring:
+        - SignalRule / SignalHit / SignalScore frozen dataclass architecture
+        - 11 benefit rules + 10 trajectory rules, calibrated weights
+        - pre-compiled regex with negative-pattern guards
+        - confidence-weighted score normalization clamped [0.0, 1.0]
+        - benefit_reasons / trajectory_reasons JSON persistence
+        - Phase 2.1 calibration — removed boilerplate false-positive patterns
+      phase_3_firm_repository:
+        - FirmProfile / DraftFirmProfile Pydantic model architecture
+        - FIRM_BENEFIT_KEYS and FIRM_TRAJECTORY_KEYS controlled-vocab frozensets
+        - jsa firms discover / draft / review / approve / reject CLI lifecycle
+        - YAML config-as-code with SQLite runtime mirror (sync_approved_firms)
+        - path-traversal-safe slug validation before any filesystem path construction
+        - 70/30 benefit, 65/35 trajectory blend with status multipliers
+        - structural inertness: DraftFirmProfile rejected at type boundary
+        - 239 new tests across 7 firm-specific test files
+
     # ADD MORE projects
 
 # ── Leadership & activities ───────────────────────────────────────────────────
@@ -206,3 +322,62 @@ graduate_school:
   target_degree: "M.S. Structural Engineering"
   timeline: "2-4 years post-graduation"
   notes: "Firms offering tuition reimbursement or proximity to strong programs should be flagged"
+
+# ── Resume bullet bank ────────────────────────────────────────────────────────
+# Reusable employer-facing bullets for the JSA project, organized by category.
+# The expansion engine selects from software_data_automation when generating
+# documents for roles that match the Job Search Assistant project.
+# Updated: Phase 2 and Phase 3 evidence synchronized June 2026.
+resume_bullet_bank:
+  software_data_automation:
+    # ── Signal scoring engine (Phase 2) ───────────────────────────────────────
+    - "Designed a confidence-weighted job-scoring engine with 21 calibrated extraction rules, pre-compiled regex with negative-pattern guards to reduce false positives, and normalized scores across the full rule weight distribution"
+    - "Built an explainable scoring system persisting structured reason arrays per job in SQLite, enabling transparent score attribution and calibration that reduced false-positive rate in Phase 2.1"
+    - "Engineered a frozen-dataclass signal architecture (SignalRule / SignalHit / SignalScore) enforcing immutability and preventing accidental state mutation across the scoring pipeline"
+    # ── Firm repository (Phase 3) ─────────────────────────────────────────────
+    - "Built a human-reviewed employer intelligence repository with a five-stage lifecycle (discover → draft → review → approve → reject), YAML config-as-code, and idempotent YAML-to-SQLite synchronization"
+    - "Implemented path-traversal-safe slug validation before any filesystem path construction, enforcing security constraints at the service boundary"
+    - "Designed draft isolation enforced structurally at the type boundary — unapproved employer profiles are rejected by Pydantic model construction and cannot affect scoring or ingestion regardless of data content"
+    - "Integrated employer intelligence into job scoring: approved benefit and trajectory priors blend with job-description signals using confidence-weighted coefficients and status multipliers"
+    # ── Pipeline and infrastructure (Phase 1 / cross-phase) ──────────────────
+    - "Built a multi-source job ingestion pipeline across 10+ ATS adapters with deduplication, repost detection, and a self-healing circuit breaker"
+    - "Implemented provider-agnostic LLM architecture supporting multiple inference providers; generates tailored resumes and cover letters with deterministic DOCX rendering, keyword coverage tracking, and Drive upload"
+    - "Maintained 500+ automated tests across 30 test files covering scoring, generation, firm repository, evidence selection, ingestion, and database migrations"
+
+# ── Cover letter fragment bank ────────────────────────────────────────────────
+# Reusable paragraph fragments and evidence claims for cover letter generation.
+# Use these as the source pool when the JSA project is included in a cover letter.
+# Updated: Phase 2 and Phase 3 evidence synchronized June 2026.
+cover_letter_fragment_bank:
+  signal_scoring:
+    - >
+      I designed and calibrated a confidence-weighted signal scoring engine that
+      extracts benefit and career-trajectory signals from job descriptions using
+      21 rules, pre-compiled regex, and negative-pattern guards — achieving
+      transparent, explainable scores that persist structured reason arrays
+      per job for audit and calibration.
+
+  firm_intelligence:
+    - >
+      I built a human-reviewed employer intelligence repository that covers the
+      complete firm lifecycle: automated discovery, skeleton draft generation,
+      CLI review and approval, and idempotent YAML-to-SQLite synchronization.
+      Approved employer benefit and trajectory priors blend into scoring using
+      confidence-weighted coefficients, enriching job rankings with curated
+      institutional knowledge.
+
+  governance_architecture:
+    - >
+      I enforced data governance constraints structurally rather than by
+      convention: unapproved employer profiles are rejected at the Pydantic
+      type boundary and can never affect scoring or ingestion regardless of
+      how they are stored. This design eliminates a class of silent correctness
+      failures that rely on procedural compliance rather than type safety.
+
+  human_reviewed_data_quality:
+    - >
+      I designed the system around a human-in-the-loop data quality model:
+      automated discovery surfaces candidate employer profiles; a human reviews,
+      edits, and approves each one before it enters the scoring pipeline. This
+      ensures that employer intelligence driving job rankings reflects verified,
+      intentional data rather than unchecked automation output.

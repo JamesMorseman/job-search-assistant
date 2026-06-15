@@ -558,10 +558,20 @@ issues synchronization notes.
 
 When starting a new chat:
 
-1. Identify the chat role.
-2. Provide that chat's initialization prompt from `INITIALIZATION_PROMPTS.md`.
-3. Provide required context from `CONTEXT_DISTRIBUTION_GUIDE.md`.
-4. State the current task and whether it is planning, documentation,
+1. Identify the chat role from the Quick Routing Table above.
+2. Provide the chat's required context from `PROJECT_STATE.md` using the
+   section list defined in `CONTEXT_DISTRIBUTION_GUIDE.md` for that role.
+   Do not use `INITIALIZATION_PROMPTS.md` — it has been archived and its
+   priority guidance is stale. Use `PROJECT_STATE.md §Current Objectives`
+   and `§Roadmap` as the authoritative source for current priorities.
+3. State the current task and whether it is planning, documentation,
    implementation, or review.
-5. Tell the chat whether it may modify files.
-6. Route any state-changing decision back to Project Master.
+4. Tell the chat whether it may modify files.
+5. Route any state-changing decision back to Project Master.
+
+**Initialization source hierarchy (in order):**
+
+1. `PROJECT_STATE.md` — active state, current phase, decisions, roadmap summary
+2. `docs/Architecture/system_architecture.md` — active workflow and module map
+3. `CONTEXT_DISTRIBUTION_GUIDE.md` — which PSD sections this role requires
+4. Task-specific architecture doc (dashboard, scoring, firm repo, etc.) if relevant
