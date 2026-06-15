@@ -1,6 +1,6 @@
 # Job Search Assistant
 
-[![CI](https://github.com/smorseman/job-search-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/smorseman/job-search-assistant/actions/workflows/ci.yml)
+[![CI](https://github.com/JamesMorseman/job-search-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesMorseman/job-search-assistant/actions/workflows/ci.yml)
 
 Automated civil-engineering job pipeline for James.
 
