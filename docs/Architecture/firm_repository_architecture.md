@@ -1,8 +1,15 @@
 # Firm Repository Architecture
 
+> **Implementation status: IMPLEMENTED — Phase 3 complete (June 2026)**
+>
+> This document records the design that was implemented. Phases 1–6 below
+> map to Phase 3 Steps 1–7 of the project roadmap. Phase 7 (Reporting and
+> Dashboard Integration) is deferred to Phase 4. See `PROJECT_STATE.md` for
+> the current list of deferred enhancements.
+
 ## Purpose
 
-Define the future firm intelligence repository for employer data, ATS config,
+Define the firm intelligence repository for employer data, ATS config,
 benefits, career trajectory signals, and reporting integration.
 
 The repository should be human-reviewed, not manually authored from scratch.
@@ -483,7 +490,11 @@ project scale. Include `extraction_note` when a claim is inferred or weak.
 
 ## Implementation Phases
 
-### Phase 1: Model And Validation
+> Phases 1–6 are complete. Phase 7 is deferred to project Phase 4.
+> The "Recommended Work" items below are retained as the original design record;
+> actual implementation may differ in naming or structure.
+
+### Phase 1: Model And Validation ✓ Complete
 
 - Add structured firm models.
 - Keep old `FirmConfig` fields backwards-compatible.
@@ -497,7 +508,7 @@ Acceptance criteria:
 - Invalid benefit keys fail validation.
 - Draft profiles are not loaded by scoring.
 
-### Phase 2: Missing-Firm Discovery
+### Phase 2: Missing-Firm Discovery ✓ Complete
 
 - Add `job_search/firms/discovery.py`.
 - Implement `jsa firms discover`.
@@ -509,7 +520,7 @@ Acceptance criteria:
 - Candidates include sample jobs, sources, domains, and suggested `firm_id`.
 - Existing approved firms and aliases are not rediscovered.
 
-### Phase 3: Draft Generation
+### Phase 3: Draft Generation ✓ Complete (skeleton; LLM extraction deferred)
 
 - Add `job_search/firms/drafting.py`.
 - Implement `jsa firms draft`.
@@ -523,7 +534,7 @@ Acceptance criteria:
   notes.
 - Draft generation does not affect scoring.
 
-### Phase 4: Review And Approval
+### Phase 4: Review And Approval ✓ Complete
 
 - Add `job_search/firms/review.py`.
 - Implement `jsa firms review`.
@@ -538,7 +549,7 @@ Acceptance criteria:
 - Approved profile syncs to SQLite.
 - Rejected drafts remain auditable.
 
-### Phase 5: YAML To SQLite Sync
+### Phase 5: YAML To SQLite Sync ✓ Complete
 
 - Add `job_search/firms/repository.py`.
 - Upsert approved firm config into SQLite.
@@ -551,7 +562,7 @@ Acceptance criteria:
 - Sync is idempotent.
 - Draft profiles are ignored.
 
-### Phase 6: Scoring Integration
+### Phase 6: Scoring Integration ✓ Complete
 
 - Pass firm intelligence into scoring.
 - Blend firm benefit and trajectory priors with job-description signals.

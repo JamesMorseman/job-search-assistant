@@ -129,64 +129,39 @@ if it breaks any step in this workflow.
 - The scoring API can later accept optional firm intelligence without breaking
   callers.
 
-## Phase 3 - Firm Repository
+## Phase 3 - Firm Repository ✓ Complete (June 2026)
 
-### Objectives
+### Delivered
 
-- Build a human-reviewed firm intelligence repository.
-- Let the tool discover missing firms and draft first-pass profiles.
-- Keep drafts separate from approved firm profiles.
-- Require human approval before firm intelligence affects scoring, grading, or
-  reporting.
-- Mirror approved firm profiles into SQLite for runtime joins.
+All Phase 3 acceptance criteria met. The complete firm lifecycle is operational:
 
-### Dependencies
+```
+jsa firms discover   → surface companies in job DB lacking an approved profile
+jsa firms draft      → generate pending_review skeleton DraftFirmProfile
+jsa firms review     → list pending drafts or inspect a single draft in detail
+jsa firms approve    → validate, promote to config/firms.yaml, sync to SQLite
+jsa firms reject     → mark rejected, preserve evidence and file
+                     → approved firm priors auto-blend into Scorer at next ingest
+```
 
-- Phase 2 should define the firm-prior scoring contract, even if firm priors are
-  implemented later.
-- Existing `config/firms.yaml`.
-- Existing `FirmConfig` in `job_search/models.py`.
-- Existing `firms` table and `source_health` table in
-  `job_search/db/schema.sql`.
-- Existing ATS fingerprinting in `job_search/discovery/registry.py`.
-- Design details in `docs/Architecture/firm_repository_architecture.md`.
+Implemented modules and capabilities:
 
-### Estimated Effort
+- `job_search/firms/discovery.py` — missing-firm discovery, `FirmCandidate` dataclass
+- `job_search/firms/repository.py` — draft I/O, YAML sync, approve/reject workflow, skeleton draft generation
+- `job_search/models.py` — `FirmProfile`, `DraftFirmProfile`, all sub-models, controlled vocab frozensets, enums
+- `job_search/db/schema.sql` — five new `firms` columns (`aliases`, `benefits_json`, `trajectory_json`, `manual_priority`, `last_verified`)
+- `job_search/db/connection.py` — idempotent migration for new firms columns
+- `job_search/ingestion/scoring.py` — `Scorer.score(job, firm=None)`, `_firm_priors_to_signal_score()`, `_load_approved_profiles()`
+- 239 new tests across 7 test files; full suite 568 passed
 
-- Model and validation: 1-2 days.
-- Missing-firm discovery and draft workflow: 3-5 days.
-- Approval and SQLite sync: 2-4 days.
-- Scoring/reporting integration: 2-3 days.
+Deferred enhancements (not blocking Phase 4):
 
-### Recommended Work
-
-- Add `job_search/firms/` package:
-  - `discovery.py`
-  - `drafting.py`
-  - `review.py`
-  - `repository.py`
-  - `scoring.py`
-- Add CLI group:
-  - `jsa firms discover`
-  - `jsa firms draft`
-  - `jsa firms review`
-  - `jsa firms approve`
-  - optional `jsa firms reject`
-- Store drafts under `data/firm_drafts/` or `config/firm_drafts/`.
-- Ensure drafts include source URLs, confidence, `last_verified`, and
-  extraction notes.
-- Sync only approved profiles from `config/firms.yaml` to SQLite.
-- Use firm intelligence only after approval.
-
-### Acceptance Criteria
-
-- Existing empty `config/firms.yaml` still loads.
-- Missing firms can be discovered from ingested jobs.
-- Draft profiles never affect scoring.
-- Approval validates controlled vocab keys and records reviewer/timestamp.
-- Approved firms sync idempotently into SQLite.
-- Firm-level confirmed benefits and trajectory priors can affect scores once
-  Phase 2 integration is complete.
+- LLM-assisted draft generation (`--llm` flag on `jsa firms draft`)
+- Firm alias matching for public-source / aggregator jobs
+- Grading prompt firm-intelligence enrichment
+- Draft ↔ approved diff display in review command
+- ATS quarantine tier mapping (open governance decision)
+- Firm review queue in dashboard (Phase 4 dependency)
 
 ## Phase 4 - Dashboard Service Layer
 
@@ -392,11 +367,11 @@ if it breaks any step in this workflow.
 
 ## Recommended Build Order
 
-1. Finish Phase 1 so document generation and regeneration are clean.
-2. Implement Phase 2 before firm scoring so the scoring extension point is
+1. ✓ Finish Phase 1 so document generation and regeneration are clean.
+2. ✓ Implement Phase 2 before firm scoring so the scoring extension point is
    stable.
-3. Implement Phase 3 to add approved firm intelligence.
-4. Implement Phase 4 before any UI work.
+3. ✓ Implement Phase 3 to add approved firm intelligence.
+4. Implement Phase 4 before any UI work. ← Next active phase
 5. Build Phase 5 as a local web dashboard.
 6. Add Phase 6 once dashboard actions need durable run history.
 7. Treat Phase 7 as optional, human-reviewed extensions.

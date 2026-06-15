@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 — updated Phase 2 closure
+Version: June 2026 — Phase 3 closure
 
 ## Purpose
 
@@ -26,11 +26,11 @@ Build an automated engineering job-search platform for James Morseman that:
 
 ## Current Objectives
 
-Phase 1 and Phase 2 are complete. The project is ready to begin Phase 3.
+Phase 1, Phase 2, and Phase 3 are complete. The project is ready to begin Phase 4.
 
 Current objectives:
 
-- begin Phase 3 firm repository implementation
+- begin Phase 4 Dashboard Service Layer planning
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -99,10 +99,10 @@ Implemented:
 - benefit scoring — signal engine, reason persistence, report display (Phase 2)
 - trajectory scoring — signal engine, reason persistence, report display (Phase 2)
 - document generation audit layer
+- firm repository — full lifecycle: discovery, draft, review, approve/reject, YAML sync, SQLite sync, firm-prior scoring integration (Phase 3)
 
 Architecture complete, implementation pending:
 
-- firm repository (Phase 3 — next active phase)
 - dashboard (Phase 4)
 
 Deferred — post-Phase-1 resume optimization backlog:
@@ -169,8 +169,8 @@ Current roadmap:
 
 1. Phase 1 - Resume and Cover Letter ✓ Complete
 2. Phase 2 - Benefit / Trajectory Scoring ✓ Complete
-3. Phase 3 - Firm Repository ← Next active phase
-4. Phase 4 - Dashboard
+3. Phase 3 - Firm Repository ✓ Complete
+4. Phase 4 - Dashboard ← Next active phase
 5. Phase 5 - Portfolio Ecosystem
 6. Phase 6 - LinkedIn Generation
 7. Phase 7 - Capstone Publication Review
@@ -180,10 +180,13 @@ Current roadmap:
 Known technical debt:
 
 - dashboard is not implemented
-- firm repository is not implemented
 - some orchestration classes remain large
 - no pipeline run tracking table exists yet
 - no background-job architecture exists yet
+- firm alias matching for public-source jobs (USAJOBS, Adzuna) deferred to Phase 4+
+- LLM-assisted draft generation deferred (skeleton drafts only in Phase 3)
+- grading prompt firm-intelligence enrichment deferred to Phase 4+
+- firm profile diff in review command deferred to Phase 4+
 
 ## Known Risks
 
@@ -340,26 +343,39 @@ Preferred architecture:
 Dashboard is intended to become the primary interaction surface. Google Sheets
 will remain secondary.
 
-## Firm Repository Planning
+## Firm Repository
 
-Status:
+Status: implemented (Phase 3 complete, June 2026)
 
-- architecture complete
-- implementation pending
+Implemented capabilities:
 
-Goals:
+- `FirmProfile` and `DraftFirmProfile` Pydantic models with controlled vocab validation
+- `FIRM_BENEFIT_KEYS` and `FIRM_TRAJECTORY_KEYS` frozensets (11 benefit keys, 10 trajectory keys)
+- `FirmBenefit`, `FirmTrajectoryPrior`, `FirmATS`, `FirmProfileMeta`, `FirmApproval`, `FirmNotes` sub-models
+- `DraftStatus` enum: `pending_review`, `rejected`, `approved`
+- `job_search/firms/` package: `discovery.py`, `repository.py`, `__init__.py`
+- Draft storage at `data/firm_drafts/<firm_id>.yaml`; path-traversal-safe slug validation
+- `jsa firms discover` — surfaces companies in job DB lacking an approved firm_id match
+- `jsa firms draft <name>` — generates skeleton `DraftFirmProfile`, `--force` to overwrite
+- `jsa firms review [firm_id]` — list pending drafts or detail view; `--all-statuses` flag
+- `jsa firms approve <firm_id>` — validates, promotes to `config/firms.yaml`, syncs to SQLite
+- `jsa firms reject <firm_id>` — marks rejected, preserves evidence and file
+- `sync_approved_firms()` — idempotent upsert of approved `FirmProfile` records into SQLite
+- Five new `firms` table columns: `aliases`, `benefits_json`, `trajectory_json`, `manual_priority`, `last_verified`
+- `_load_approved_profiles()` in `Scorer` — auto-loads `config/firms.yaml` at init
+- `Scorer.score(job, firm=None)` — optional `FirmProfile` parameter; auto-lookup by `job.firm_id`
+- Firm-prior blend: 70/30 (benefit), 65/35 (trajectory); status multipliers confirmed=1.0, likely=0.65
+- Firm hits persisted in `benefit_reasons`/`trajectory_reasons` with `source="firm_profile"`
+- `FirmConfig` (ATS/ingestion model) preserved unchanged; never collapsed with `FirmProfile`
 
-- ATS information
-- benefits intelligence
-- trajectory intelligence
-- discipline alignment
-- market intelligence
+Deferred enhancements (Phase 4+):
 
-Architecture:
-
-- YAML source
-- SQLite mirror
-- human-reviewed firm intelligence
+- LLM-assisted draft generation (skeleton-only in Phase 3)
+- firm alias matching for public-source jobs
+- grading prompt firm-intelligence enrichment
+- draft↔approved diff display in review command
+- ATS quarantine tier mapping (open decision from governance addendum)
+- firm review queue in dashboard
 
 ## Benefit / Trajectory Scoring
 
@@ -404,10 +420,17 @@ Covered signals (trajectory):
 - rotation or growth (tightened — rotational programs, career ladder, structured programs only)
 - structural engineering practice
 
-Future integration:
+Phase 3 integration complete:
 
-- job-level signals from firm repository
-- firm-level benefit intelligence from YAML source
+- Approved firm benefit and trajectory priors blend into `benefit_score` and `career_trajectory_score`
+- Firm hits persisted in `benefit_reasons` / `trajectory_reasons` with `source: "firm_profile"`
+- Auto-lookup by `job.firm_id` in `Scorer`; pure JD scoring when no approved profile exists
+- `DraftFirmProfile` never affects scoring — enforced at the type boundary
+
+Deferred enhancements:
+
+- firm alias matching for public-source / aggregator jobs
+- grading prompt enrichment with firm intelligence
 
 ## GitHub Strategy
 
@@ -481,8 +504,8 @@ Important dependencies:
 - resume and cover-letter generation depend on the master profile and evidence
   selector
 - dashboard depends on SQLite and stable service boundaries
-- firm repository depends on controlled vocabularies and approval workflow
-- benefit/trajectory scoring will depend on job-level and firm-level signals
+- firm repository is implemented; dashboard will depend on approved firm profiles for firm detail and review queue screens
+- benefit/trajectory scoring integrates approved firm-prior signals (Phase 3 complete); grading prompt enrichment deferred
 - GitHub/portfolio strategy depends on code quality, docs, and public-facing
   readiness
 - LinkedIn generation depends on master profile facts and human review

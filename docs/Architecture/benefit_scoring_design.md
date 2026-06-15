@@ -440,7 +440,7 @@ LLM grading can receive compact benefit and trajectory reasons as context, but
 the deterministic scores remain canonical. Grading prompts should not invent or
 alter benefit/trajectory reasons.
 
-## Future Firm-Profile Integration
+## Firm-Profile Integration (Phase 3 Complete)
 
 Firm profiles should supplement job-description signals only after they are
 approved in the firm repository.
@@ -501,7 +501,7 @@ Rules:
 Suggested scoring signature:
 
 ```python
-def score(self, job: CanonicalJob, firm: FirmConfig | None = None) -> CanonicalJob:
+def score(self, job: CanonicalJob, firm: FirmProfile | None = None) -> CanonicalJob:
     ...
 ```
 
@@ -563,14 +563,14 @@ Acceptance criteria:
 - Sheets sync does not break existing columns.
 - Missing reason JSON does not crash reporting.
 
-### Phase 5: Firm-Profile Priors
+### Phase 5: Firm-Profile Priors ✓ Complete (Phase 3)
 
 - Load approved firm intelligence.
 - Convert firm profile records into `SignalHit` priors.
 - Blend firm priors with JD scores.
 - Persist firm-derived hits with `source: "firm_profile"`.
 
-Acceptance criteria:
+Acceptance criteria met:
 
 - Confirmed firm tuition support increases benefit score.
 - Confirmed firm EIT/PE support increases trajectory score.

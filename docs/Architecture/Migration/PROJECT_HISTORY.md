@@ -73,6 +73,38 @@ Key lessons:
 - Evidence packets outperform full-profile injection for generation quality and auditability.
 - One-page ATS formatting must be maintained as an active invariant, not a goal.
 
+### Phase 3 — Firm Repository (complete, June 2026)
+
+Built the complete human-reviewed firm intelligence lifecycle in seven steps.
+
+Architecture delivered:
+
+- `FirmProfile` / `DraftFirmProfile` Pydantic models with separate approval and draft-status fields; structural parity maintained per governance addendum Decision 3
+- `FIRM_BENEFIT_KEYS` (11 keys) and `FIRM_TRAJECTORY_KEYS` (10 keys) frozensets; controlled-vocab validation enforced at model level
+- `FirmBenefit`, `FirmTrajectoryPrior`, `FirmATS`, `FirmProfileMeta`, `FirmApproval`, `FirmNotes` sub-models; `DraftStatus` enum (`pending_review`, `rejected`, `approved`)
+- `job_search/firms/` package: `discovery.py`, `repository.py`
+- Draft storage at `data/firm_drafts/<firm_id>.yaml`; path-traversal-safe slug validation enforced before any filesystem path construction
+- CLI group `jsa firms` with five commands: `discover`, `draft`, `review`, `approve`, `reject`
+- `sync_approved_firms()` — idempotent upsert of approved FirmProfile records into SQLite; five new `firms` columns added via migration
+- `Scorer.score(job, firm=None)` — optional FirmProfile blend; auto-lookup by `job.firm_id`; backward-compatible
+- Firm-prior blend: 70/30 benefit, 65/35 trajectory; status multipliers confirmed=1.0, likely=0.65, unknown/not_offered=0.0
+- `DraftStatus.APPROVED` added to preserve audit trail in draft file after promotion
+- `FirmConfig` (ATS/ingestion model) preserved unchanged; never collapsed with `FirmProfile`
+
+Governance decisions recorded:
+
+- Decision 1: draft profiles are operationally inert — never affect scoring, matching, or ingestion
+- Decision 2: ATS quarantine tier mapping deferred to dashboard build (open)
+- Decision 3: `DraftFirmProfile` and `FirmProfile` maintain structural parity; draft-only fields excluded from diffs
+- Decision 4: benefit and trajectory keys must be human-readable without a translation table
+
+Key lessons:
+- The FirmConfig / FirmProfile separation is load-bearing: collapsing them would require changing Ingestor, all adapters, and schema migration simultaneously. Keep them parallel.
+- YAML round-trips require `model.model_dump(mode="json")` before `yaml.dump()` to avoid Python-specific tags that `safe_load` rejects.
+- Slug validation (`_validate_firm_id`) must run before any path construction — path traversal must be prevented structurally, not by convention.
+- Circuit-breaker and operational columns in the `firms` table must be preserved on upsert; only intelligence columns are refreshed.
+- `DraftStatus.APPROVED` in the draft file after promotion preserves the evidence trail without requiring a separate audit table.
+
 ### Phase 2 — Benefit / Trajectory Scoring (complete, June 2026)
 
 Replaced weak substring-matching benefit and trajectory scoring with a full
@@ -110,6 +142,8 @@ Rejected decisions:
 - Anthropic-only future architecture
 - direct LinkedIn modification without human review
 - unapproved firm drafts affecting scoring
+- collapsing FirmConfig and FirmProfile into a single model
+- firm prior scoring replacing job-description signals rather than supplementing them
 
 ## Major Pivots
 
@@ -243,3 +277,7 @@ Lesson:
   the platform.
 - Capstone publication requires a separate suitability and confidentiality
   audit.
+- FirmConfig (ATS model) and FirmProfile (intelligence model) must stay separate; collapsing them forces a multi-system change with no benefit.
+- Controlled vocabulary keys must be human-readable at definition time; a translation table is technical debt that compounds.
+- Path traversal prevention must be structural (slug validation before path construction), not conventional.
+- YAML round-trips require `model_dump(mode="json")` before `yaml.dump()` when models contain Pydantic str-enums.
