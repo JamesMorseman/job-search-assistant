@@ -19,7 +19,7 @@ import yaml
 
 from job_search.location import LocationScore, LocationScorer
 from job_search.location.models import SchemeName
-from job_search.models import CanonicalJob, StretchCategory
+from job_search.models import CanonicalJob, FirmBenefitStatus, FirmProfile, StretchCategory
 
 logger = logging.getLogger(__name__)
 
@@ -306,6 +306,30 @@ TRAJECTORY_RULES: list[SignalRule] = [
     ),
 ]
 
+# ── Firm-prior blend constants (from benefit_scoring_design.md) ───────────────
+
+# Status → confidence multiplier.  unknown/not_offered produce zero contribution.
+_FIRM_STATUS_MULTIPLIER: dict[str, float] = {
+    FirmBenefitStatus.CONFIRMED.value:    1.00,
+    FirmBenefitStatus.LIKELY.value:       0.65,
+    FirmBenefitStatus.UNKNOWN.value:      0.00,
+    FirmBenefitStatus.NOT_OFFERED.value:  0.00,
+}
+
+# Blend weights: JD score weight + firm-prior weight = 1.0
+_JD_BENEFIT_WEIGHT:   float = 0.70
+_FIRM_BENEFIT_WEIGHT: float = 0.30
+_JD_TRAJ_WEIGHT:      float = 0.65
+_FIRM_TRAJ_WEIGHT:    float = 0.35
+
+# Pre-compute total weights for normalization (same denominator as JD scoring).
+_BENEFIT_TOTAL_WEIGHT:    float = sum(r.weight for r in BENEFIT_RULES)      # populated below
+_TRAJECTORY_TOTAL_WEIGHT: float = sum(r.weight for r in TRAJECTORY_RULES)  # populated below
+
+# Rule lookup by key — used when generating firm-prior SignalHit objects.
+_BENEFIT_RULE_BY_KEY:    dict[str, SignalRule] = {r.key: r for r in BENEFIT_RULES}
+_TRAJECTORY_RULE_BY_KEY: dict[str, SignalRule] = {r.key: r for r in TRAJECTORY_RULES}
+
 # Pre-compile all patterns at module load time for performance.
 _BENEFIT_COMPILED: list[tuple[SignalRule, list[re.Pattern[str]], list[re.Pattern[str]]]] = [
     (
@@ -324,6 +348,66 @@ _TRAJECTORY_COMPILED: list[tuple[SignalRule, list[re.Pattern[str]], list[re.Patt
     )
     for rule in TRAJECTORY_RULES
 ]
+
+
+def _firm_priors_to_signal_score(
+    firm_data: dict,  # dict[str, FirmBenefit | FirmTrajectoryPrior]
+    rule_by_key: dict[str, SignalRule],
+    total_weight: float,
+) -> SignalScore:
+    """Convert approved firm benefit/trajectory data into a SignalScore.
+
+    Only confirmed (×1.0) and likely (×0.65) statuses produce non-zero hits.
+    Confidence = status_multiplier × prior.confidence.
+    source is always "firm_profile".
+    """
+    hits: list[SignalHit] = []
+    for key, prior in firm_data.items():
+        rule = rule_by_key.get(key)
+        if rule is None:
+            continue
+        multiplier = _FIRM_STATUS_MULTIPLIER.get(prior.status.value, 0.0)
+        if multiplier == 0.0:
+            continue
+        confidence = round(multiplier * prior.confidence, 6)
+        if confidence == 0.0:
+            continue
+        verified = f" (verified {prior.last_verified})" if prior.last_verified else ""
+        hits.append(SignalHit(
+            key=rule.key,
+            label=rule.label,
+            source="firm_profile",
+            weight=rule.weight,
+            confidence=confidence,
+            matched_text=None,
+            reason=(
+                f"Approved firm profile: {rule.label.lower()} is "
+                f"{prior.status.value}{verified}."
+            ),
+        ))
+    hits.sort(key=lambda h: h.weight * h.confidence, reverse=True)
+    raw = sum(h.weight * h.confidence for h in hits)
+    score = round(min(max(raw / total_weight if total_weight else 0.0, 0.0), 1.0), 6)
+    return SignalScore(score=score, hits=hits, missing_priority_keys=[])
+
+
+def _load_approved_profiles(config_path: str) -> dict[str, FirmProfile]:
+    """Load approved FirmProfile records keyed by firm_id. Returns {} on any error."""
+    try:
+        with open(config_path, encoding="utf-8") as fh:
+            raw = yaml.safe_load(fh) or {}
+    except FileNotFoundError:
+        return {}
+    profiles: dict[str, FirmProfile] = {}
+    for entry in raw.get("firms", []):
+        if not isinstance(entry, dict):
+            continue
+        try:
+            p = FirmProfile(**entry)
+            profiles[p.firm_id] = p
+        except Exception:
+            pass  # skip invalid/legacy entries silently
+    return profiles
 
 
 def _match_signal_rules(
@@ -433,7 +517,11 @@ class ScoringContext:
 
 
 class Scorer:
-    def __init__(self, config_path: str = "config/scoring.yaml"):
+    def __init__(
+        self,
+        config_path: str = "config/scoring.yaml",
+        firms_config_path: str = "config/firms.yaml",
+    ):
         cfg = self._load_config(config_path)
         self.discipline_weights = {
             **DEFAULT_DISCIPLINE_WEIGHTS,
@@ -447,9 +535,25 @@ class Scorer:
         except FileNotFoundError:
             logger.warning("cities.yaml not found — location scoring disabled")
             self.location_scorer = None
+        # Approved firm profiles indexed by firm_id; empty when config is absent.
+        self._firm_profiles: dict[str, FirmProfile] = _load_approved_profiles(firms_config_path)
+        if self._firm_profiles:
+            logger.info("Scorer: loaded %d approved firm profiles", len(self._firm_profiles))
 
-    def score(self, job: CanonicalJob) -> CanonicalJob:
-        ctx = self._build_context(job)
+    def score(self, job: CanonicalJob, firm: FirmProfile | None = None) -> CanonicalJob:
+        """Score a job, optionally blending in approved firm intelligence.
+
+        firm is resolved in this order:
+          1. Explicit firm argument (highest priority, used in tests and direct calls).
+          2. Auto-lookup by job.firm_id in self._firm_profiles (loaded at init).
+          3. None — pure JD scoring, backward-compatible with all existing callers.
+
+        DraftFirmProfile is never accepted here; only FirmProfile (approved) data
+        affects scoring.
+        """
+        if firm is None and job.firm_id:
+            firm = self._firm_profiles.get(job.firm_id)
+        ctx = self._build_context(job, firm=firm)
         job.match_score = self._compute_match_score(ctx)
         job.benefit_score = ctx.benefit_score
         job.career_trajectory_score = ctx.trajectory_score
@@ -464,7 +568,7 @@ class Scorer:
             return None
         return self.location_scorer.score(job.location_city, job.location_state)
 
-    def _build_context(self, job: CanonicalJob) -> ScoringContext:
+    def _build_context(self, job: CanonicalJob, firm: FirmProfile | None = None) -> ScoringContext:
         ctx = ScoringContext()
         ctx.text = (
             (job.title or "") + " " +
@@ -477,12 +581,40 @@ class Scorer:
         if self.location_scorer:
             ctx.location = self.location_scorer.score(job.location_city, job.location_state)
         ctx.knockout_ok, ctx.knockout_issues = self._check_knockouts(job)
-        benefit_signal = _match_signal_rules(ctx.text, _BENEFIT_COMPILED)
-        trajectory_signal = _match_signal_rules(ctx.text, _TRAJECTORY_COMPILED)
-        ctx.benefit_score = benefit_signal.score
-        ctx.benefit_hits = benefit_signal.hits
-        ctx.trajectory_score = trajectory_signal.score
-        ctx.trajectory_hits = trajectory_signal.hits
+
+        jd_benefit = _match_signal_rules(ctx.text, _BENEFIT_COMPILED)
+        jd_traj    = _match_signal_rules(ctx.text, _TRAJECTORY_COMPILED)
+
+        if firm is not None:
+            # Blend JD signals with approved firm-profile priors.
+            fp_benefit = _firm_priors_to_signal_score(
+                firm.benefits, _BENEFIT_RULE_BY_KEY, _BENEFIT_TOTAL_WEIGHT
+            )
+            fp_traj = _firm_priors_to_signal_score(
+                firm.trajectory, _TRAJECTORY_RULE_BY_KEY, _TRAJECTORY_TOTAL_WEIGHT
+            )
+            ctx.benefit_score = round(
+                _JD_BENEFIT_WEIGHT * jd_benefit.score
+                + _FIRM_BENEFIT_WEIGHT * fp_benefit.score,
+                6,
+            )
+            ctx.trajectory_score = round(
+                _JD_TRAJ_WEIGHT * jd_traj.score
+                + _FIRM_TRAJ_WEIGHT * fp_traj.score,
+                6,
+            )
+            # Merge hit lists: JD hits first, then firm hits for keys not already in JD.
+            # Sorted by weight * confidence descending so top reasons reflect contribution.
+            combined_benefit = jd_benefit.hits + fp_benefit.hits
+            combined_traj    = jd_traj.hits + fp_traj.hits
+            ctx.benefit_hits    = sorted(combined_benefit, key=lambda h: h.weight * h.confidence, reverse=True)
+            ctx.trajectory_hits = sorted(combined_traj,    key=lambda h: h.weight * h.confidence, reverse=True)
+        else:
+            ctx.benefit_score    = jd_benefit.score
+            ctx.trajectory_score = jd_traj.score
+            ctx.benefit_hits     = jd_benefit.hits
+            ctx.trajectory_hits  = jd_traj.hits
+
         ctx.stretch_category = self._classify_stretch(job, ctx.text)
         return ctx
 
