@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 10e4e05b2aab2c2a249591364fac0f8a
+Company: Walter P Moore
+Title: Technical Designer - Construction Engineering
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_063314_Walter_P_Moore_Technical_Designer_-_Construct_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_063314_Walter_P_Moore_Technical_Designer_-_Construct_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_063314_Walter_P_Moore_Technical_Designer_-_Construct_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: RAM Structural System | Revit academic project exposure | Building Information Modeling (BIM) concepts via Revit exposure | Microsoft Excel
+Engineering: Structural modeling and analysis | Structural steel beam and column design | Reinforced concrete (RC) design coursework | Construction planning and constructability analysis | Gravity and lateral load development | LRFD design methodology | Tributary area evaluation | Serviceability and deflection checks
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-13
+Walter P Moore
+Tampa, Hillsborough County
+Dear Hiring Manager,
+I am applying for the Technical Designer - Construction Engineering position with Walter P Moore in Tampa. The role is a strong fit for the direction I want to take as a recent Civil Engineering Technology graduate: developing model-based structural deliverables that support the construction-phase portion of real projects. I am particularly interested in the Construction Engineering practice because it connects structural engineering judgment with the practical needs of erection planning, detailing coordination, and buildable structural systems.
+For my senior capstone at Farmingdale State College, I served as Structural Engineering Lead / Project Leader for a proposed three-story classroom addition at Baldwin High School. I built and analyzed RAM Structural System models to support gravity and lateral load evaluation, preliminary steel framing decisions, tributary area review, line and axial load development, and serviceability considerations. That work was supported by ASCE 7-22 loading criteria, AISC steel design methodology, Revit academic project exposure, and coursework in Structural Design, Reinforced Concrete Design, foundations, civil engineering materials, and field practices. The project also required constructability awareness, foundation coordination, technical documentation, and final report integration, which are directly relevant to a role focused on structural systems during construction.
+
+Cover-letter closing block:
+Beyond academics, I bring a practical operations background that has made me comfortable coordinating people, schedules, data, and changing priorities. As an Event Coordination Department Head, I supervise approximately 45 direct reports and coordinate staffing, training, logistics, and real-time problem solving in high-volume environments. I have also built Excel-based tracking systems for inventory, accountability, alerts, and decision-support metrics. Separately, I developed a Python job-search automation platform with multi-source data ingestion, SQLite persistence, Google Drive/Sheets workflows, a CLI workflow, and an automated test suite with 100+ passing tests. I would bring that same combination of structural preparation, workflow discipline, and technical initiative to Walter P Moore as I continue building toward the FE Civil exam and the EIT/PE path.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

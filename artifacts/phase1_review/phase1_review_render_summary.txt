@@ -1,0 +1,24 @@
+Phase 1 Review Artifact Summary
+
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_review\phase1_review_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_review\phase1_review_cover_letter.docx
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, NY
+2026-06-12
+Acme [Infrastructure Group]
+New York, NY
+Dear Hiring Manager,
+I am interested in the Civil Engineer role at Acme [Infrastructure Group] because it aligns with my structural coursework, project documentation experience, and interest in practical engineering delivery.
+My senior capstone work involved structural modeling, load-path review, and engineering documentation, while related coursework strengthened my foundation in steel, reinforced concrete, and soils concepts.
+
+Cover-letter closing block:
+I also bring operations leadership and automation initiative through coordinating teams and building the Job Search Assistant to organize job data, document generation, and follow-up workflows.
+Sincerely,
+James Morseman

@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 053483051b7177ba511d61f610568471
+Company: AMT Engineering
+Title: Transportation Engineer
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_063446_AMT_Engineering_Transportation_Engineer_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_063446_AMT_Engineering_Transportation_Engineer_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_063446_AMT_Engineering_Transportation_Engineer_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: Project scheduling | Excel-based decision support | RAM Structural System | Python; SQLite; Google Sheets automation
+Engineering: Construction management planning | Stormwater runoff calculations | Transportation engineering coursework | Highway engineering coursework | Traffic control planning | Bridge replacement phasing | Work-zone safety planning | Constructability analysis | Surveying coursework | Water and wastewater systems coursework
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-13
+AMT Engineering
+Columbus, Franklin County
+Dear Hiring Manager,
+I am writing to apply for the Transportation Engineer position with AMT Engineering in Columbus. AMT’s breadth across civil engineering, construction management and inspection, traffic and transportation design, water and wastewater systems, and water resources aligns well with the way I have been preparing for a transportation-focused civil engineering career. I am a recent B.S. Civil Engineering Technology graduate from an ABET-accredited program, preparing for the FE Civil exam, and I would welcome consideration for this role or an aligned early-career opportunity where I can contribute to transportation and construction support work while continuing to grow technically.
+My strongest project experience comes from a multidisciplinary senior capstone for a proposed three-story classroom addition, where I led the structural scope while coordinating deliverables, milestones, report integration, and presentation support. Although the project was structurally focused, it required practical civil judgment around occupied-campus constructability, including site access, pedestrian circulation, emergency access, staging, and phased construction sequencing. I also prepared construction management planning content for a bridge replacement project, addressing schedule logic, traffic control, safety, equipment needs, permitting awareness, and cost discussion. That work is supported by coursework in Transportation Engineering, Highway Engineering, Surveying, Field Practices in Civil Engineering Technology, Hydraulics, and Water and Wastewater Systems.
+
+Cover-letter closing block:
+In addition to my academic preparation, I bring operations experience that is directly relevant to project coordination and field-support environments. As an Event Coordination Department Head, I supervise approximately 45 direct reports and coordinate staffing, training, logistics, guest flow, and real-time problem solving in high-volume settings. I have also built Excel-based tracking systems for inventory and decision support, and developed a Python job-search automation platform using SQLite, Google Drive/Sheets workflows, CLI processes, and automated testing. Those experiences reflect how I approach work: organize information clearly, improve repeatable workflows, test what I build, and communicate across moving parts. I would be glad to bring that discipline and initiative to AMT’s transportation team.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

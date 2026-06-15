@@ -1,0 +1,389 @@
+{
+  "job_id": "3f30b9cb9b390eb27c36cd2cf05fe018",
+  "company": "Leidos",
+  "title": "Civil/Structural Engineer",
+  "resume_renderer_qa": {
+    "ok": false,
+    "warnings": [
+      "expansion_order_risk"
+    ],
+    "sections": [
+      "Professional Summary",
+      "Education",
+      "Relevant Coursework",
+      "Engineering Experience",
+      "Work Experience",
+      "Technical Skills",
+      "Professional Development"
+    ],
+    "page_utilization_estimate": 0.57,
+    "estimated_page_count": 1,
+    "major_sections_present": [
+      "Education",
+      "Engineering Experience",
+      "Technical Skills",
+      "Work Experience",
+      "Professional Development"
+    ],
+    "expansion_order": [
+      "capstone_bullets",
+      "job_search_assistant_bullets",
+      "academic_project_bullets",
+      "work_experience_bullets",
+      "coursework_items",
+      "professional_development_items",
+      "summary_detail"
+    ]
+  },
+  "document_audit": {
+    "status": "PASS",
+    "resume": {
+      "document_type": "resume",
+      "status": "PASS",
+      "checks": [
+        {
+          "code": "MISSING_NAME",
+          "severity": "critical",
+          "requirement": "Resume header must include candidate name.",
+          "explanation": "Generated resume header has no name.",
+          "recommended_fix": "Verify profile identity first_name/last_name and resume header renderer.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_PHONE",
+          "severity": "critical",
+          "requirement": "Approved resume header must include phone.",
+          "explanation": "Profile or rendered header is missing phone.",
+          "recommended_fix": "Verify profile.identity.phone and resume header renderer.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_EMAIL",
+          "severity": "critical",
+          "requirement": "Approved resume header must include email.",
+          "explanation": "Profile or rendered header is missing email.",
+          "recommended_fix": "Verify profile.identity.email and resume header renderer.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_LINKEDIN",
+          "severity": "critical",
+          "requirement": "Approved resume header must include LinkedIn.",
+          "explanation": "Profile or rendered header is missing LinkedIn URL.",
+          "recommended_fix": "Verify profile.identity.linkedin_url and resume header renderer.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_GITHUB",
+          "severity": "critical",
+          "requirement": "Approved resume header must include LinkedIn and GitHub.",
+          "explanation": "Profile or rendered header is missing GitHub URL.",
+          "recommended_fix": "Verify profile.identity.github_url and resume header renderer.",
+          "passed": true
+        },
+        {
+          "code": "MALFORMED_HEADER",
+          "severity": "critical",
+          "requirement": "Resume header must follow Name / Phone | Email / LinkedIn | GitHub.",
+          "explanation": "Generated resume header does not match the approved three-line layout.",
+          "recommended_fix": "Render resume header with phone/email first and LinkedIn/GitHub second.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_PROFESSIONAL_SUMMARY",
+          "severity": "critical",
+          "requirement": "Professional Summary must be present.",
+          "explanation": "Resume JSON has no Professional Summary.",
+          "recommended_fix": "Regenerate or repair resume_json.professional_summary.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_EDUCATION",
+          "severity": "critical",
+          "requirement": "Education section must be present.",
+          "explanation": "Resume JSON has no Education entries.",
+          "recommended_fix": "Regenerate or restore profile-grounded education.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_ENGINEERING_EXPERIENCE",
+          "severity": "critical",
+          "requirement": "Engineering Experience must be present.",
+          "explanation": "Resume JSON has no project/engineering experience entries.",
+          "recommended_fix": "Regenerate with capstone and engineering project evidence.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_TECHNICAL_SKILLS",
+          "severity": "critical",
+          "requirement": "Technical Skills must be present.",
+          "explanation": "Resume JSON has no technical skills.",
+          "recommended_fix": "Regenerate or restore profile-grounded technical skills.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_CAPSTONE_EVIDENCE",
+          "severity": "critical",
+          "requirement": "Resume must include capstone/Baldwin High School evidence.",
+          "explanation": "No capstone or Baldwin High School evidence was detected.",
+          "recommended_fix": "Include the flagship capstone project or verified Baldwin High School project evidence.",
+          "passed": true
+        },
+        {
+          "code": "PLACEHOLDER_LEAKAGE",
+          "severity": "critical",
+          "requirement": "Generated resume must not contain unresolved placeholders or template markers.",
+          "explanation": "Resume contains unresolved placeholder/schema/template text.",
+          "recommended_fix": "Regenerate or strip unresolved template markers before rendering.",
+          "passed": true
+        },
+        {
+          "code": "PAGE_COUNT_EXCEEDED",
+          "severity": "critical",
+          "requirement": "Generated resume must not exceed the approved one-page maximum.",
+          "explanation": "Generated resume exceeds approved one-page limit.",
+          "recommended_fix": "Trim excess coursework, lower-priority bullets, skills, or professional-development detail before rendering.",
+          "passed": true
+        },
+        {
+          "code": "DUPLICATE_SECTION_HEADING",
+          "severity": "major",
+          "requirement": "Resume section headings should not duplicate.",
+          "explanation": "Duplicate section headings were detected.",
+          "recommended_fix": "Deduplicate generated resume sections before rendering.",
+          "passed": true
+        },
+        {
+          "code": "WEAK_TECHNICAL_SKILLS",
+          "severity": "major",
+          "requirement": "Technical Skills should include engineering keywords.",
+          "explanation": "Technical skills appear sparse or not engineering-oriented.",
+          "recommended_fix": "Include role-relevant engineering tools, methods, and standards.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_JSA_EVIDENCE",
+          "severity": "major",
+          "requirement": "Job Search Assistant evidence should appear when profile contains it and generation uses it.",
+          "explanation": "Profile contains Job Search Assistant evidence but resume text does not.",
+          "recommended_fix": "Include Job Search Assistant when selected/relevant, framed as automation/data/workflow evidence.",
+          "passed": true
+        },
+        {
+          "code": "SPARSE_CAPSTONE_BULLETS",
+          "severity": "major",
+          "requirement": "Capstone project should have supporting bullets.",
+          "explanation": "First engineering project has no supporting bullet evidence.",
+          "recommended_fix": "Add concise capstone/project bullets grounded in profile evidence.",
+          "passed": true
+        },
+        {
+          "code": "RESUME_UNDERUTILIZED",
+          "severity": "minor",
+          "requirement": "Resume should use available page capacity reasonably.",
+          "explanation": "Resume appears short for a one-page target.",
+          "recommended_fix": "Consider adding relevant coursework, skills, or project detail if space allows.",
+          "passed": true
+        }
+      ],
+      "failures": [],
+      "warnings": []
+    },
+    "cover_letter": {
+      "document_type": "cover_letter",
+      "status": "PASS",
+      "checks": [
+        {
+          "code": "MISSING_DATE",
+          "severity": "critical",
+          "requirement": "Cover letter must include a date.",
+          "explanation": "No rendered date was detected in the cover letter.",
+          "recommended_fix": "Render the cover letter with a date before upload/output.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_COMPANY",
+          "severity": "critical",
+          "requirement": "Cover letter must include employer name when available.",
+          "explanation": "Target employer name was not detected in the cover letter.",
+          "recommended_fix": "Render the company/employer block and include role/company specificity.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_GREETING",
+          "severity": "critical",
+          "requirement": "Cover letter greeting must be present.",
+          "explanation": "Cover letter salutation is missing.",
+          "recommended_fix": "Use a verified named greeting or Dear Hiring Manager.",
+          "passed": true
+        },
+        {
+          "code": "SINGLE_PARAGRAPH_COLLAPSE",
+          "severity": "critical",
+          "requirement": "Cover letter must use multiple body paragraphs.",
+          "explanation": "Body appears collapsed into one paragraph.",
+          "recommended_fix": "Regenerate with separated body_paragraphs.",
+          "passed": true
+        },
+        {
+          "code": "TOO_FEW_BODY_PARAGRAPHS",
+          "severity": "major",
+          "requirement": "Cover letter architecture requires 3 body paragraphs by default.",
+          "explanation": "Cover letter has fewer than 3 body paragraphs.",
+          "recommended_fix": "Regenerate with role/company, engineering evidence, and leadership/automation paragraphs.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_ENGINEERING_EVIDENCE",
+          "severity": "critical",
+          "requirement": "Cover letter must include engineering evidence.",
+          "explanation": "No engineering/project evidence was detected.",
+          "recommended_fix": "Include capstone, coursework, technical tools, or engineering project evidence.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_FLAGSHIP_EVIDENCE",
+          "severity": "critical",
+          "requirement": "Cover letter must include capstone or equivalent flagship evidence.",
+          "explanation": "No capstone/equivalent flagship evidence was detected.",
+          "recommended_fix": "Mention capstone or another verified flagship engineering project.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_CLOSING",
+          "severity": "critical",
+          "requirement": "Cover letter closing must be present.",
+          "explanation": "Professional closing is missing.",
+          "recommended_fix": "Use a distinct professional closing such as Sincerely,.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_SIGNATURE",
+          "severity": "critical",
+          "requirement": "Cover letter signature must be present.",
+          "explanation": "Candidate signature is missing.",
+          "recommended_fix": "Include James Morseman on a separate signature line.",
+          "passed": true
+        },
+        {
+          "code": "MERGED_CLOSING_SIGNATURE",
+          "severity": "critical",
+          "requirement": "Closing and signature must be separated from body text.",
+          "explanation": "Closing/signature are missing a line break or appear merged.",
+          "recommended_fix": "Render closing and signature as separate paragraphs/lines.",
+          "passed": true
+        },
+        {
+          "code": "PLACEHOLDER_LEAKAGE",
+          "severity": "critical",
+          "requirement": "Generated cover letter must not contain unresolved placeholders or template markers.",
+          "explanation": "Cover letter contains unresolved placeholder/schema/template text.",
+          "recommended_fix": "Regenerate or strip unresolved template markers before rendering.",
+          "passed": true
+        },
+        {
+          "code": "MALFORMED_CLOSING_FRAGMENT",
+          "severity": "critical",
+          "requirement": "Cover letter must not contain malformed leaked fragments like closing. [.",
+          "explanation": "Malformed closing/template fragment was detected.",
+          "recommended_fix": "Regenerate and validate raw cover-letter body before rendering.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_CONTACT_BLOCK",
+          "severity": "major",
+          "requirement": "Cover-letter header should include stable contact information.",
+          "explanation": "Profile lacks phone/email needed for cover-letter contact block.",
+          "recommended_fix": "Verify profile identity phone/email before generation.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_COMPANY_LOCATION_BLOCK",
+          "severity": "major",
+          "requirement": "Cover letter should include company/location block when available.",
+          "explanation": "Company/location block was not detected in rendered cover letter.",
+          "recommended_fix": "Render company and location lines when the job has company/location data.",
+          "passed": true
+        },
+        {
+          "code": "GENERIC_COVER_LETTER",
+          "severity": "major",
+          "requirement": "Cover letter should be specific to role/company.",
+          "explanation": "Role/company specificity is weak.",
+          "recommended_fix": "Mention the target company and role naturally.",
+          "passed": true
+        },
+        {
+          "code": "MISSING_LEADERSHIP_OR_JSA",
+          "severity": "major",
+          "requirement": "Leadership or Job Search Assistant evidence should appear when expected.",
+          "explanation": "Profile contains leadership/JSA evidence but cover letter does not mention either.",
+          "recommended_fix": "Include relevant leadership or automation/workflow evidence.",
+          "passed": true
+        },
+        {
+          "code": "COVER_LOCATION_REVIEW",
+          "severity": "minor",
+          "requirement": "Cover-letter location may be configurable.",
+          "explanation": "Location inclusion may need human review.",
+          "recommended_fix": "Keep include_location configurable for final cover-letter rendering.",
+          "passed": false
+        },
+        {
+          "code": "COVER_BODY_SPACING_NOT_CONFIGURED",
+          "severity": "minor",
+          "requirement": "Cover-letter body paragraphs must have explicit paragraph spacing.",
+          "explanation": "Rendered DOCX body paragraphs do not show explicit spacing configuration.",
+          "recommended_fix": "Apply explicit paragraph_format.space_after to cover-letter body paragraphs.",
+          "passed": true
+        },
+        {
+          "code": "COVER_LINE_SPACING_NOT_CONFIGURED",
+          "severity": "minor",
+          "requirement": "Cover-letter paragraphs must have explicit readable line spacing.",
+          "explanation": "Rendered DOCX paragraphs do not all show explicit line-spacing configuration.",
+          "recommended_fix": "Apply explicit paragraph_format.line_spacing to rendered cover-letter paragraphs.",
+          "passed": true
+        },
+        {
+          "code": "COVER_CLOSING_SIGNATURE_SPACING_NOT_CONFIGURED",
+          "severity": "minor",
+          "requirement": "Closing and signature must be visually separated from the body and each other.",
+          "explanation": "Rendered DOCX does not show configured closing/signature paragraph separation.",
+          "recommended_fix": "Render closing and signature as distinct paragraphs with explicit before/after spacing.",
+          "passed": true
+        },
+        {
+          "code": "COVER_BLOCK_STRUCTURE_NOT_DISTINCT",
+          "severity": "minor",
+          "requirement": "Contact, date, employer, greeting, body, closing, and signature should use distinct paragraph blocks.",
+          "explanation": "Rendered DOCX paragraph structure does not clearly separate cover-letter blocks.",
+          "recommended_fix": "Render each business-letter block as its own paragraph with explicit spacing.",
+          "passed": true
+        }
+      ],
+      "failures": [],
+      "warnings": [
+        {
+          "code": "COVER_LOCATION_REVIEW",
+          "severity": "minor",
+          "requirement": "Cover-letter location may be configurable.",
+          "explanation": "Location inclusion may need human review.",
+          "recommended_fix": "Keep include_location configurable for final cover-letter rendering.",
+          "passed": false
+        }
+      ]
+    },
+    "failures": [],
+    "warnings": [
+      {
+        "code": "COVER_LOCATION_REVIEW",
+        "severity": "minor",
+        "requirement": "Cover-letter location may be configurable.",
+        "explanation": "Location inclusion may need human review.",
+        "recommended_fix": "Keep include_location configurable for final cover-letter rendering.",
+        "passed": false
+      }
+    ]
+  }
+}

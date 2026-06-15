@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 3f30b9cb9b390eb27c36cd2cf05fe018
+Company: Leidos
+Title: Civil/Structural Engineer
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_140556_Leidos_CivilStructural_Engineer_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_140556_Leidos_CivilStructural_Engineer_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_140556_Leidos_CivilStructural_Engineer_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: RAM Structural System | Excel and Python automation
+Engineering: Civil/structural engineering | Structural analysis and design | Steel beam and column design | Reinforced concrete design coursework | Foundation design coursework | Construction management planning | LRFD design methodology | Constructability analysis | Scheduling and milestone tracking | Technical documentation
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-12
+Leidos
+Aurora, Arapahoe County
+Dear Hiring Manager,
+I am applying for the Civil/Structural Engineer position with Leidos in Aurora. Leidos’s Energy, Infrastructure, and Automation work interests me because it connects structural engineering with the planning, project management, construction management, and commissioning needs of utility infrastructure. As a recent B.S. Civil Engineering Technology graduate from an ABET-accredited program preparing for the FE Civil exam, I am looking for an entry-level role where I can build under experienced engineers while contributing strong structural fundamentals, documentation habits, and project coordination discipline. I am also open to relocating for the right opportunity.
+My strongest technical preparation comes from my senior capstone, where I served as Structural Engineering Lead / Project Leader for a proposed three-story classroom addition at Baldwin High School. I built and analyzed RAM Structural System models, supported gravity and lateral load evaluation, evaluated preliminary steel framing decisions, and applied ASCE 7-22 loading criteria and AISC steel design methodology. The project also required foundation coordination, serviceability review, constructability considerations, and integration of multidisciplinary report content. Alongside coursework in Structural Design, Reinforced Concrete Design, Soils, Foundations, Civil Engineering Materials, Hydraulics, and related civil engineering subjects, this experience gives me a practical base for learning Leidos’s standards and supporting civil/structural work in a utility-sector environment.
+
+Cover-letter closing block:
+I also bring coordination and workflow strengths that are relevant to Leidos’s full life-cycle project environment. In my current role as Event Coordination Department Head, I supervise approximately 45 direct reports, coordinate staffing and logistics, train employees, and solve real-time operational issues during high-volume events. I have built Excel-based tracking systems for inventory, voucher redemption, automated alerts, accountability, and decision-support metrics. Separately, I developed a Python job-search automation platform using multi-source ingestion, SQLite persistence, Google Drive/Sheets workflows, OpenAI-based fit grading, CLI workflows, and an automated test suite with 100+ passing tests. I would bring that same attention to data organization, testing, documentation, and reliable workflows to the Civil/Structural Engineer role at Leidos.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

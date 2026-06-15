@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 3f30b9cb9b390eb27c36cd2cf05fe018
+Company: Leidos
+Title: Civil/Structural Engineer
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_132117_Leidos_CivilStructural_Engineer_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_132117_Leidos_CivilStructural_Engineer_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_132117_Leidos_CivilStructural_Engineer_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: RAM Structural System | Microsoft Excel tracking systems | Python; SQLite; Google Sheets | Project coordination
+Engineering: Structural analysis and design | Steel beam and column design | Reinforced concrete design | Foundation design | Construction planning | LRFD design methodology | Constructability analysis | Safety and traffic control planning
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: []
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-12
+Leidos
+Aurora, Arapahoe County
+Dear Hiring Manager,
+I am writing to apply for the Civil/Structural Engineer position with Leidos in Aurora. Leidos’ Energy, Infrastructure, and Automation work interests me because it connects structural engineering with planning, project management, construction management, and the full life cycle of critical utility infrastructure. As a recent B.S. Civil Engineering Technology graduate preparing for the FE Civil exam, I am looking for an entry-level role where I can contribute strong structural fundamentals, disciplined documentation, and a practical construction-awareness mindset while continuing to grow under experienced engineers. I am also open to relocating to Colorado for the right opportunity.
+My strongest technical preparation comes from my senior capstone project, where I served as Structural Engineering Lead / Project Leader for a proposed three-story classroom addition at Baldwin High School. I built and analyzed RAM Structural System models, supported gravity and lateral load evaluation, and applied ASCE 7-22 loading criteria and AISC steel design methodology while evaluating framing layouts, tributary areas, line loads, axial loads, and serviceability behavior. The project also required foundation coordination, preliminary design documentation, and constructability review for an occupied campus, including site access, pedestrian circulation, emergency access, staging, and phased sequencing. In related coursework and projects, I have also worked through reinforced concrete and footing design, steel beam and column design, bridge replacement construction management planning, safety and traffic control concepts, and cost and schedule discussion.
+
+Cover-letter closing block:
+Beyond academics, I bring management experience that is useful on multidisciplinary engineering teams. As an Event Coordination Department Head, I supervise approximately 45 direct reports and coordinate staffing, training, logistics, guest flow, and real-time problem solving in a high-volume operating environment. I have also built Excel-based tracking systems for inventory, voucher redemption, automated alerts, accountability, and decision-support metrics. Separately, I developed a Python job-search automation platform using SQLite persistence, Google Drive/Sheets workflows, a CLI process, and an automated test suite with 100+ passing tests. That project reflects the way I approach technical work: organized data, reliable workflows, testing, documentation, and continuous improvement. I would welcome the opportunity to bring that combination of structural preparation, coordination experience, and technical initiative to Leidos’ utility infrastructure team.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

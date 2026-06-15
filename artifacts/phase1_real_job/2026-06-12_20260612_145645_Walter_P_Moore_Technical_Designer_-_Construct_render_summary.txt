@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 10e4e05b2aab2c2a249591364fac0f8a
+Company: Walter P Moore
+Title: Technical Designer - Construction Engineering
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_145645_Walter_P_Moore_Technical_Designer_-_Construct_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_145645_Walter_P_Moore_Technical_Designer_-_Construct_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_145645_Walter_P_Moore_Technical_Designer_-_Construct_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: RAM Structural System | Revit / BIM project exposure | Microsoft Excel | Structural steel framing evaluation
+Engineering: Reinforced concrete (RC) design coursework | Foundation coordination | Construction sequencing and planning | Gravity and lateral load development | LRFD design methodology | Serviceability and deflection checks | Constructability analysis | Technical writing and report integration
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-12
+Walter P Moore
+Tampa, Hillsborough County
+Dear Hiring Manager,
+I am applying for the Technical Designer - Construction Engineering position with Walter P Moore in Tampa. The role interests me because it sits at the intersection of structural engineering, BIM-based deliverables, and construction-phase problem solving—the area where I want to build my early career. As a recent B.S. Civil Engineering Technology graduate preparing for the FE Civil exam, I am looking for a team where I can develop under experienced professionals while contributing to real project delivery, and I am open to relocating for the right opportunity.
+My strongest technical preparation comes from my senior capstone, where I served as Structural Engineering Lead / Project Leader for a proposed three-story classroom addition at Baldwin High School. I built and analyzed RAM Structural System models, supported gravity and lateral load evaluation, evaluated framing layouts and tributary areas, and coordinated structural assumptions with foundation and constructability considerations. That work was supported by coursework and projects in Structural Design, Reinforced Concrete Design, steel beam and column design, serviceability checks, field practices, and technical writing, giving me a practical academic foundation for structural systems and model-based coordination during construction.
+
+Cover-letter closing block:
+I would also bring a strong operations mindset to the Technical Designer role. In my current position, I supervise approximately 45 direct reports while coordinating staffing, training, logistics, and real-time problem solving in a high-volume environment. I have developed Excel-based tracking systems for inventory, accountability, and decision support, and I also built a Python job-search automation platform with multi-source data ingestion, SQLite persistence, Google Drive/Sheets workflows, a CLI workflow, and an automated test suite with 100+ passing tests. Those experiences reflect the same habits I would bring to Walter P Moore: organized data management, careful workflow design, documentation discipline, and follow-through on technical details.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

@@ -1,0 +1,18 @@
+ docs/Architecture/dashboard_architecture.md        |   9 [32m+[m[31m-[m
+ .../Architecture/resume_generation_architecture.md |  31 [32m+[m[31m-[m
+ job_search/db/connection.py                        |  21 [32m+[m[31m-[m
+ job_search/db/schema.sql                           |   5 [32m+[m
+ job_search/generation/__init__.py                  |  25 [32m+[m[31m-[m
+ job_search/generation/audit.py                     | 595 [32m++++++++++++++++++[m
+ job_search/generation/generator.py                 | 677 [32m++++++++++++++++++++[m[31m-[m
+ job_search/reporting/__init__.py                   |  10 [32m+[m[31m-[m
+ job_search/reporting/documents.py                  |  66 [32m++[m
+ job_search/reporting/selection.py                  |  55 [32m+[m[31m-[m
+ scripts/generate_phase1_review_artifacts.py        | 299 [32m+++++++++[m
+ tests/test_document_audit.py                       | 377 [32m++++++++++++[m
+ tests/test_generated_documents.py                  | 109 [32m++++[m
+ tests/test_generation_evidence.py                  | 509 [32m+++++++++++++++[m[31m-[m
+ tests/test_phase1_review_artifacts.py              |  43 [32m++[m
+ tests/test_resume_renderer.py                      |  42 [32m+[m[31m-[m
+ tests/test_selection.py                            |  48 [32m++[m
+ 17 files changed, 2859 insertions(+), 62 deletions(-)

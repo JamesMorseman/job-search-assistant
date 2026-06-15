@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 3f30b9cb9b390eb27c36cd2cf05fe018
+Company: Leidos
+Title: Civil/Structural Engineer
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_134244_Leidos_CivilStructural_Engineer_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_134244_Leidos_CivilStructural_Engineer_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_134244_Leidos_CivilStructural_Engineer_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: RAM Structural System | Excel tracking and decision-support tools | Python automation; SQLite; Google Sheets | Project management and milestone tracking
+Engineering: Civil/structural analysis and design | Steel beam and column design | Reinforced concrete design coursework | Foundation design coursework | Construction management planning | LRFD design methodology | Constructability analysis | Safety and traffic control planning
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-12
+Leidos
+Aurora, Arapahoe County
+Dear Hiring Manager,
+I am interested in the Civil/Structural Engineer role with Leidos in Aurora because it sits at the intersection of structural engineering, infrastructure delivery, and disciplined project execution. As a recent B.S. Civil Engineering Technology graduate preparing for the FE Civil exam, I am drawn to Leidos’ Energy, Infrastructure, and Automation work supporting utilities through engineering, planning, project management, construction management, and commissioning. I would welcome the opportunity to apply my structural preparation in a setting where design decisions must also account for constructability, coordination, and long-term infrastructure performance.
+My strongest technical preparation comes from serving as Structural Engineering Lead / Project Leader for a senior capstone involving a proposed three-story classroom addition at Baldwin High School. I built and analyzed RAM Structural System models, evaluated gravity and lateral loading, applied ASCE 7-22 loading criteria and AISC steel design methodology, and helped coordinate preliminary steel framing and foundation assumptions. The project also required attention to occupied-campus constraints, including site access, pedestrian circulation, emergency access, staging, and phased sequencing. Additional academic work in steel beam and column design, reinforced concrete design, soils and foundations, and bridge replacement construction management has given me a practical foundation for supporting civil/structural infrastructure work under the guidance of experienced engineers.
+
+Cover-letter closing block:
+Beyond coursework, I bring management and workflow discipline from supervising approximately 45 direct reports in event operations, where I coordinate staffing, training, logistics, guest flow, and real-time problem solving. I have also built Excel-based tracking systems for inventory, accountability, and decision-support metrics, and developed a Python job-search automation platform using multi-source data ingestion, SQLite persistence, Google Drive/Sheets workflows, CLI processes, and an automated test suite with more than 100 passing tests. Those experiences reflect how I approach engineering work: organize information clearly, test processes, communicate across teams, and keep deliverables moving. I would be excited to bring that mindset to Leidos and grow as part of a team delivering reliable utility and infrastructure solutions.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW
