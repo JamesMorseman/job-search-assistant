@@ -124,17 +124,8 @@ belongs in `PROJECT_HISTORY.md`.
 
 ## Rejected Decisions
 
-Rejected decisions are owned by `PROJECT_HISTORY.md`.
-
-Current rejected decisions include:
-
-- PDF as active source of truth
-- GitHub omission from resume
-- pure LLM-controlled rendering
-- work history replacing engineering evidence
-- Anthropic-only future architecture
-- direct LinkedIn modification without human review
-- unapproved firm drafts affecting scoring
+Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
+"Rejected Decisions" section for the current list and rationale.
 
 ## Roadmap Changes
 

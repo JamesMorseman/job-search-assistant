@@ -1,3 +1,17 @@
+MIGRATION SOURCE MATERIAL — ARCHIVED
+Version: June 2026
+Archived: June 2026
+
+This document has been archived. Active copy is at:
+  docs/Archive/MIGRATION_SOURCE_MATERIAL.md
+
+Do not use this document for active project context. The implementation status
+it contains is stale — Phases 1, 2, and 3 are all complete as of June 2026.
+
+Use PROJECT_STATE.md for current project state.
+
+---
+
 MIGRATION SOURCE MATERIAL
 Version: June 2026
 Purpose

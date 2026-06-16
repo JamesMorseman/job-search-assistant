@@ -1,9 +1,21 @@
 # Phase 3 Governance Addendum
 
-**Status:** Planning Document — Governance Record
+**Status:** Historical Governance Record — Phase 3 Closed (June 2026)
 **Phase:** Phase 3 — Firm Repository
 **Date:** 2026-06-14
 **Purpose:** Records architectural decisions and documentation review outputs produced following the Phase 3 planning session.
+
+**Decision Status Summary (post-implementation):**
+
+| Decision | Status |
+|---|---|
+| Decision 1 — Draft Profiles and SQLite | **Resolved** — implemented as specified |
+| Decision 2 — ATS Quarantine Mapping | **Still open** — must be resolved before the Source Health screen (Phase 5) is built |
+| Decision 3 — Draft/Approved Structural Parity | **Resolved** — implemented as specified |
+| Decision 4 — Benefit/Trajectory Key Renderability | **Resolved** — implemented as specified |
+
+This document remains a useful reasoning record for Phase 4/5 implementers,
+particularly for closing Decision 2. It is not an active planning document.
 
 ---
 

@@ -76,20 +76,10 @@ Key lessons:
 ### Phase 3 — Firm Repository (complete, June 2026)
 
 Built the complete human-reviewed firm intelligence lifecycle in seven steps.
-
-Architecture delivered:
-
-- `FirmProfile` / `DraftFirmProfile` Pydantic models with separate approval and draft-status fields; structural parity maintained per governance addendum Decision 3
-- `FIRM_BENEFIT_KEYS` (11 keys) and `FIRM_TRAJECTORY_KEYS` (10 keys) frozensets; controlled-vocab validation enforced at model level
-- `FirmBenefit`, `FirmTrajectoryPrior`, `FirmATS`, `FirmProfileMeta`, `FirmApproval`, `FirmNotes` sub-models; `DraftStatus` enum (`pending_review`, `rejected`, `approved`)
-- `job_search/firms/` package: `discovery.py`, `repository.py`
-- Draft storage at `data/firm_drafts/<firm_id>.yaml`; path-traversal-safe slug validation enforced before any filesystem path construction
-- CLI group `jsa firms` with five commands: `discover`, `draft`, `review`, `approve`, `reject`
-- `sync_approved_firms()` — idempotent upsert of approved FirmProfile records into SQLite; five new `firms` columns added via migration
-- `Scorer.score(job, firm=None)` — optional FirmProfile blend; auto-lookup by `job.firm_id`; backward-compatible
-- Firm-prior blend: 70/30 benefit, 65/35 trajectory; status multipliers confirmed=1.0, likely=0.65, unknown/not_offered=0.0
-- `DraftStatus.APPROVED` added to preserve audit trail in draft file after promotion
-- `FirmConfig` (ATS/ingestion model) preserved unchanged; never collapsed with `FirmProfile`
+Full implementation inventory is recorded in `roadmap.md` (Phase 3 closed
+block) and `docs/Architecture/firm_repository_architecture.md`. This section
+retains only the governance decisions and lessons that explain *why* the
+implementation took its current shape.
 
 Governance decisions recorded:
 
@@ -108,15 +98,10 @@ Key lessons:
 ### Phase 2 — Benefit / Trajectory Scoring (complete, June 2026)
 
 Replaced weak substring-matching benefit and trajectory scoring with a full
-signal engine.
-
-Architecture delivered:
-- `SignalRule`, `SignalHit`, `SignalScore` frozen dataclasses for deterministic, testable scoring
-- 11 benefit rules and 10 trajectory rules with calibrated weights
-- Pre-compiled regex at module load; one hit per key; negative-pattern guards prevent false positives
-- Score normalization: `sum(weight * confidence) / sum(all_rule_weights)`, clamped [0.0, 1.0]
-- Reason persistence: JSON arrays in `jobs.benefit_reasons` and `jobs.trajectory_reasons`
-- Daily report enrichment: top-3 reason labels shown alongside score percentages
+deterministic signal engine. Full implementation inventory is recorded in
+`roadmap.md` (Phase 2 closed block) and `docs/Architecture/benefit_scoring_design.md`.
+This section retains only the calibration decision and lessons that explain
+why the rules were shaped the way they were.
 
 Phase 2.1 calibration decision:
 The initial `rotation_or_growth` rule included three boilerplate phrases (`\bcareer path\b`,

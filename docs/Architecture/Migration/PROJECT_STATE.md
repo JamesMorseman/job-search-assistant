@@ -187,6 +187,9 @@ Known technical debt:
 - LLM-assisted draft generation deferred (skeleton drafts only in Phase 3)
 - grading prompt firm-intelligence enrichment deferred to Phase 4+
 - firm profile diff in review command deferred to Phase 4+
+- ATS quarantine tier mapping is an open decision — must be resolved before the
+  Source Health screen is built (see Decision 2, phase_3_governance_addendum.md)
+- firm review queue in dashboard is a Phase 4/5 dependency, not yet built
 
 ## Known Risks
 
@@ -349,88 +352,38 @@ Status: implemented (Phase 3 complete, June 2026)
 
 Implemented capabilities:
 
-- `FirmProfile` and `DraftFirmProfile` Pydantic models with controlled vocab validation
-- `FIRM_BENEFIT_KEYS` and `FIRM_TRAJECTORY_KEYS` frozensets (11 benefit keys, 10 trajectory keys)
-- `FirmBenefit`, `FirmTrajectoryPrior`, `FirmATS`, `FirmProfileMeta`, `FirmApproval`, `FirmNotes` sub-models
-- `DraftStatus` enum: `pending_review`, `rejected`, `approved`
-- `job_search/firms/` package: `discovery.py`, `repository.py`, `__init__.py`
-- Draft storage at `data/firm_drafts/<firm_id>.yaml`; path-traversal-safe slug validation
-- `jsa firms discover` — surfaces companies in job DB lacking an approved firm_id match
-- `jsa firms draft <name>` — generates skeleton `DraftFirmProfile`, `--force` to overwrite
-- `jsa firms review [firm_id]` — list pending drafts or detail view; `--all-statuses` flag
-- `jsa firms approve <firm_id>` — validates, promotes to `config/firms.yaml`, syncs to SQLite
-- `jsa firms reject <firm_id>` — marks rejected, preserves evidence and file
-- `sync_approved_firms()` — idempotent upsert of approved `FirmProfile` records into SQLite
-- Five new `firms` table columns: `aliases`, `benefits_json`, `trajectory_json`, `manual_priority`, `last_verified`
-- `_load_approved_profiles()` in `Scorer` — auto-loads `config/firms.yaml` at init
-- `Scorer.score(job, firm=None)` — optional `FirmProfile` parameter; auto-lookup by `job.firm_id`
-- Firm-prior blend: 70/30 (benefit), 65/35 (trajectory); status multipliers confirmed=1.0, likely=0.65
-- Firm hits persisted in `benefit_reasons`/`trajectory_reasons` with `source="firm_profile"`
-- `FirmConfig` (ATS/ingestion model) preserved unchanged; never collapsed with `FirmProfile`
+- Full human-reviewed firm lifecycle: discover, draft, review, approve, reject
+- `jsa firms` CLI command group covers the full workflow end to end
+- Draft profiles stored separately from approved profiles; drafts never affect scoring
+- Approved profiles sync to `config/firms.yaml` and SQLite
+- Approved firm priors blend into benefit and trajectory scoring via `Scorer`
+- `FirmConfig` (ATS/ingestion model) preserved unchanged; never collapsed with the firm intelligence model
 
-Deferred enhancements (Phase 4+):
+See `docs/Architecture/firm_repository_architecture.md` for full implementation
+detail (models, schema, scoring blend, module layout).
 
-- LLM-assisted draft generation (skeleton-only in Phase 3)
-- firm alias matching for public-source jobs
-- grading prompt firm-intelligence enrichment
-- draft↔approved diff display in review command
-- ATS quarantine tier mapping (open decision from governance addendum)
-- firm review queue in dashboard
+Deferred enhancements: see Technical Debt section.
 
 ## Benefit / Trajectory Scoring
 
-Status: implemented (Phase 2 complete)
+Status: implemented (Phase 2 complete; Phase 3 firm-prior integration complete)
 
-Architecture:
+Implemented capabilities:
 
-- `SignalRule` frozen dataclass: key, label, weight, patterns (tuple), negative_patterns, category
-- `SignalHit` frozen dataclass: key, label, source, weight, confidence, matched_text, reason
-- `SignalScore` frozen dataclass: score (float), hits (list[SignalHit]), missing_priority_keys
-- 11 `BENEFIT_RULES` and 10 `TRAJECTORY_RULES` with calibrated weights
-- Pre-compiled regex at module load; one hit per key; negative-pattern guards
-- Score normalization: `sum(weight * confidence) / sum(all_rule_weights)`, clamped [0.0, 1.0]
-- Reason persistence: JSON arrays in `jobs.benefit_reasons` and `jobs.trajectory_reasons` TEXT columns
-- Daily report display: top-3 reason labels shown alongside score percentages
-- Phase 2.1 calibration: tightened `rotation_or_growth` patterns to remove boilerplate matches
+- Deterministic, evidence-based signal engine covering 11 benefit signals and
+  10 trajectory signals, replacing earlier substring matching
+- One hit per signal key with negative-pattern guards against false positives
+- Reason persistence in `jobs.benefit_reasons` and `jobs.trajectory_reasons`
+- Daily report shows top reason labels alongside score percentages
+- Phase 2.1 calibration: `rotation_or_growth` patterns tightened to require
+  explicit structural commitment (rejected boilerplate career-path phrasing)
+- Phase 3 integration: approved firm benefit/trajectory priors blend into job-
+  description scores; draft (unapproved) profiles never affect scoring
 
-Covered signals (benefit):
+See `docs/Architecture/benefit_scoring_design.md` for full implementation
+detail (signal models, weights, normalization formula, blend ratios).
 
-- tuition reimbursement
-- PE exam reimbursement
-- graduate degree assistance
-- FE exam reimbursement
-- licensing reimbursement
-- continuing education
-- student loan assistance
-- relocation assistance
-- signing bonus
-- housing assistance
-- retention bonus
-
-Covered signals (trajectory):
-
-- EIT/PE path
-- mentorship
-- new graduate program
-- technical training
-- design responsibility
-- large-scale project
-- graduate school support
-- leadership development
-- rotation or growth (tightened — rotational programs, career ladder, structured programs only)
-- structural engineering practice
-
-Phase 3 integration complete:
-
-- Approved firm benefit and trajectory priors blend into `benefit_score` and `career_trajectory_score`
-- Firm hits persisted in `benefit_reasons` / `trajectory_reasons` with `source: "firm_profile"`
-- Auto-lookup by `job.firm_id` in `Scorer`; pure JD scoring when no approved profile exists
-- `DraftFirmProfile` never affects scoring — enforced at the type boundary
-
-Deferred enhancements:
-
-- firm alias matching for public-source / aggregator jobs
-- grading prompt enrichment with firm intelligence
+Deferred enhancements: see Technical Debt section.
 
 ## GitHub Strategy
 

@@ -1,9 +1,12 @@
 # Dashboard Readiness Review
 
-**Status:** Planning Document
-**Phase:** Phase 3 — Firm Repository
+**Status:** Historical Decision Record — Phase 3 Closed (June 2026). Retained
+as an entry checklist for Phase 4/5 implementers; most "capture now" items
+and most rework risks are resolved. See updated status table below and at
+the end of this document.
+**Phase:** Phase 3 — Firm Repository (complete)
 **Input Documents:** `dashboard_architecture.md`, `firm_repository_architecture.md`
-**Audience:** Project Master, Phase 3 implementers
+**Audience:** Project Master, Phase 4/5 implementers
 
 ---
 
@@ -195,23 +198,32 @@ Phase 3 should confirm that every benefit and trajectory key is a term that can 
 
 ## Summary
 
-| Item | Verdict | Risk if wrong |
+**Updated post-Phase-3 (June 2026).** The "Verdict" column reflects the
+original Phase 3 planning recommendation. The "Post-Phase-3 Status" column
+reflects what actually happened.
+
+| Item | Verdict | Post-Phase-3 Status |
 |---|---|---|
-| `firm_id` naming convention | **Capture now** | All dashboard joins break |
-| `benefits_json` / `trajectory_json` key vocabulary | **Capture now** | All dashboard benefit/trajectory queries break |
-| `manual_priority` vocabulary | **Capture now** | Dashboard filter controls break |
-| `draft_status` vocabulary | **Capture now** | Review queue categorization breaks |
-| Per-claim evidence fields | **Capture now** | Review queue cannot attribute evidence to claims |
-| `last_verified` at claim level | **Capture now** | Staleness display cannot differentiate claims |
-| `aliases` in SQLite | **Capture now** | Firm detail page shows incomplete job lists |
-| `approval` block fields | **Capture now** | Review provenance unavailable |
-| Normalized benefit/trajectory tables | **Defer** | No dashboard impact until schema migrated |
-| `enr_rank`, `disciplines`, `markets`, `office_regions` | **Defer** | No dashboard impact at MVP |
-| Outcome-based firm scoring | **Defer** | Not required for any dashboard screen at MVP |
-| `pipeline_runs` table | **Defer** | Dashboard deliverable, not firm repo deliverable |
-| `generated_docs.is_current` | **Defer** | Dashboard deliverable, not firm repo deliverable |
-| `benefit_reasons` / `trajectory_reasons` columns | **Defer** | Belongs at scoring integration step |
-| Draft profiles in SQLite vs filesystem | **Decide before dashboard build** | Review queue architecture must be rebuilt if decision reverses |
-| Draft vs approved field structure divergence | **Decide before dashboard build** | Diff logic must be redesigned |
-| ATS tier → "quarantined" mapping | **Decide before dashboard build** | Source Health screen silently misclassifies firms |
-| Benefit/trajectory key renderability | **Decide before dashboard build** | Dashboard needs translation layer if keys are not renderable labels |
+| `firm_id` naming convention | Capture now | **Implemented** — locked as specified |
+| `benefits_json` / `trajectory_json` key vocabulary | Capture now | **Implemented** — locked as specified |
+| `manual_priority` vocabulary | Capture now | **Implemented** — locked as specified |
+| `draft_status` vocabulary | Capture now | **Implemented** — locked as specified |
+| Per-claim evidence fields | Capture now | **Implemented** — locked as specified |
+| `last_verified` at claim level | Capture now | **Implemented** — locked as specified |
+| `aliases` in SQLite | Capture now | **Implemented** — column exists; alias *matching* in ingestion remains deferred to Phase 4+ |
+| `approval` block fields | Capture now | **Implemented** — locked as specified |
+| Normalized benefit/trajectory tables | Defer | **Still deferred** — no dashboard impact |
+| `enr_rank`, `disciplines`, `markets`, `office_regions` | Defer | **Still deferred** — no dashboard impact at MVP |
+| Outcome-based firm scoring | Defer | **Still deferred** — not required at MVP |
+| `pipeline_runs` table | Defer | **Still deferred** — Phase 4 deliverable, not yet built |
+| `generated_docs.is_current` | Defer | **Still deferred** — Phase 4 deliverable, not yet built |
+| `benefit_reasons` / `trajectory_reasons` columns | Defer | **Implemented** — built during Phase 3 scoring integration (ahead of original plan) |
+| Draft profiles in SQLite vs filesystem | Decide before dashboard build | **Resolved** — Governance Addendum Decision 1: drafts sync to SQLite, remain inert for scoring |
+| Draft vs approved field structure divergence | Decide before dashboard build | **Resolved** — Governance Addendum Decision 3: structural parity enforced |
+| ATS tier → "quarantined" mapping | Decide before dashboard build | **Still open** — Governance Addendum Decision 2. Must be resolved before the Source Health screen (Phase 5) is built |
+| Benefit/trajectory key renderability | Decide before dashboard build | **Resolved** — Governance Addendum Decision 4: all keys are human-readable labels |
+
+**Net result:** of the four "decide before dashboard build" rework risks,
+three are resolved. The ATS tier → "quarantined" mapping is the only open
+item remaining before Phase 4/5 implementation reaches the Source Health
+screen.

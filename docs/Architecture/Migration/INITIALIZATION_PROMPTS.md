@@ -40,15 +40,10 @@ eventually supports portfolio and LinkedIn workflows.
 
 Current active priority:
 
-Finish Phase 1 resume and cover-letter generation before moving to Phase 2
-Benefit/Trajectory Scoring.
-
-Cover-letter governance requirements:
-
-- No placeholder leakage.
-- Multi-paragraph professional business-letter structure is required.
-- Signature and closing must remain separated from body text.
-- Professional business-letter formatting is required.
+Phase 4 — Dashboard Service Layer. Phases 1, 2, and 3 are complete.
+Begin Phase 4 planning: service layer design, `job_search/services/` modules,
+`pipeline_runs` table, and dashboard read models as specified in
+`dashboard_architecture.md`.
 
 Operating rules:
 
@@ -86,15 +81,11 @@ Primary responsibilities:
 
 Current active priority:
 
-Complete Phase 1 resume and cover-letter generation exit criteria before
-starting Phase 2 benefit/trajectory scoring implementation.
-
-Cover-letter implementation requirements:
-
-- Prevent placeholder leakage in stored or uploaded output.
-- Preserve multi-paragraph business-letter structure.
-- Keep closing and signature separate from body paragraphs.
-- Enforce professional business-letter formatting.
+Phase 4 — Dashboard Service Layer. Phases 1, 2, and 3 are complete.
+Implement `job_search/services/` modules (jobs, documents, tracker, pipeline,
+metrics), add `pipeline_runs` table, and define dashboard read models as
+specified in `dashboard_architecture.md`. Do not begin Phase 5 UI work until
+the service layer and its tests are complete.
 
 Operating rules:
 
@@ -131,15 +122,9 @@ Primary responsibilities:
 
 Current active priority:
 
-Ensure Phase 1 produces professional, grounded, ATS-optimized resumes and
-business-letter-quality cover letters.
-
-Cover-letter requirements:
-
-- No placeholder leakage.
-- Multi-paragraph business-letter structure is required.
-- Signature and closing must be separated from body text.
-- Professional business-letter formatting is required.
+Phase 4 — Dashboard Service Layer. Phase 1 generation is complete and stable.
+Support Phase 4 as needed when resume, cover-letter, or evidence-selection
+requirements are surfaced during service layer or dashboard development.
 
 Operating rules:
 
@@ -178,6 +163,13 @@ Primary responsibilities:
 - capstone publication planning
 - recruiter-facing polish
 
+Current active priority:
+
+Phase 4 — Dashboard Service Layer. Phases 1, 2, and 3 are complete.
+Support Phase 4 as needed for architecture documentation updates and public
+README accuracy. Do not document Phase 4 features as complete until
+implementation is verified.
+
 Current strategic direction:
 
 Job Search Assistant is the flagship GitHub repository. GitHub presentation
@@ -212,6 +204,13 @@ Primary responsibilities:
 - source quality observations
 - funnel observations
 - daily workflow friction
+
+Current active priority:
+
+Phase 4 — Dashboard Service Layer. Phases 1, 2, and 3 are complete.
+Translate workflow needs into dashboard product requirements. The service layer
+is the Phase 4 prerequisite before any UI work. Surface operational friction
+that Phase 4 service design should address.
 
 Current product direction:
 
