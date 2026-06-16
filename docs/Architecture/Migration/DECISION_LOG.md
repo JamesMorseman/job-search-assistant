@@ -122,6 +122,25 @@ belongs in `PROJECT_HISTORY.md`.
 - Superseded by: future dashboard backed by SQLite
 - History reference: `PROJECT_HISTORY.md`
 
+### Migration-Level Roadmap (Original Numbering)
+
+- Status: superseded
+- Area: roadmap
+- Original roadmap:
+  1. Phase 1 - Resume and Cover Letter
+  2. Phase 2 - Benefit / Trajectory Scoring
+  3. Phase 3 - Firm Repository
+  4. Phase 4 - Dashboard
+  5. Phase 5 - Portfolio Ecosystem
+  6. Phase 6 - LinkedIn Generation
+  7. Phase 7 - Capstone Publication Review
+- Superseded by: "Reconciled Roadmap Accepted" (see Accepted Decisions /
+  Roadmap Changes) — Phase 5 is Dashboard UI, Phase 6 is Analytics &
+  Pipeline Runs, Phase 7 is Future Enhancements. Portfolio Ecosystem,
+  LinkedIn Generation, and Capstone Publication Review remain valid
+  strategy/work areas but are no longer numbered roadmap phases.
+- State reference: `PROJECT_STATE.md`, `roadmap.md`
+
 ## Rejected Decisions
 
 Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
@@ -147,7 +166,7 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   `phase_3_governance_addendum.md`
 - Follow-up work: Phase 4 — Dashboard Service Layer is now the active priority.
 
-### Migration-Level Roadmap Accepted
+### Reconciled Roadmap Accepted
 
 - Status: accepted
 - Area: roadmap
@@ -155,11 +174,19 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   1. Phase 1 - Resume and Cover Letter
   2. Phase 2 - Benefit / Trajectory Scoring
   3. Phase 3 - Firm Repository
-  4. Phase 4 - Dashboard
-  5. Phase 5 - Portfolio Ecosystem
-  6. Phase 6 - LinkedIn Generation
-  7. Phase 7 - Capstone Publication Review
-- State reference: `PROJECT_STATE.md`
+  4. Phase 4 - Dashboard Service Layer
+  5. Phase 5 - Dashboard UI
+  6. Phase 6 - Analytics & Pipeline Runs
+  7. Phase 7 - Future Enhancements
+- Rationale: Reconciles the roadmap phase numbering across governance
+  documents. `roadmap.md` is authoritative for phase sequencing;
+  `PROJECT_STATE.md` was updated to match. Portfolio Ecosystem, LinkedIn
+  Generation, and Capstone Publication Review are not roadmap phases — they
+  are tracked as portfolio/LinkedIn/capstone strategy in `PROJECT_STATE.md`
+  (Portfolio Strategy and LinkedIn Strategy sections, and the unnumbered
+  Future list).
+- State reference: `PROJECT_STATE.md`, `roadmap.md`
+- Supersedes: "Migration-Level Roadmap Accepted" (below)
 
 ## Governance Changes
 

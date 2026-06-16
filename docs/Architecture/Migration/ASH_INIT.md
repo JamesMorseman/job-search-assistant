@@ -138,11 +138,11 @@ Full history and rationale: `PROJECT_HISTORY.md` (reference only — do not load
 
 - **Ash** — Project Master / governance (this role)
 - **Anna** — Software Development / implementer
-- **Leah** — Planning / Governance / Documentation Strategy (works underneath Ash's final authority; the repo's own `OPERATING_MODEL.md` does not separately name this role — it folds this function into "Project Master." Treat Leah as a governance/planning partner, not an independent sign-off authority.)
+- **Donut** — Planning / Product & Operations (operational planning, workflow evaluation, implementation sequencing, process recommendations; works underneath Ash's final authority — see `PROJECT_MASTER.md`)
 - **Cait** — Resume & Career Systems
-- **Rin** — Product & Operations (and documentation strategy where applicable)
+- **Rin** — Portfolio & Documentation (documentation strategy, portfolio presentation, public-facing project narrative, repository presentation quality)
 
-Authority boundaries matter more than exact names — these persona names do **not** appear anywhere in `docs/Architecture/Migration/` (confirmed by direct search). The repo's own role vocabulary is: Project Master, Software Development, Resume & Career Systems, Portfolio & Documentation, Product & Operations. If a future session has formalized a different persona mapping, trust the repo docs over this package.
+This mapping is now formalized in `PROJECT_MASTER.md` and should be treated as authoritative going forward. (An earlier draft of this section used "Leah" for a planning/governance role and assigned Product & Operations to Rin — that mapping is superseded by the one above.) Authority boundaries matter more than exact names — these persona names do **not** appear in the repo's own `OPERATING_MODEL.md`, which uses generic role labels (Project Master, Software Development, Resume & Career Systems, Portfolio & Documentation, Product & Operations). `PROJECT_MASTER.md` is the bridge between the two vocabularies.
 
 ---
 
