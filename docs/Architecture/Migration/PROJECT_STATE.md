@@ -170,10 +170,17 @@ Current roadmap:
 1. Phase 1 - Resume and Cover Letter ✓ Complete
 2. Phase 2 - Benefit / Trajectory Scoring ✓ Complete
 3. Phase 3 - Firm Repository ✓ Complete
-4. Phase 4 - Dashboard ← Next active phase
-5. Phase 5 - Portfolio Ecosystem
-6. Phase 6 - LinkedIn Generation
-7. Phase 7 - Capstone Publication Review
+4. Phase 4 - Dashboard Service Layer ← Next active phase
+5. Phase 5 - Dashboard UI
+6. Phase 6 - Analytics & Pipeline Runs
+7. Phase 7 - Future Enhancements
+
+Phase numbering is authoritative in `roadmap.md`; this list mirrors it. Portfolio
+Ecosystem, LinkedIn Generation, and Capstone Publication Review are not
+numbered roadmap phases — they are tracked as portfolio/LinkedIn/capstone
+strategy (see Portfolio Strategy and LinkedIn Strategy sections below, and
+the Future list under Current Implementation Status) and remain candidate
+future enhancements rather than scheduled phases.
 
 ## Technical Debt
 
