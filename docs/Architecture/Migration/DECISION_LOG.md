@@ -129,6 +129,24 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 
 ## Roadmap Changes
 
+### Phase 3 — Firm Repository Formally Closed
+
+- Status: accepted
+- Area: roadmap
+- Rationale: All Phase 3 acceptance criteria are met. The firm repository
+  lifecycle (`jsa firms discover/draft/review/approve/reject`) is implemented,
+  approved firm priors blend into benefit/trajectory scoring, and 239 new
+  tests were added (full suite 568 passed). Governance Addendum Decisions 1,
+  3, and 4 are resolved; Decision 2 (ATS quarantine mapping) remains open and
+  deferred to the Phase 5 Source Health screen — its open status does not
+  block Phase 3 closure.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- History reference: `PROJECT_HISTORY.md` (Phase 3 — Firm Repository)
+- Architecture reference: `firm_repository_architecture.md`,
+  `phase_3_governance_addendum.md`
+- Follow-up work: Phase 4 — Dashboard Service Layer is now the active priority.
+
 ### Migration-Level Roadmap Accepted
 
 - Status: accepted
