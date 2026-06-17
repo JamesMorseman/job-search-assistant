@@ -1601,3 +1601,139 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   against its committed counterpart (if any) and produce a reconciliation
   recommendation for Project Master review before any of these files are
   committed.
+
+### Phase 6 Package 3 — Pipeline Infrastructure Definition Accepted
+
+- Status: accepted
+- Area: roadmap / pipeline infrastructure / service layer
+- Date: June 2026
+- Rationale: Phase 6 Package 3 defines the durable pipeline-run data layer
+  and service boundary required before background execution, dashboard
+  pipeline-run visibility, or future Pipeline Trends work can proceed. Per
+  the standing governance rule, package scope, mutation paths, prohibited
+  paths, and acceptance criteria must be recorded and accepted before
+  implementation begins. This entry constitutes that acceptance.
+  Implementation is now authorized within the scope defined below.
+
+  ---
+
+  **Scope — required implementation:**
+
+  All five items below are required for Package 3 acceptance. Package 3
+  defines the durable pipeline-run infrastructure only. It does not execute
+  pipeline work, introduce a background runner, or create dashboard UI. The
+  accepted implementation target is a central infrastructure layer that later
+  packages can use to record local pipeline execution.
+
+  1. **`pipeline_runs` table schema.** Add a durable SQLite table for
+     pipeline run records. The schema must support creation, in-progress
+     status, completion, failure, counters, source/trigger context, and
+     structured metadata or notes. The table must be created and migrated
+     through the existing project database schema/migration path (not ad-hoc
+     runtime CREATE TABLE). Required fields must cover at minimum: `id`,
+     `run_type`, `status`, `started_at`, `completed_at`, `source`,
+     `trigger`, `jobs_seen`, `jobs_created`, `jobs_updated`,
+     `jobs_presented`, `errors_count`, `metadata_json` and/or `notes_json`
+     for structured run details, error summaries, or future extension data.
+     The service may add additional fields if needed for a robust
+     implementation.
+
+  2. **`services/pipeline.py` service boundary.** Add a service-layer module
+     that owns all writes to `pipeline_runs` and exposes the read APIs needed
+     by future dashboard integration. Route handlers, analytics reporters,
+     templates, and future runners must not write run state directly — all
+     such writes must route through `PipelineService`.
+
+  3. **Pipeline run creation.** Provide a centralized `PipelineService`
+     method for creating a run record with run type, initial status, trigger,
+     optional source, and start timestamp.
+
+  4. **Pipeline run status updates and completion/failure recording.**
+     Provide centralized `PipelineService` methods for: updating run status
+     and counters during execution; marking a run complete and persisting
+     completion timestamp and final counters; marking a run failed and
+     persisting error count plus structured error/notes metadata.
+
+  5. **Read APIs for future dashboard integration.** Provide read methods for
+     listing recent runs and retrieving run details in a shape suitable for
+     a future Pipeline Runs dashboard screen. The dashboard screen itself is
+     not part of Package 3.
+
+  ---
+
+  **Employer-stage velocity pairs (deferred from Package 2):**
+
+  The employer-stage velocity pairs deferred from Package 2 —
+  `acknowledged→screen`, `screen→interview`, and `interview→offer` — remain
+  deferred. They are not required to build the `pipeline_runs` table or
+  `PipelineService`, and implementing them in Package 3 would mix historical
+  analytics scope into infrastructure scope. They are deferred to Phase 6
+  Package 5 / Pipeline Trends unless a later accepted definition entry
+  explicitly requires them at an earlier package.
+
+  ---
+
+  **Authorized mutation paths:**
+
+  - `PipelineService` in `job_search/services/pipeline.py` is the **sole
+    authorized path** for creating pipeline run records, updating run status,
+    updating counters, persisting completion timestamp, persisting failure
+    state, persisting error counts, and persisting metadata/notes.
+  - Schema creation and migration belong in the existing project database
+    schema/migration path; runtime mutation must remain centralized behind
+    the service boundary.
+
+  ---
+
+  **Prohibited paths:**
+
+  - No dashboard route may write `pipeline_runs` state directly.
+  - No dashboard template may contain pipeline execution or pipeline-run
+    state logic.
+  - `FunnelReporter`, `FunnelStats`, `MetricsService`, and analytics
+    reporting code must not mutate pipeline-run state.
+  - Package 3 must not implement the local-first background runner.
+  - Package 3 must not wrap or execute ingest, grade, generate, report,
+    sync, or follow-up scans as background jobs.
+  - Package 3 must not add the Pipeline Runs dashboard screen.
+  - Package 3 must not add Desktop v1 implementation, desktop packaging,
+    or any Desktop v1 surface work.
+  - Package 3 must not reopen Metrics screen scope or add trend analytics
+    to the Metrics screen.
+
+  ---
+
+  **Acceptance criteria:**
+
+  1. `pipeline_runs` schema exists and is created/migrated through the
+     existing project database path.
+  2. `PipelineService` can create/start run records through a centralized
+     API.
+  3. `PipelineService` can update run status and counters through a
+     centralized API.
+  4. `PipelineService` can mark run records complete and persist completion
+     timestamp and final counters.
+  5. `PipelineService` can mark run records failed and persist error count
+     plus structured error/notes metadata.
+  6. Read APIs exist for recent-run listing and run-detail retrieval
+     sufficient for future dashboard integration.
+  7. Runtime writes to `pipeline_runs` are centralized in `PipelineService`;
+     no scattered raw SQL write paths are introduced.
+  8. Unit tests cover service creation, status update, completion, failure,
+     counter persistence, metadata/notes persistence, and read behavior.
+  9. Existing dashboard tests remain passing; no regressions introduced.
+  10. No dashboard UI, dashboard route, dashboard template, background runner,
+      Desktop v1 work, or Metrics trend analytics are introduced by this
+      package.
+
+  ---
+
+  As of this entry: 778 tests passing, 1 skipped, 0 failed. Package 3
+  implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Follow-up work: Issue Anna implementation task for Package 3. After
+  Package 3 ships and passes acceptance criteria, Phase 6 Package 4
+  (local-first background runner) definition entry must be written and
+  accepted before its implementation begins.

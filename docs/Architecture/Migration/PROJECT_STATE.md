@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 — Phase 6 Package 2 complete; ATLAS recovery import complete
+Version: June 2026 — Phase 6 Package 2 complete; ATLAS recovery import complete; Package 3 definition accepted
 
 ## Purpose
 
@@ -38,7 +38,7 @@ Phase 5 remaining package status:
   is the sole authorized data path. Decision 2 (ATS quarantine mapping) is
   formally closed — see `DECISION_LOG.md`.
 - Package 9 (9a/9b/9c — Pipeline Runs): deferred; gated on Phase 6
-  Packages 2+3 (pipeline infrastructure and background runner).
+  Packages 3+4 (pipeline infrastructure and background runner).
 
 Current objectives:
 
@@ -49,8 +49,11 @@ Current objectives:
   Rates, Unified Source Comparison, Pipeline Velocity operator pairs,
   LLM Grade Correlation (conditional). Employer-stage velocity pairs
   deferred to Package 3.
-- write and accept Phase 6 Package 3 definition entry before any Package 3
-  implementation begins
+- Phase 6 Package 3 (Pipeline infrastructure) — **definition accepted;
+  implementation authorized** — issue Anna implementation task. Scope:
+  `pipeline_runs` table schema, `services/pipeline.py` read/write service,
+  run-record persistence. See `DECISION_LOG.md`, "Phase 6 Package 3 —
+  Pipeline Infrastructure Definition Accepted."
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -138,7 +141,7 @@ Implemented:
 
 Architecture complete, implementation pending:
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
-- dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 2+3)
+- dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 3+4)
 - pipeline orchestration service, `pipeline_runs` table, and background-run execution visibility (deferred from Phase 4 Package 5 to Phase 6 — see Technical Debt)
 
 Deferred — post-Phase-1 resume optimization backlog:
@@ -224,7 +227,7 @@ Known technical debt:
 
 - dashboard UI MVP is complete (Phase 5 Packages 1–6); Package 8 (Source Health) complete; Package 7 gated on draft-to-SQLite sync implementation; Package 9 (9a/9b/9c) gated on Phase 6 infrastructure
 - pipeline orchestration service (`services/pipeline.py`), `pipeline_runs`
-  table, and background-job runner do not exist yet — Phase 6 Packages 2+3;
+  table, and background-job runner do not exist yet — Phase 6 Packages 3+4;
   local-first background runner architecture accepted
   (`DECISION_LOG.md`, "Phase 6 Local-First Background Runner Architecture
   Accepted"). Phase 5 Package 9 (9a/9b/9c) is gated on these.
@@ -394,7 +397,7 @@ Status:
 - UI implementation: Phase 5 MVP (Packages 1–6) complete. Package 8 (Source
   Health) complete. Package 7 (Firm Review Queue) unblocked by decision but
   gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c —
-  Pipeline Runs) deferred on Phase 6 Packages 2+3.
+  Pipeline Runs) deferred on Phase 6 Packages 3+4.
 - Authorized data/mutation paths:
   - `TrackerService.transition_job()` — sole authorized path for all
     `jobs.app_state` changes from any dashboard route
@@ -412,7 +415,7 @@ Status:
     authorized route data path; Metrics route gained no new service dependencies
 - Analytics information architecture (accepted per Donut study, Package 1
   definition): Metrics = strategic/point-in-time; Source Health = operational
-  diagnostics; Pipeline Trends = historical/trend (future, Package 4). Each
+  diagnostics; Pipeline Trends = historical/trend (future, Package 5). Each
   layer is a distinct screen. Trend and historical data must not be added to
   the Metrics screen.
 - Phase 6 Package 1 complete — 755 passing; no new routes, services, or screens

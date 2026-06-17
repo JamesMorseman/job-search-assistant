@@ -1,7 +1,7 @@
 # Ash Initialization Package — Project Master (NEXT)
 
 **Version:** June 2026 — Phase 6 Packages 1+2 complete; ATLAS Desktop v1
-visually frozen; Package 3 definition pending
+visually frozen; Package 3 definition accepted; implementation authorized
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -88,7 +88,7 @@ explicit PM authorization):**
 |---|---|---|
 | 1 | Analytics expansion (MVP) | **Complete** — 755 passing; commit `2b52967` |
 | 2 | Analytics depth | **Complete** — 778 passing; commit `6af126b` |
-| 3 | Pipeline infrastructure (`pipeline_runs` table, `services/pipeline.py`) | **Authorized; definition entry required before implementation** |
+| 3 | Pipeline infrastructure (`pipeline_runs` table, `services/pipeline.py`) | **Definition accepted — implementation authorized** |
 | 4 | Local-first background runner | Authorized; definition required; depends on Package 3 |
 | 5 | Dashboard integration / Pipeline Runs screen | Authorized; definition required; depends on Packages 3+4 |
 
@@ -445,26 +445,26 @@ Run `git status --short --untracked-files=all` and `git log --oneline -8`.
 Confirm repo state matches §2 and §4. Identify any contradictions or
 ambiguities before proceeding.
 
-### Step 2 — Write Phase 6 Package 3 definition entry (JSA track)
+### Step 2 — Issue Package 3 implementation task to Anna (JSA track)
 
-**Next required governance action for the JSA engineering roadmap.**
+**Package 3 definition is accepted (DECISION_LOG.md, "Phase 6 Package 3 —
+Pipeline Infrastructure Definition Accepted"). Implementation is authorized.**
 
-No Package 3 implementation is authorized until a definition entry is accepted
-in `DECISION_LOG.md`. The entry must cover:
-- `pipeline_runs` table schema (columns, types, indexes)
-- `services/pipeline.py` read/write service scope and mutation paths
-- Prohibited paths (no raw SQL in routes; no direct pipeline table access
-  outside the service)
-- Acceptance criteria
-- Explicit decision on employer-stage velocity pairs (`acknowledged→screen`,
-  `screen→interview`, `interview→offer`) deferred from Package 2 — scope
-  in or defer explicitly
+Issue an Anna implementation task. Standard task structure: authority list
+pointing to the DECISION_LOG definition entry, objective, accepted scope
+(5 items: table schema, service boundary, run creation, run
+update/completion/failure, read APIs), authorized mutation paths, prohibited
+paths, and acceptance criteria. All are recorded in the DECISION_LOG entry.
 
-### Step 3 — Authorize Package 3 implementation
+Employer-stage velocity pairs (`acknowledged→screen`, `screen→interview`,
+`interview→offer`) are deferred to Package 5 / Pipeline Trends per the
+definition entry. Do not include them in the Package 3 implementation task.
 
-After the definition entry is accepted by PM, issue an Anna implementation
-task. Standard task structure: authority list, objective, scope, prohibited
-paths, acceptance criteria.
+### Step 3 — After Package 3 ships
+
+After Package 3 implementation passes acceptance criteria, write the Phase 6
+Package 4 (local-first background runner) definition entry before issuing
+any Package 4 implementation task.
 
 ### Step 4 — Desktop v1 implementation package boundaries (ATLAS track)
 

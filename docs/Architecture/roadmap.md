@@ -335,7 +335,7 @@ Per `DECISION_LOG.md`'s "Phase 6 Authorization and Package Structure Accepted":
 |---|---|---|
 | 1 | Analytics expansion (MVP) — funnel conversion rates, LLM grade distribution, stretch category conversion rates, source effectiveness confidence signals (`n=`), contextual navigation links (Tracker / Review Queue / Source Health); Source Breakdown table removed; expose via `MetricsService.get_funnel_stats()` | **Complete** — 755 passing, 1 skipped; no new routes/services/screens; Metrics route read-only; no mutation paths. Scope corrected from over-broad 11-item definition — see `DECISION_LOG.md`. |
 | 2 | Analytics depth — Score Distribution (Q1/Median/Q3), stretch category response rates, Unified Source Comparison (replaces Source Effectiveness), operator velocity pairs (presented→selected, selected→applied); conditional: LLM grade correlation (≥ 5 terminal-resolved per grade); employer-stage velocity pairs deferred to Package 3 | **Complete** — 778 passing, 1 skipped; commit `6af126b`; no new routes/services/screens; Metrics route read-only; no mutation paths |
-| 3 | Pipeline infrastructure — `pipeline_runs` table schema, `services/pipeline.py` read/write service, run-record persistence | Authorized; definition entry required before implementation |
+| 3 | Pipeline infrastructure — `pipeline_runs` table schema, `services/pipeline.py` read/write service, run-record persistence | **Definition accepted — implementation authorized**; see `DECISION_LOG.md` "Phase 6 Package 3 — Pipeline Infrastructure Definition Accepted" |
 | 4 | Local-first background runner — wrap ingest/grade/generate/follow-up pipeline steps in a durable local execution layer; persist run stats/errors to `pipeline_runs` | Authorized; definition entry required before implementation; depends on Package 3 |
 | 5 | Dashboard integration — Pipeline Runs screen (Phase 5 Package 9c), run-history display, Pipeline Trends screen (historical analytics) | Authorized; definition entry required before implementation; depends on Packages 3+4 |
 
@@ -458,10 +458,10 @@ architecture decision is now closed (local-first accepted).
 5. ✓ Phase 5 MVP (Packages 1–6) complete. Package 8 (Source Health) complete.
    Package 7 (Firm Review Queue) requires the draft-to-SQLite sync to be
    built first. Package 9a/9b/9c (Pipeline Runs) gated on Phase 6 Packages
-   2+3.
+   3+4.
 6. Phase 6 active. Package 1 (analytics expansion) complete — 755 passing.
    Package 2 (analytics depth) complete — 778 passing, 1 skipped; commit
-   `6af126b`. Package 3 (pipeline infrastructure) definition entry required
-   before implementation begins. Packages 4–5 require individual definition
-   entries before their implementation begins.
+   `6af126b`. Package 3 (pipeline infrastructure) definition accepted —
+   implementation authorized; issue Anna implementation task. Packages 4–5
+   require individual definition entries before their implementation begins.
 7. Treat Phase 7 as optional, human-reviewed extensions.
