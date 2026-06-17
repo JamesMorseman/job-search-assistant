@@ -1,5 +1,11 @@
 # Ash Initialization Package — Project Master
 
+> **Session retirement notice:** This document covers the session that closed
+> the ATLAS recovery import (commits `66b6f51`, `6f1d2f4`, `ab29f27`) and
+> governance cleanup (`95d7eda`). **For the replacement Project Master chat,
+> load `ASH_INIT_NEXT.md` instead of this file.** This document is preserved
+> for historical reference only.
+
 **Version:** June 2026 — Phase 6 Packages 1 and 2 complete; Package 3 definition pending
 **Use:** Paste this file's contents (or point a new chat at this path) to initialize a Project Master session with no prior chat history. This document is a navigation/governance aid, not a replacement for `PROJECT_STATE.md` or `DECISION_LOG.md` — those two remain the authoritative active-state files.
 

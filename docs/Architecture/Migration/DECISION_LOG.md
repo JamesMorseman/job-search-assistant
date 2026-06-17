@@ -1516,3 +1516,88 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Rationale: Specialized chats may propose changes, but Project Master confirms
   accepted state before propagation.
 - Operating reference: `OPERATING_MODEL.md`
+
+## Documentation Changes
+
+### ATLAS Recovery Import Completed and Verified
+
+- Status: accepted
+- Area: documentation / ATLAS product
+- Date: June 2026
+- Rationale: Records the completion and Leah-verified import of the ATLAS
+  product documentation recovery package.
+
+  **Leah verification verdict:** PASS
+
+  **Recovery commits:**
+  - `66b6f51` — `chore: correct CI badge URL and add Phase 5 dashboard
+    dependencies` (pre-recovery cleanup: README badge URL corrected, Phase 5
+    dashboard runtime dependencies added to `pyproject.toml`)
+  - `6f1d2f4` — `docs(recovery): import ATLAS visual artifacts and companion
+    references` (11 Desktop v1 PNGs under `artifacts/png/`; 11 generated
+    visual companion `.md` files paired with each PNG)
+  - `ab29f27` — `docs(recovery): import ATLAS recovered studies and
+    dissemination instructions` (28 recovered documentation files under
+    `docs/Brand/`, `docs/Documentation/`, `docs/Strategy/`, and
+    `docs/Architecture/Migration/`)
+
+  **Visual freeze status:** `VISUAL FREEZE APPROVED` — per
+  `docs/Brand/ATLAS_Desktop_v1_Visual_Freeze_Recommendation.md`. All five
+  required Desktop v1 workspace surfaces are assessed as visually mature and
+  frozen. Implementation may be planned.
+
+  **Frozen surfaces (launch-blocking):** Command Center, Radar, Pipeline,
+  Opportunity Detail, Ask Atlas.
+
+  **Frozen visual artifacts (11 PNGs in `artifacts/png/`):**
+  Desktop Shell Reference v1, Command Center Workspace Reference v1,
+  Radar Workspace Reference v1, Pipeline Workspace Reference v1,
+  Opportunity Detail Surface v1, Ask Atlas Workspace v1,
+  Opportunity Signal Card v1, Recommendation Card v1,
+  Atlas Focus Object v1, Opportunity Progression Object v1,
+  Desktop Ecosystem Reference v1.
+
+  **Excluded — not committed; must remain untracked:**
+  - `docs/ATLAS_Recovery_Package_20260617.zip` — source material; do not
+    commit
+  - `docs/Strategy/ATLAS Workspace Ecosystem Study.md` — advisory /
+    pre-recovery context; requires separate Project Master acceptance before
+    any commit
+  - Seven overlap-risk files deferred for content comparison (see
+    "ATLAS Recovery — Seven Overlap-Risk Files Deferred" below)
+
+  **Governance note:** The ATLAS product documentation track is parallel to
+  the JSA engineering roadmap. Visual freeze does not automatically authorize
+  Desktop v1 implementation — implementation packages require their own
+  definition entries and Project Master authorization per the standing
+  governance rule.
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `docs/Brand/ATLAS_Desktop_v1_Visual_Freeze_Recommendation.md`,
+  `docs/Strategy/ATLAS_Desktop_v1_Freeze_Criteria.md`,
+  `docs/Documentation/ATLAS_Canonical_Documentation_Taxonomy.md`
+
+### ATLAS Recovery — Seven Overlap-Risk Files Deferred
+
+- Status: deferred
+- Area: documentation / ATLAS product
+- Date: June 2026
+- Rationale: The following seven files from the recovery package were
+  identified by Leah as potentially overlapping with committed canonical
+  specs. They were not committed in the recovery import and require a
+  content comparison pass before Project Master can authorize their import.
+  None may be committed without a separate Project Master entry following
+  that comparison.
+
+  **Deferred files (remain in ZIP / local staging only):**
+  1. `Compents/Recommendation Card/ATLAS_Recommendation_Card_v1.md`
+  2. `Compents/Opportunity Signal Card/Opportunity_Signal_Card_v1.md`
+  3. `Workspaces/Command Center/COMMAND_CENTER_SPEC.md`
+  4. `ATLAS Product Documentation Framework v1.0.md`
+  5. `ATLAS_Ask_Atlas_Surface_Specification_Study.md`
+  6. `ATLAS_Pipeline_Surface_Specification_Study.md`
+  7. `ATLAS_Recommendation_System_Surface_Specification_Study.md`
+- State reference: `PROJECT_STATE.md`
+- Follow-up work: A future content comparison pass should compare each file
+  against its committed counterpart (if any) and produce a reconciliation
+  recommendation for Project Master review before any of these files are
+  committed.

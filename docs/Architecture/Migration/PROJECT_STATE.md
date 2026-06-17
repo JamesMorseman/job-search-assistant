@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 — Phase 6 Package 2 complete
+Version: June 2026 — Phase 6 Package 2 complete; ATLAS recovery import complete
 
 ## Purpose
 
@@ -535,6 +535,47 @@ Architecture ownership boundaries:
 - Software Development implements approved architecture.
 
 Specialized chats are downstream consumers of Project Master state.
+
+## ATLAS Product Documentation
+
+Status: Recovery import complete (2026-06-17); Desktop v1 visually frozen.
+
+ATLAS is the product and brand layer built on top of the JSA backend. It is a
+parallel track to the JSA engineering roadmap.
+
+Visual freeze: `VISUAL FREEZE APPROVED` per
+`docs/Brand/ATLAS_Desktop_v1_Visual_Freeze_Recommendation.md`. All five
+required Desktop v1 workspace surfaces are frozen; implementation may be planned.
+
+**Desktop v1 product definition:** Career Mission Control — a user can
+discover, evaluate, track, prioritize, and investigate opportunities without
+external tracking systems.
+
+**Frozen surfaces (launch-blocking):** Command Center, Radar, Pipeline,
+Opportunity Detail, Ask Atlas.
+
+**Deferred scope (out of scope for v1):** Intelligence Workspace, Professional
+Graph, Career Memory, Forecasting, multi-user / enterprise / collaboration.
+
+**Frozen visual artifacts (11 PNGs):** committed in `6f1d2f4` under
+`artifacts/png/`. Each has a paired companion `.md` file.
+
+**Documentation recovered and committed** (commits `6f1d2f4` and `ab29f27`):
+- Surface specifications and visual references under `docs/Brand/`
+- Workspace studies under `docs/Brand/Workspaces/`
+- Documentation taxonomy and recovery plan under `docs/Documentation/`
+- Freeze criteria, implementation translation study, user journey under
+  `docs/Strategy/`
+- Repository dissemination instructions under `docs/Architecture/Migration/`
+
+**Not committed (untracked; must not be committed without PM authorization):**
+- `docs/ATLAS_Recovery_Package_20260617.zip` — source material; permanent
+- `docs/Strategy/ATLAS Workspace Ecosystem Study.md` — advisory; unaccepted
+- Seven overlap-risk files — deferred for content comparison
+  (see `DECISION_LOG.md`, "ATLAS Recovery — Seven Overlap-Risk Files Deferred")
+
+Desktop v1 implementation authorization is a separate decision from Phase 6
+package sequencing. See `ASH_INIT_NEXT.md` §7–9 for full Desktop v1 governance.
 
 ## Cross-System Dependencies
 
