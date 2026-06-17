@@ -1465,44 +1465,6 @@ def test_metrics_shows_empty_state_when_no_jobs(db):
 
 
 
-def test_metrics_shows_source_effectiveness_when_data_present(db):
-    app = create_app()
-    stats = FunnelStats(
-        total_jobs=5,
-        response_rate_by_source={
-            "greenhouse": {
-                "applied": 5,
-                "responded": 1,
-                "response_rate": 0.2,
-                "screened": 0,
-                "screen_rate": 0.0,
-                "interviewed": 0,
-                "interview_rate": 0.0,
-            }
-        },
-    )
-    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
-    with TestClient(app) as client:
-        resp = client.get("/dashboard/metrics")
-
-    assert resp.status_code == 200
-    assert 'data-testid="source-effectiveness-table"' in resp.text
-    assert 'data-testid="effectiveness-source"' in resp.text
-    assert "greenhouse" in resp.text
-    assert "20.0%" in resp.text
-
-
-def test_metrics_shows_source_effectiveness_empty_when_no_applications(db):
-    app = create_app()
-    stats = FunnelStats(total_jobs=3, response_rate_by_source={})
-    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
-    with TestClient(app) as client:
-        resp = client.get("/dashboard/metrics")
-
-    assert resp.status_code == 200
-    assert 'data-testid="source-effectiveness-empty"' in resp.text
-    assert "applied state" in resp.text
-
 
 def test_metrics_shows_not_enough_data_for_none_median_days(db):
     app = create_app()
@@ -1592,6 +1554,41 @@ def test_metrics_route_does_not_query_sqlite_directly():
     assert "get_db" not in source
     assert "sqlite3" not in source
     assert "SELECT" not in source
+
+
+def test_metrics_route_renders_no_raw_jinja(db):
+    """Jinja2 template is fully rendered — no unprocessed tags in the HTTP response."""
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=5,
+        by_state={"applied": 5},
+        score_distribution_by_state={"applied": {"q1": 0.5, "median": 0.6, "q3": 0.7, "n": 5}},
+        unified_source_data={
+            "greenhouse": {
+                "jobs_seen": 5, "jobs_presented": 4, "presentation_rate": 0.8,
+                "applied": 5, "responded": 2, "response_rate": 0.4,
+                "interviewed": 1, "interview_rate": 0.2, "offers": 0,
+            }
+        },
+        pipeline_velocity={
+            "presented_to_selected": {"label": "Presented → Selected", "median_days": 2.0, "n": 4},
+            "selected_to_applied": {"label": "Selected → Applied", "median_days": 1.0, "n": 4},
+        },
+        llm_grade_distribution={"A": {"count": 3, "pct": 0.6}},
+        llm_grade_outcome_correlation={
+            "A": {"total": 5, "terminal": 2, "advanced": 1, "advance_rate": 0.2, "qualifies": False},
+        },
+        stretch_conversion_rates={"qualified": {"total": 3, "applied_rate": 0.667, "screen_rate": 0.0}},
+        stretch_response_rates={"qualified": {"applied": 2, "response_rate": 0.0, "interview_rate": 0.0}},
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert "{%" not in resp.text
+    assert "%}" not in resp.text
+    assert "{{" not in resp.text
+    assert "}}" not in resp.text
 
 
 def test_metrics_route_has_no_mutation_paths():
@@ -2055,83 +2052,18 @@ def test_metrics_stretch_conversion_shows_applied_and_screen_rates(db):
     assert "long_shot" in resp.text
 
 
-def test_metrics_source_effectiveness_shows_n_count(db):
-    app = create_app()
-    stats = FunnelStats(
-        total_jobs=8,
-        response_rate_by_source={
-            "greenhouse": {
-                "applied": 8,
-                "responded": 2,
-                "response_rate": 0.25,
-                "screened": 0,
-                "screen_rate": 0.0,
-                "interviewed": 0,
-                "interview_rate": 0.0,
-            }
-        },
-    )
-    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
-    with TestClient(app) as client:
-        resp = client.get("/dashboard/metrics")
-    assert resp.status_code == 200
-    assert 'data-testid="effectiveness-n"' in resp.text
-    assert "(n=8)" in resp.text
-
-
-def test_metrics_source_effectiveness_suppresses_rates_for_small_n(db):
+def test_metrics_shows_source_health_link_in_outcome_section(db):
     app = create_app()
     stats = FunnelStats(
         total_jobs=3,
-        response_rate_by_source={
-            "linkedin": {
-                "applied": 3,
-                "responded": 1,
-                "response_rate": 0.333,
-                "screened": 0,
-                "screen_rate": 0.0,
-                "interviewed": 0,
-                "interview_rate": 0.0,
-            }
-        },
-    )
-    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
-    with TestClient(app) as client:
-        resp = client.get("/dashboard/metrics")
-    assert resp.status_code == 200
-    assert 'data-testid="effectiveness-insufficient"' in resp.text
-    assert "insufficient data" in resp.text
-    assert 'data-testid="effectiveness-response-rate"' not in resp.text
-
-
-def test_metrics_source_effectiveness_shows_rates_for_adequate_n(db):
-    app = create_app()
-    stats = FunnelStats(
-        total_jobs=5,
-        response_rate_by_source={
+        unified_source_data={
             "greenhouse": {
-                "applied": 5,
-                "responded": 1,
-                "response_rate": 0.2,
-                "screened": 0,
-                "screen_rate": 0.0,
-                "interviewed": 0,
-                "interview_rate": 0.0,
+                "jobs_seen": 3, "jobs_presented": 2, "presentation_rate": 0.667,
+                "applied": 1, "responded": 0, "response_rate": 0.0,
+                "interviewed": 0, "interview_rate": 0.0, "offers": 0,
             }
         },
     )
-    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
-    with TestClient(app) as client:
-        resp = client.get("/dashboard/metrics")
-    assert resp.status_code == 200
-    assert 'data-testid="effectiveness-response-rate"' in resp.text
-    assert "20.0%" in resp.text
-    assert 'data-testid="effectiveness-insufficient"' not in resp.text
-
-
-def test_metrics_shows_source_health_contextual_link(db):
-    app = create_app()
-    stats = FunnelStats(total_jobs=0)
     app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
     with TestClient(app) as client:
         resp = client.get("/dashboard/metrics")
@@ -2157,3 +2089,269 @@ def test_metrics_shows_tracker_and_review_queue_contextual_links(db):
     assert 'data-testid="nav-tracker-link"' in resp.text
     assert 'href="/dashboard/tracker"' in resp.text
     assert 'data-testid="nav-review-queue-link"' in resp.text
+
+
+# ── Phase 6 Package 2 — Analytics Depth ──────────────────────────────────
+
+_UNIFIED_SOURCE = {
+    "greenhouse": {
+        "jobs_seen": 10, "jobs_presented": 8, "presentation_rate": 0.8,
+        "applied": 5, "responded": 2, "response_rate": 0.4,
+        "interviewed": 1, "interview_rate": 0.2, "offers": 0,
+    }
+}
+
+
+def test_metrics_shows_score_distribution_when_data_present(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=4,
+        score_distribution_by_state={
+            "applied": {"q1": 0.35, "median": 0.5, "q3": 0.65, "n": 4},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="score-distribution"' in resp.text
+    assert 'data-testid="score-distribution-table"' in resp.text
+    assert 'data-testid="score-dist-row"' in resp.text
+    assert "0.35" in resp.text
+    assert "0.5" in resp.text
+
+
+def test_metrics_hides_score_distribution_when_empty(db):
+    app = create_app()
+    stats = FunnelStats(total_jobs=0, score_distribution_by_state={})
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="score-distribution"' not in resp.text
+
+
+def test_metrics_score_distribution_shows_q1_median_q3_n(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=3,
+        score_distribution_by_state={
+            "screen": {"q1": 0.6, "median": 0.75, "q3": 0.85, "n": 12},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="score-dist-q1"' in resp.text
+    assert 'data-testid="score-dist-median"' in resp.text
+    assert 'data-testid="score-dist-q3"' in resp.text
+    assert 'data-testid="score-dist-n"' in resp.text
+    assert "0.75" in resp.text
+
+
+def test_metrics_shows_source_discovery_table_when_data_present(db):
+    app = create_app()
+    stats = FunnelStats(total_jobs=10, unified_source_data=_UNIFIED_SOURCE)
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="source-discovery"' in resp.text
+    assert 'data-testid="source-discovery-table"' in resp.text
+    assert 'data-testid="discovery-row"' in resp.text
+    assert 'data-testid="discovery-source"' in resp.text
+    assert "greenhouse" in resp.text
+    assert "80.0%" in resp.text  # presentation_rate
+
+
+def test_metrics_shows_source_outcome_table_when_data_present(db):
+    app = create_app()
+    stats = FunnelStats(total_jobs=10, unified_source_data=_UNIFIED_SOURCE)
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="source-outcome"' in resp.text
+    assert 'data-testid="source-outcome-table"' in resp.text
+    assert 'data-testid="outcome-row"' in resp.text
+    assert 'data-testid="outcome-applied"' in resp.text
+    assert 'data-testid="outcome-offers"' in resp.text
+    assert "40.0%" in resp.text  # response_rate (n=5 >= 5)
+
+
+def test_metrics_source_outcome_suppresses_rates_for_small_n(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=3,
+        unified_source_data={
+            "lever": {
+                "jobs_seen": 3, "jobs_presented": 3, "presentation_rate": 1.0,
+                "applied": 3, "responded": 1, "response_rate": 0.333,
+                "interviewed": 0, "interview_rate": 0.0, "offers": 0,
+            }
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="outcome-insufficient"' in resp.text
+    assert "(n=3)" in resp.text
+    assert 'data-testid="outcome-response-rate"' not in resp.text
+
+
+def test_metrics_source_outcome_shows_rates_for_adequate_n(db):
+    app = create_app()
+    stats = FunnelStats(total_jobs=10, unified_source_data=_UNIFIED_SOURCE)
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="outcome-response-rate"' in resp.text
+    assert 'data-testid="outcome-insufficient"' not in resp.text
+
+
+def test_metrics_hides_source_tables_when_no_source_data(db):
+    app = create_app()
+    stats = FunnelStats(total_jobs=0, unified_source_data={})
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="source-discovery"' not in resp.text
+    assert 'data-testid="source-outcome"' not in resp.text
+
+
+def test_metrics_shows_pipeline_velocity_section(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=5,
+        pipeline_velocity={
+            "presented_to_selected": {"label": "Presented → Selected", "median_days": 2.0, "n": 4},
+            "selected_to_applied": {"label": "Selected → Applied", "median_days": 1.5, "n": 6},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="pipeline-velocity"' in resp.text
+    assert 'data-testid="velocity-list"' in resp.text
+    assert 'data-testid="velocity-pair"' in resp.text
+    assert "Presented → Selected" in resp.text
+    assert "2.0 days" in resp.text
+
+
+def test_metrics_pipeline_velocity_suppresses_for_small_n(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=2,
+        pipeline_velocity={
+            "presented_to_selected": {"label": "Presented → Selected", "median_days": None, "n": 1},
+            "selected_to_applied": {"label": "Selected → Applied", "median_days": 2.0, "n": 4},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert "— (n=1)" in resp.text
+    assert "2.0 days" in resp.text
+
+
+def test_metrics_hides_pipeline_velocity_when_empty(db):
+    app = create_app()
+    stats = FunnelStats(total_jobs=0, pipeline_velocity={})
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="pipeline-velocity"' not in resp.text
+
+
+def test_metrics_llm_correlation_shows_table_when_all_qualify(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=15,
+        llm_grade_outcome_correlation={
+            "A": {"total": 10, "terminal": 6, "advanced": 4, "advance_rate": 0.4, "qualifies": True},
+            "B": {"total": 8, "terminal": 5, "advanced": 2, "advance_rate": 0.25, "qualifies": True},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="llm-correlation"' in resp.text
+    assert 'data-testid="llm-correlation-table"' in resp.text
+    assert 'data-testid="llm-correlation-row"' in resp.text
+    assert "40.0%" in resp.text
+    assert 'data-testid="llm-correlation-scarcity"' not in resp.text
+
+
+def test_metrics_llm_correlation_shows_scarcity_notice_when_not_qualified(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=5,
+        llm_grade_outcome_correlation={
+            "A": {"total": 5, "terminal": 2, "advanced": 1, "advance_rate": 0.2, "qualifies": False},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="llm-correlation"' in resp.text
+    assert 'data-testid="llm-correlation-scarcity"' in resp.text
+    assert 'data-testid="llm-correlation-table"' not in resp.text
+    assert "Insufficient outcome data" in resp.text
+
+
+def test_metrics_llm_correlation_hides_when_no_data(db):
+    app = create_app()
+    stats = FunnelStats(total_jobs=0, llm_grade_outcome_correlation={})
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="llm-correlation"' not in resp.text
+
+
+def test_metrics_stretch_shows_response_rate_columns(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=8,
+        stretch_conversion_rates={
+            "qualified": {"total": 8, "applied_rate": 0.625, "screen_rate": 0.125},
+        },
+        stretch_response_rates={
+            "qualified": {"applied": 6, "response_rate": 0.333, "interview_rate": 0.167},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert 'data-testid="stretch-response-rate"' in resp.text
+    assert 'data-testid="stretch-interview-rate"' in resp.text
+    assert "33.3%" in resp.text
+    assert "(n=6)" in resp.text
+
+
+def test_metrics_stretch_response_suppresses_rates_for_small_n(db):
+    app = create_app()
+    stats = FunnelStats(
+        total_jobs=4,
+        stretch_conversion_rates={
+            "long_shot": {"total": 4, "applied_rate": 0.5, "screen_rate": 0.0},
+        },
+        stretch_response_rates={
+            "long_shot": {"applied": 2, "response_rate": 0.5, "interview_rate": 0.0},
+        },
+    )
+    app.dependency_overrides[get_metrics_service] = _stub_metrics_service(stats)
+    with TestClient(app) as client:
+        resp = client.get("/dashboard/metrics")
+    assert resp.status_code == 200
+    assert "— (n=2)" in resp.text

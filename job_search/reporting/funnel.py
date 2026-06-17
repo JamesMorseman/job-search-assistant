@@ -20,6 +20,20 @@ _APPLIED_AND_BEYOND = frozenset({
     "applied", "acknowledged", "screen", "interview", "offer", "rejected", "ghosted"
 })
 _SCREEN_AND_BEYOND = frozenset({"screen", "interview", "offer"})
+_RESPONDED = frozenset({"acknowledged", "screen", "interview", "offer"})
+_INTERVIEWED_OR_OFFER = frozenset({"interview", "offer"})
+
+
+def _percentile(sorted_scores: list[float], p: float) -> float | None:
+    n = len(sorted_scores)
+    if n == 0:
+        return None
+    idx = p * (n - 1)
+    lo = int(idx)
+    hi = lo + 1
+    if hi >= n:
+        return round(sorted_scores[lo], 3)
+    return round(sorted_scores[lo] + (idx - lo) * (sorted_scores[hi] - sorted_scores[lo]), 3)
 
 
 @dataclass
@@ -36,6 +50,12 @@ class FunnelStats:
     funnel_conversion_rates: dict[str, float | None] = field(default_factory=dict)
     llm_grade_distribution: dict[str, dict] = field(default_factory=dict)
     stretch_conversion_rates: dict[str, dict] = field(default_factory=dict)
+    # Package 2
+    score_distribution_by_state: dict[str, dict] = field(default_factory=dict)
+    stretch_response_rates: dict[str, dict] = field(default_factory=dict)
+    unified_source_data: dict[str, dict] = field(default_factory=dict)
+    pipeline_velocity: dict[str, dict] = field(default_factory=dict)
+    llm_grade_outcome_correlation: dict[str, dict] = field(default_factory=dict)
 
 
 class FunnelReporter:
@@ -50,8 +70,13 @@ class FunnelReporter:
             stats.response_rate_by_source = self._response_rate_by_source(db)
             stats.median_days = self._median_days_between_states(db)
             stats.llm_grade_distribution = self._llm_grade_distribution(db)
+            stats.score_distribution_by_state = self._score_distribution_by_state(db)
+            stats.unified_source_data = self._unified_source_data(db)
+            stats.pipeline_velocity = self._pipeline_velocity(db)
+            stats.llm_grade_outcome_correlation = self._llm_grade_outcome_correlation(db)
         stats.funnel_conversion_rates = self._funnel_conversion_rates(stats.by_state)
         stats.stretch_conversion_rates = self._stretch_conversion_rates(stats.by_stretch)
+        stats.stretch_response_rates = self._stretch_response_rates(stats.by_stretch)
         return stats
 
     # ── Aggregations ──────────────────────────────────────────────────────────
@@ -186,6 +211,138 @@ class FunnelReporter:
                 "total": total,
                 "applied_rate": round(applied_count / total, 3),
                 "screen_rate": round(screen_count / total, 3),
+            }
+        return result
+
+    def _score_distribution_by_state(self, db: Connection) -> dict[str, dict]:
+        rows = db.execute("""
+            SELECT app_state, match_score
+            FROM jobs
+            WHERE match_score IS NOT NULL
+            ORDER BY app_state, match_score
+        """).fetchall()
+        if not rows:
+            return {}
+        by_state: dict[str, list[float]] = {}
+        for r in rows:
+            by_state.setdefault(r["app_state"], []).append(r["match_score"])
+        return {
+            state: {
+                "q1": _percentile(scores, 0.25),
+                "median": _percentile(scores, 0.50),
+                "q3": _percentile(scores, 0.75),
+                "n": len(scores),
+            }
+            for state, scores in by_state.items()
+        }
+
+    def _stretch_response_rates(self, by_stretch: dict[str, dict[str, int]]) -> dict[str, dict]:
+        result: dict[str, dict] = {}
+        for category, states in by_stretch.items():
+            applied = sum(states.get(s, 0) for s in _APPLIED_AND_BEYOND)
+            if applied == 0:
+                continue
+            responded = sum(states.get(s, 0) for s in _RESPONDED)
+            interviewed = sum(states.get(s, 0) for s in _INTERVIEWED_OR_OFFER)
+            result[category] = {
+                "applied": applied,
+                "response_rate": round(responded / applied, 3),
+                "interview_rate": round(interviewed / applied, 3),
+            }
+        return result
+
+    def _unified_source_data(self, db: Connection) -> dict[str, dict]:
+        rows = db.execute("""
+            SELECT
+                source,
+                COUNT(*) as jobs_seen,
+                SUM(CASE WHEN app_state != 'discovered' THEN 1 ELSE 0 END) as jobs_presented,
+                SUM(CASE WHEN app_state IN (
+                    'applied','acknowledged','screen','interview','offer','rejected','ghosted'
+                ) THEN 1 ELSE 0 END) as applied_total,
+                SUM(CASE WHEN app_state IN (
+                    'acknowledged','screen','interview','offer'
+                ) THEN 1 ELSE 0 END) as responded,
+                SUM(CASE WHEN app_state IN ('interview','offer') THEN 1 ELSE 0 END) as interviewed_total,
+                SUM(CASE WHEN app_state = 'offer' THEN 1 ELSE 0 END) as offers_total
+            FROM jobs
+            GROUP BY source
+        """).fetchall()
+        result: dict[str, dict] = {}
+        for r in rows:
+            seen = r["jobs_seen"] or 0
+            presented = r["jobs_presented"] or 0
+            applied = r["applied_total"] or 0
+            responded = r["responded"] or 0
+            interviewed = r["interviewed_total"] or 0
+            offers = r["offers_total"] or 0
+            result[r["source"]] = {
+                "jobs_seen": seen,
+                "jobs_presented": presented,
+                "presentation_rate": round(presented / seen, 3) if seen > 0 else None,
+                "applied": applied,
+                "responded": responded,
+                "response_rate": round(responded / applied, 3) if applied > 0 else None,
+                "interviewed": interviewed,
+                "interview_rate": round(interviewed / applied, 3) if applied > 0 else None,
+                "offers": offers,
+            }
+        return result
+
+    def _pipeline_velocity(self, db: Connection) -> dict[str, dict]:
+        pairs = [
+            ("presented_to_selected", "Presented → Selected", "presented", "selected"),
+            ("selected_to_applied", "Selected → Applied", "selected", "applied"),
+        ]
+        result: dict[str, dict] = {}
+        for key, label, from_state, to_state in pairs:
+            rows = db.execute("""
+                SELECT
+                  (julianday(t2.transitioned_at) - julianday(t1.transitioned_at)) as days
+                FROM app_transitions t1
+                JOIN app_transitions t2
+                  ON t1.canonical_job_id = t2.canonical_job_id
+                 AND t1.to_state = ?
+                 AND t2.to_state = ?
+                 AND t2.transitioned_at > t1.transitioned_at
+            """, (from_state, to_state)).fetchall()
+            values = sorted([r["days"] for r in rows if r["days"] is not None])
+            n = len(values)
+            if n == 0:
+                median = None
+            else:
+                mid = n // 2
+                median = round(
+                    (values[mid] if n % 2 else (values[mid - 1] + values[mid]) / 2),
+                    2,
+                )
+            result[key] = {"label": label, "median_days": median, "n": n}
+        return result
+
+    def _llm_grade_outcome_correlation(self, db: Connection) -> dict[str, dict]:
+        rows = db.execute("""
+            SELECT
+                llm_grade,
+                COUNT(*) as total,
+                SUM(CASE WHEN app_state IN ('rejected','ghosted','offer') THEN 1 ELSE 0 END) as terminal_count,
+                SUM(CASE WHEN app_state IN ('screen','interview','offer') THEN 1 ELSE 0 END) as advanced_count
+            FROM jobs
+            WHERE llm_grade IS NOT NULL
+            GROUP BY llm_grade
+        """).fetchall()
+        if not rows:
+            return {}
+        result: dict[str, dict] = {}
+        for r in rows:
+            total = r["total"] or 0
+            terminal = r["terminal_count"] or 0
+            advanced = r["advanced_count"] or 0
+            result[r["llm_grade"]] = {
+                "total": total,
+                "terminal": terminal,
+                "advanced": advanced,
+                "advance_rate": round(advanced / total, 3) if total > 0 else None,
+                "qualifies": terminal >= 5,
             }
         return result
 

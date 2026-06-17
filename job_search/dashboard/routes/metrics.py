@@ -43,12 +43,16 @@ def metrics(
         {
             "total_jobs": stats.total_jobs,
             "by_state": stats.by_state,
-            "response_rate_by_source": stats.response_rate_by_source,
             "avg_match_by_state": stats.avg_match_by_state,
             "median_days": stats.median_days,
             "by_stretch": stats.by_stretch,
             "funnel_conversion_rates": stats.funnel_conversion_rates,
             "llm_grade_distribution": stats.llm_grade_distribution,
             "stretch_conversion_rates": stats.stretch_conversion_rates,
+            "stretch_response_rates": stats.stretch_response_rates,
+            "score_distribution_by_state": stats.score_distribution_by_state,
+            "unified_source_data": stats.unified_source_data,
+            "pipeline_velocity": stats.pipeline_velocity,
+            "llm_grade_outcome_correlation": stats.llm_grade_outcome_correlation,
         },
     )

@@ -217,3 +217,151 @@ def test_stretch_conversion_rates_screen_rate(db):
     assert data["total"] == 3
     assert abs(data["screen_rate"] - round(1 / 3, 3)) < 0.001
     assert abs(data["applied_rate"] - round(2 / 3, 3)) < 0.001
+
+
+# ── Phase 6 Package 2 — Analytics Depth ──────────────────────────────────
+
+
+def test_score_distribution_empty_on_empty_db(db):
+    stats = FunnelReporter().compute()
+    assert stats.score_distribution_by_state == {}
+
+
+def test_score_distribution_computes_quartiles(db):
+    # Four jobs in "applied" with known scores; sorted: 0.2, 0.4, 0.6, 0.8
+    for i, score in enumerate([0.2, 0.4, 0.6, 0.8]):
+        _seed(db, "greenhouse", f"j{i}", "applied", match_score=score)
+    stats = FunnelReporter().compute()
+    dist = stats.score_distribution_by_state["applied"]
+    assert dist["n"] == 4
+    # Q1 = lerp(0.2, 0.4, 0.75) = 0.35 (linear interpolation at 25th pct of 4 values)
+    assert dist["q1"] is not None
+    assert dist["median"] is not None
+    assert dist["q3"] is not None
+    # Median of [0.2, 0.4, 0.6, 0.8] = lerp(0.4, 0.6, 0.5) = 0.5
+    assert abs(dist["median"] - 0.5) < 0.01
+
+
+def test_score_distribution_single_value(db):
+    _seed(db, "greenhouse", "j1", "applied", match_score=0.75)
+    stats = FunnelReporter().compute()
+    dist = stats.score_distribution_by_state["applied"]
+    assert dist["n"] == 1
+    assert dist["q1"] == 0.75
+    assert dist["median"] == 0.75
+    assert dist["q3"] == 0.75
+
+
+def test_stretch_response_rates_empty_on_no_applications(db):
+    _seed(db, "greenhouse", "j1", "presented")  # not yet applied
+    stats = FunnelReporter().compute()
+    assert stats.stretch_response_rates == {}
+
+
+def test_stretch_response_rates_computes_correctly(db):
+    _seed(db, "greenhouse", "j1", "screen")    # responded + interviewed-adjacent
+    _seed(db, "greenhouse", "j2", "applied")   # applied, no response
+    _seed(db, "greenhouse", "j3", "rejected")  # applied, no response
+    stats = FunnelReporter().compute()
+    rr = stats.stretch_response_rates["qualified"]
+    # applied (in _APPLIED_AND_BEYOND): all 3 — screen + applied + rejected
+    assert rr["applied"] == 3
+    # responded (acknowledged/screen/interview/offer): 1 (screen)
+    assert abs(rr["response_rate"] - round(1 / 3, 3)) < 0.001
+    # interviewed (interview/offer): 0
+    assert rr["interview_rate"] == 0.0
+
+
+def test_unified_source_data_empty_on_empty_db(db):
+    stats = FunnelReporter().compute()
+    assert stats.unified_source_data == {}
+
+
+def test_unified_source_data_discovery_columns(db):
+    _seed(db, "greenhouse", "j1", "discovered")
+    _seed(db, "greenhouse", "j2", "presented")
+    _seed(db, "greenhouse", "j3", "selected")
+    stats = FunnelReporter().compute()
+    gh = stats.unified_source_data["greenhouse"]
+    assert gh["jobs_seen"] == 3
+    assert gh["jobs_presented"] == 2  # presented + selected (not discovered)
+    assert abs(gh["presentation_rate"] - round(2 / 3, 3)) < 0.001
+
+
+def test_unified_source_data_outcome_columns(db):
+    _seed(db, "usajobs", "j1", "applied")
+    _seed(db, "usajobs", "j2", "screen")
+    _seed(db, "usajobs", "j3", "offer")
+    stats = FunnelReporter().compute()
+    usa = stats.unified_source_data["usajobs"]
+    assert usa["applied"] == 3    # all in _APPLIED_AND_BEYOND
+    assert usa["interviewed"] == 1  # offer only
+    assert usa["offers"] == 1
+    assert abs(usa["response_rate"] - round(2 / 3, 3)) < 0.001   # screen + offer responded
+
+
+def test_pipeline_velocity_empty_on_empty_db(db):
+    stats = FunnelReporter().compute()
+    # Dict still has keys but n=0 for each pair
+    assert "presented_to_selected" in stats.pipeline_velocity
+    assert stats.pipeline_velocity["presented_to_selected"]["n"] == 0
+    assert stats.pipeline_velocity["presented_to_selected"]["median_days"] is None
+
+
+def test_pipeline_velocity_computes_median(db):
+    import sqlite3 as _sqlite3
+    import datetime
+    _seed(db, "greenhouse", "j1", "selected")
+    # Insert explicit transitions with known timestamps
+    conn = _sqlite3.connect(db)
+    conn.row_factory = _sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    base = datetime.datetime(2026, 6, 1, 12, 0, 0)
+    conn.execute(
+        "INSERT INTO app_transitions (canonical_job_id, to_state, transitioned_at) VALUES (?, ?, ?)",
+        ("j1", "presented", (base).isoformat()),
+    )
+    conn.execute(
+        "INSERT INTO app_transitions (canonical_job_id, to_state, transitioned_at) VALUES (?, ?, ?)",
+        ("j1", "selected", (base + datetime.timedelta(days=3)).isoformat()),
+    )
+    conn.commit()
+    conn.close()
+    stats = FunnelReporter().compute()
+    vel = stats.pipeline_velocity["presented_to_selected"]
+    assert vel["n"] >= 1
+    assert vel["median_days"] is not None
+    assert vel["median_days"] >= 3.0
+
+
+def test_llm_grade_outcome_correlation_empty_when_no_grades(db):
+    _seed(db, "greenhouse", "j1", "applied")
+    stats = FunnelReporter().compute()
+    assert stats.llm_grade_outcome_correlation == {}
+
+
+def test_llm_grade_outcome_correlation_qualifies_with_5_terminals(db):
+    import sqlite3 as _sqlite3
+    for i in range(6):
+        _seed(db, "greenhouse", f"j{i}", "rejected")
+    conn = _sqlite3.connect(db)
+    conn.execute("UPDATE jobs SET llm_grade = 'A'")
+    conn.commit()
+    conn.close()
+    stats = FunnelReporter().compute()
+    assert "A" in stats.llm_grade_outcome_correlation
+    assert stats.llm_grade_outcome_correlation["A"]["qualifies"] is True
+    assert stats.llm_grade_outcome_correlation["A"]["terminal"] == 6
+
+
+def test_llm_grade_outcome_correlation_does_not_qualify_below_threshold(db):
+    import sqlite3 as _sqlite3
+    for i in range(3):
+        _seed(db, "greenhouse", f"j{i}", "rejected")
+    conn = _sqlite3.connect(db)
+    conn.execute("UPDATE jobs SET llm_grade = 'B'")
+    conn.commit()
+    conn.close()
+    stats = FunnelReporter().compute()
+    assert stats.llm_grade_outcome_correlation["B"]["qualifies"] is False
+    assert stats.llm_grade_outcome_correlation["B"]["terminal"] == 3

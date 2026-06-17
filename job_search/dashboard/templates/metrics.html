@@ -37,6 +37,34 @@
     {% endif %}
 </section>
 
+{% if score_distribution_by_state %}
+<section data-testid="score-distribution">
+    <h3>Score Distribution by State</h3>
+    <table data-testid="score-distribution-table">
+        <thead>
+            <tr>
+                <th>State</th>
+                <th>Q1</th>
+                <th>Median</th>
+                <th>Q3</th>
+                <th>n</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for state, data in score_distribution_by_state.items() | sort %}
+            <tr data-testid="score-dist-row">
+                <td data-testid="score-dist-state">{{ state }}</td>
+                <td data-testid="score-dist-q1">{% if data.q1 is not none %}{{ data.q1 }}{% else %}—{% endif %}</td>
+                <td data-testid="score-dist-median">{% if data.median is not none %}{{ data.median }}{% else %}—{% endif %}</td>
+                <td data-testid="score-dist-q3">{% if data.q3 is not none %}{{ data.q3 }}{% else %}—{% endif %}</td>
+                <td data-testid="score-dist-n">{{ data.n }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
 {% if funnel_conversion_rates %}
 <section data-testid="funnel-conversion">
     <h3>Funnel Conversion Rates</h3>
@@ -65,40 +93,129 @@
 </section>
 {% endif %}
 
-<section data-testid="source-effectiveness">
-    <h3>Source Effectiveness</h3>
-    {% if response_rate_by_source %}
-    <table data-testid="source-effectiveness-table">
+{% if llm_grade_distribution %}
+<section data-testid="llm-grade-section">
+    <h3>LLM Grade Distribution</h3>
+    <table data-testid="llm-grade-table">
         <thead>
             <tr>
-                <th>Source</th>
-                <th>Applied</th>
-                <th>Response Rate</th>
-                <th>Screen Rate</th>
-                <th>Interview Rate</th>
+                <th>Grade</th>
+                <th>Count</th>
+                <th>Percentage</th>
             </tr>
         </thead>
         <tbody>
-            {% for source, data in response_rate_by_source.items() | sort %}
-            <tr data-testid="effectiveness-row">
-                <td data-testid="effectiveness-source">{{ source }}</td>
-                <td data-testid="effectiveness-applied">{{ data.applied }} <span data-testid="effectiveness-n">(n={{ data.applied }})</span></td>
-                {% if data.applied >= 5 %}
-                <td data-testid="effectiveness-response-rate">{{ "%.1f"|format(data.response_rate * 100) }}%</td>
-                <td>{{ "%.1f"|format(data.screen_rate * 100) }}%</td>
-                <td>{{ "%.1f"|format(data.interview_rate * 100) }}%</td>
-                {% else %}
-                <td colspan="3" data-testid="effectiveness-insufficient">insufficient data (n&lt;5)</td>
-                {% endif %}
+            {% for grade, data in llm_grade_distribution.items() | sort %}
+            <tr data-testid="llm-grade-row">
+                <td data-testid="llm-grade-name">{{ grade }}</td>
+                <td data-testid="llm-grade-count">{{ data.count }}</td>
+                <td data-testid="llm-grade-pct">{{ "%.1f"|format(data.pct * 100) }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
+{% if llm_grade_outcome_correlation %}
+<section data-testid="llm-correlation">
+    <h3>LLM Grade Outcome Correlation</h3>
+    {% set ns = namespace(all_qualify=true) %}
+    {% for grade, data in llm_grade_outcome_correlation.items() %}
+        {% if not data.qualifies %}{% set ns.all_qualify = false %}{% endif %}
+    {% endfor %}
+    {% if ns.all_qualify %}
+    <table data-testid="llm-correlation-table">
+        <thead>
+            <tr>
+                <th>Grade</th>
+                <th>Total</th>
+                <th>Terminal</th>
+                <th>Advanced</th>
+                <th>Advance Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for grade, data in llm_grade_outcome_correlation.items() | sort %}
+            <tr data-testid="llm-correlation-row">
+                <td data-testid="correlation-grade">{{ grade }}</td>
+                <td>{{ data.total }}</td>
+                <td>{{ data.terminal }}</td>
+                <td>{{ data.advanced }}</td>
+                <td data-testid="correlation-advance-rate">
+                    {% if data.advance_rate is not none %}{{ "%.1f"|format(data.advance_rate * 100) }}%{% else %}—{% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p data-testid="source-effectiveness-empty">No applications yet — response rates will appear once jobs reach the applied state.</p>
+    <p data-testid="llm-correlation-scarcity">Insufficient outcome data to assess grade correlation — at least 5 terminal outcomes required per grade.</p>
     {% endif %}
+</section>
+{% endif %}
+
+{% if unified_source_data %}
+<section data-testid="source-discovery">
+    <h3>Source Discovery</h3>
+    <table data-testid="source-discovery-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Jobs Seen</th>
+                <th>Jobs Presented</th>
+                <th>Presentation Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for source, data in unified_source_data.items() | sort %}
+            <tr data-testid="discovery-row">
+                <td data-testid="discovery-source">{{ source }}</td>
+                <td data-testid="discovery-seen">{{ data.jobs_seen }}</td>
+                <td data-testid="discovery-presented">{{ data.jobs_presented }}</td>
+                <td data-testid="discovery-rate">
+                    {% if data.presentation_rate is not none %}{{ "%.1f"|format(data.presentation_rate * 100) }}%{% else %}—{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section data-testid="source-outcome">
+    <h3>Source Outcome</h3>
+    <table data-testid="source-outcome-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Applied</th>
+                <th>Interviewed</th>
+                <th>Offers</th>
+                <th>Response Rate</th>
+                <th>Interview Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for source, data in unified_source_data.items() | sort %}
+            <tr data-testid="outcome-row">
+                <td data-testid="outcome-source">{{ source }}</td>
+                <td data-testid="outcome-applied">{{ data.applied }}</td>
+                <td data-testid="outcome-interviewed">{{ data.interviewed }}</td>
+                <td data-testid="outcome-offers">{{ data.offers }}</td>
+                {% if data.applied >= 5 %}
+                <td data-testid="outcome-response-rate">{{ "%.1f"|format(data.response_rate * 100) }}% (n={{ data.applied }})</td>
+                <td data-testid="outcome-interview-rate">{{ "%.1f"|format(data.interview_rate * 100) }}% (n={{ data.applied }})</td>
+                {% else %}
+                <td colspan="2" data-testid="outcome-insufficient">— (n={{ data.applied }})</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><small>Response rate = any acknowledgement/screen/interview/offer ÷ applications. Interview rate = interview or offer ÷ applications.</small></p>
     <p><a data-testid="nav-source-health-link" href="/dashboard/source-health">View Source Health</a></p>
 </section>
+{% endif %}
 
 <section data-testid="time-to-response">
     <h3>Time to Response</h3>
@@ -132,27 +249,23 @@
     </dl>
 </section>
 
-{% if llm_grade_distribution %}
-<section data-testid="llm-grade-section">
-    <h3>LLM Grade Distribution</h3>
-    <table data-testid="llm-grade-table">
-        <thead>
-            <tr>
-                <th>Grade</th>
-                <th>Count</th>
-                <th>Percentage</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for grade, data in llm_grade_distribution.items() | sort %}
-            <tr data-testid="llm-grade-row">
-                <td data-testid="llm-grade-name">{{ grade }}</td>
-                <td data-testid="llm-grade-count">{{ data.count }}</td>
-                <td data-testid="llm-grade-pct">{{ "%.1f"|format(data.pct * 100) }}%</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+{% if pipeline_velocity %}
+<section data-testid="pipeline-velocity">
+    <h3>Pipeline Velocity</h3>
+    <dl data-testid="velocity-list">
+        {% for pair_key, data in pipeline_velocity.items() %}
+        <dt data-testid="velocity-pair">{{ data.label }}</dt>
+        <dd data-testid="velocity-value">
+            {% if data.n < 3 %}
+            — (n={{ data.n }})
+            {% elif data.median_days is none %}
+            Not enough data yet.
+            {% else %}
+            {{ data.median_days }} days (n={{ data.n }})
+            {% endif %}
+        </dd>
+        {% endfor %}
+    </dl>
 </section>
 {% endif %}
 
@@ -184,7 +297,7 @@
 
 {% if stretch_conversion_rates %}
 <section data-testid="stretch-conversion">
-    <h3>Stretch Category Conversion Rates</h3>
+    <h3>Stretch Category Conversion &amp; Response Rates</h3>
     <table data-testid="stretch-conversion-table">
         <thead>
             <tr>
@@ -192,15 +305,30 @@
                 <th>Total</th>
                 <th>Applied Rate</th>
                 <th>Screen Rate</th>
+                <th>Response Rate</th>
+                <th>Interview Rate</th>
             </tr>
         </thead>
         <tbody>
             {% for category, data in stretch_conversion_rates.items() | sort %}
+            {% set rr = stretch_response_rates.get(category) if stretch_response_rates else none %}
             <tr data-testid="stretch-conversion-row">
                 <td data-testid="stretch-conv-category">{{ category }}</td>
                 <td data-testid="stretch-conv-total">{{ data.total }}</td>
                 <td data-testid="stretch-applied-rate">{{ "%.1f"|format(data.applied_rate * 100) }}%</td>
                 <td data-testid="stretch-screen-rate">{{ "%.1f"|format(data.screen_rate * 100) }}%</td>
+                {% if rr %}
+                  {% if rr.applied >= 5 %}
+                  <td data-testid="stretch-response-rate">{{ "%.1f"|format(rr.response_rate * 100) }}% (n={{ rr.applied }})</td>
+                  <td data-testid="stretch-interview-rate">{{ "%.1f"|format(rr.interview_rate * 100) }}% (n={{ rr.applied }})</td>
+                  {% else %}
+                  <td data-testid="stretch-response-rate">— (n={{ rr.applied }})</td>
+                  <td data-testid="stretch-interview-rate">— (n={{ rr.applied }})</td>
+                  {% endif %}
+                {% else %}
+                <td data-testid="stretch-response-rate">—</td>
+                <td data-testid="stretch-interview-rate">—</td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
