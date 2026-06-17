@@ -2024,7 +2024,133 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - State reference: `PROJECT_STATE.md`
 - Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
   `ASH_INIT_NEXT.md` (Desktop track)
-- Follow-up work: ATLAS Desktop Package 1 implementation may now be prompted.
+- Follow-up work: ATLAS Desktop Package 1 implementation is now complete and
+  accepted; see "ATLAS Desktop Package 1 - Desktop Shell Accepted / Complete"
+  below.
+
+### ATLAS Desktop Package 1 - Desktop Shell Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / frontend implementation
+- Date: June 2026
+- Commit: `d6bdde7` - `feat(atlas): implement Desktop Package 1 shell`
+- Test suite: 808 passed, 1 skipped, 6 warnings
+- Acceptance basis:
+  - Scope compliance: PASS
+  - FastAPI routing: PASS
+  - Frontend architecture: PASS
+  - Validation: 808 passed, 1 skipped, 6 warnings
+  - No required fixes
+
+  **Package accepted:**
+  - ATLAS Desktop Package 1 - Desktop Shell - **Accepted / Complete**
+
+  **Delivered scope:**
+  - `frontend/` Vite React TypeScript scaffold
+  - ATLAS shell layout
+  - sidebar navigation
+  - workspace routing placeholders
+  - Context Panel stub
+  - ATLAS design-token CSS variables
+  - FastAPI `/atlas` SPA serving
+
+  **Not included / still out of scope:**
+  - real workspace content
+  - data integration
+  - recommendations
+  - Ask Atlas behavior
+  - Pipeline Package 4 work
+  - background runner work
+  - database/schema changes
+  - Desktop Package 2+ work
+
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `ASH_INIT_NEXT.md` (Desktop track)
+- Definition reference: `DECISION_LOG.md` "ATLAS Desktop Package 1 - Desktop
+  Shell Definition Accepted"
+- Follow-up work: ATLAS Desktop Package 2 - Core Data Layer is now defined
+  below. Package 2 implementation may be prompted only within that definition's
+  bounded scope.
+
+### ATLAS Desktop Package 2 - Core Data Layer Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / core data layer
+- Date: June 2026
+- Rationale: Defines the next ATLAS Desktop implementation package after
+  acceptance of Desktop Package 1. Package 2 authorizes only the future
+  implementation of a bounded, local-first desktop data layer that lets the
+  React shell and future workspaces retrieve normalized opportunity data from
+  the existing local system. Package 2 is infrastructure for later workspaces,
+  not the workspaces themselves.
+
+  **Package objective:**
+
+  Establish a read-only desktop data-access boundary for normalized opportunity
+  data, suitable for the React shell and future workspace packages.
+
+  **Future implementation scope authorized by this definition:**
+
+  1. Read-only desktop API endpoints.
+  2. Opportunity summary DTOs.
+  3. Opportunity detail DTOs.
+  4. Pipeline stage/status DTOs.
+  5. Basic counts needed by the shell.
+  6. API response models/schemas.
+  7. Frontend API client boundary.
+  8. Loading/error states for data access.
+  9. Tests for API contracts and route isolation.
+
+  **Authorized data paths:**
+
+  - Package 2 may read from existing local data through existing
+    service/database boundaries.
+  - API responses must be deterministic and local-first.
+  - Package 2 may not introduce new database tables unless explicitly
+    justified and separately authorized.
+  - Package 2 may not write application state unless explicitly authorized.
+
+  **Out of scope / prohibited for Desktop Package 2:**
+
+  - Command Center content
+  - Radar content
+  - Pipeline workspace content
+  - Opportunity Detail full UI
+  - recommendation cards
+  - Atlas Focus objects
+  - Ask Atlas behavior
+  - LLM calls
+  - background runner
+  - scheduler
+  - pipeline execution
+  - Tauri packaging
+  - cloud sync
+  - new scoring logic
+  - resume/cover-letter generation
+
+  **Package boundaries:**
+
+  - Package 2 is a core data layer package, not a workspace-content package.
+  - React workspace surfaces must not be implemented prematurely.
+  - Existing dashboard routes must remain unaffected.
+  - `/atlas` routing must remain isolated from dashboard/API routes.
+  - Database/schema migrations require separate authorization.
+
+  **Acceptance criteria for the future implementation:**
+
+  1. Existing dashboard routes remain unaffected.
+  2. `/atlas` routing remains isolated.
+  3. Frontend build passes.
+  4. `pytest` passes.
+  5. API responses are deterministic and local-first.
+  6. No workspace content is implemented prematurely.
+  7. No database/schema migration occurs without separate authorization.
+
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `ASH_INIT_NEXT.md` (Desktop track)
+- Follow-up work: ATLAS Desktop Package 2 implementation may now be prompted.
   The implementation prompt must reference this entry and preserve all
   prohibited-scope boundaries above.
 

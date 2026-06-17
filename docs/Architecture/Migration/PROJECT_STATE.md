@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 — Phase 6 Package 3 complete; Desktop v1 tech stack accepted; ATLAS recovery file review closed
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Package 1 complete; Desktop Package 2 defined
 
 ## Purpose
 
@@ -32,8 +32,9 @@ complete. Package 4 (local-first background runner) definition entry is
 required before its implementation begins.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
-by FastAPI. Desktop Package 1 - Desktop Shell definition entry is accepted;
-implementation may now be prompted, but no Desktop implementation has begun.
+by FastAPI. Desktop Package 1 - Desktop Shell is accepted and complete
+(commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings). Desktop Package 2 -
+Core Data Layer is defined and may now be prompted.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -62,12 +63,17 @@ Current objectives:
 - Phase 6 Package 4 (Local-first background runner) — **definition entry
   required before implementation begins.** Authorized; not yet defined.
   Depends on Package 3 (now complete).
-- ATLAS Desktop v1 — tech stack accepted (React 18 + TypeScript + Vite +
-  Tailwind + FastAPI catch-all). Desktop Package 1 - Desktop Shell definition
-  accepted. Future implementation is limited to `frontend/` Vite React
+- ATLAS Desktop Package 1 - Desktop Shell — **complete** (commit `d6bdde7`;
+  808 passed, 1 skipped, 6 warnings). Delivered `frontend/` Vite React
   TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace
   routing placeholders, Context Panel stub, ATLAS design-token CSS variables,
-  and FastAPI SPA catch-all route registered last.
+  and FastAPI `/atlas` SPA serving.
+- ATLAS Desktop Package 2 - Core Data Layer — **definition accepted**;
+  implementation may now be prompted. Future implementation is limited to a
+  read-only, local-first desktop data layer: desktop API endpoints, opportunity
+  summary/detail DTOs, pipeline stage/status DTOs, shell counts, API response
+  models/schemas, frontend API client boundary, loading/error states, and API
+  contract/route-isolation tests.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -163,7 +169,7 @@ Architecture complete, implementation pending:
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
 - dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 4+5)
 - local-first background runner (Phase 6 Package 4): definition entry required before implementation
-- ATLAS Desktop v1: tech stack accepted (React 18 + TypeScript + Vite); Desktop Package 1 definition entry accepted; implementation may now be prompted
+- ATLAS Desktop v1: Desktop Package 1 complete; Desktop Package 2 definition accepted and implementation may now be prompted
 
 Deferred — post-Phase-1 resume optimization backlog:
 
@@ -599,14 +605,27 @@ Graph, Career Memory, Forecasting, multi-user / enterprise / collaboration.
   (see `DECISION_LOG.md`, "ATLAS Recovery — Seven Overlap-Risk Files Deferred")
 
 Desktop v1 implementation authorization is a separate decision from Phase 6
-package sequencing. Desktop Package 1 - Desktop Shell definition is accepted
-and implementation may now be prompted. Package 1 is shell-only: `frontend/`
-Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation,
-workspace routing placeholders, Context Panel stub, ATLAS design-token CSS
-variables, and FastAPI SPA catch-all route registered last. It does not
-authorize workspace content, real data integration, recommendations, Ask Atlas
-implementation, Pipeline Package 4 work, background runner work,
-database/schema changes, or Desktop Package 2+ work. See `ASH_INIT_NEXT.md`
+package sequencing. Desktop Package 1 - Desktop Shell is accepted and complete:
+`frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar
+navigation, workspace routing placeholders, Context Panel stub, ATLAS
+design-token CSS variables, and FastAPI `/atlas` SPA serving. It did not
+include real workspace content, data integration, recommendations, Ask Atlas
+behavior, Pipeline Package 4 work, background runner work, database/schema
+changes, or Desktop Package 2+ work.
+
+Desktop Package 2 - Core Data Layer is defined and may now be prompted.
+Package 2 is infrastructure for later workspaces, not the workspaces
+themselves. Authorized future scope is limited to read-only desktop API
+endpoints, opportunity summary/detail DTOs, pipeline stage/status DTOs, basic
+shell counts, API response models/schemas, a frontend API client boundary,
+loading/error states for data access, and tests for API contracts and route
+isolation. Package 2 may read from existing local data through existing
+service/database boundaries, but it must not write application state or
+introduce database/schema migrations without separate authorization. It must
+not implement workspace content, recommendations, Atlas Focus objects, Ask
+Atlas behavior, LLM calls, background runner/scheduler/pipeline execution,
+Tauri packaging, cloud sync, new scoring logic, or resume/cover-letter
+generation. See `ASH_INIT_NEXT.md`
 §7–9 for full Desktop v1 governance.
 
 ## Cross-System Dependencies

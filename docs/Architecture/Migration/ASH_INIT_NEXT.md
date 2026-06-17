@@ -1,8 +1,7 @@
 # Ash Initialization Package — Project Master (NEXT)
 
 **Version:** June 2026 - Phase 6 Package 3 complete; Desktop Package 1
-definition accepted; deferred recovery file review closed; Package 4 definition
-required
+complete; Desktop Package 2 definition accepted; Package 4 definition required
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -46,9 +45,10 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Clean — all committed in `95d7eda` + recovery closure
-- **Implementation files:** Clean — committed in `2b52967` and `6af126b`
-- **Test suite:** 806 passing, 1 skipped, 5 warnings (as of Phase 6 Package 3)
+- **Governance files:** Current governance commit records Desktop Package 1
+  acceptance and Desktop Package 2 definition
+- **Implementation files:** Desktop Package 1 committed in `d6bdde7`
+- **Test suite:** 808 passing, 1 skipped, 6 warnings (as of Desktop Package 1)
 
 **Confirm at session start:**
 
@@ -62,6 +62,7 @@ explicit PM authorization):**
 
 | File | Disposition |
 |---|---|
+| `.claude/settings.local.json` | Local settings; do not commit without explicit PM authorization |
 | `docs/ATLAS_Recovery_Package_20260617.zip` | Source material; permanent; do not commit |
 | `docs/Strategy/ATLAS Workspace Ecosystem Study.md` | Advisory/unaccepted; separate PM decision required |
 | `artifacts/phase1_review/phase1_review_*.docx` | Generated output artifacts; untracked by design |
@@ -107,8 +108,9 @@ explicit PM authorization):**
 
 | Package | Scope | Status |
 |---|---|---|
-| 1 - Desktop Shell | `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI SPA catch-all route registered last | **Definition accepted**; implementation may now be prompted |
-| 2+ | Workspace content, real data integration, recommendations, Ask Atlas, Pipeline Workspace, and other product surfaces | Not authorized; require separate definition entries |
+| 1 - Desktop Shell | `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI `/atlas` SPA serving | **Accepted / Complete** - commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings |
+| 2 - Core Data Layer | Read-only desktop API endpoints, opportunity summary/detail DTOs, pipeline stage/status DTOs, shell counts, API response models/schemas, frontend API client boundary, loading/error states, API contract/route-isolation tests | **Definition accepted**; implementation may now be prompted |
+| 3+ | Workspace content, recommendations, Ask Atlas behavior, Pipeline Workspace, and other product surfaces | Not authorized; require separate definition entries |
 
 ---
 
@@ -116,12 +118,20 @@ explicit PM authorization):**
 
 ```text
 (current governance commit)
-         docs(governance): close Package 3 and accept Desktop v1 stack
-         DECISION_LOG.md: Package 3 completion, Desktop v1 stack decision,
-           deferred recovery file review closure
-         PROJECT_STATE.md: Package 3 complete, Package 4 next, Desktop stack
-         roadmap.md: Package 3 complete
+         docs(governance): accept Desktop Package 1 and define Package 2
+         DECISION_LOG.md: Desktop Package 1 acceptance and Desktop Package 2
+           Core Data Layer definition
+         PROJECT_STATE.md: Desktop Package 1 complete, Package 2 next
+         roadmap.md: Desktop Package 1 complete, Package 2 defined
          ASH_INIT_NEXT.md: synchronized to current state
+
+d6bdde7  feat(atlas): implement Desktop Package 1 shell
+         frontend/ Vite React TypeScript scaffold, ATLAS shell layout,
+         sidebar navigation, workspace routing placeholders, Context Panel
+         stub, design-token CSS variables, FastAPI /atlas SPA serving
+
+3edd347  docs(governance): define ATLAS Desktop Package 1 shell
+         Desktop Package 1 definition accepted
 
 f882405  feat(pipeline): Phase 6 Package 3 pipeline_runs table and PipelineService
          job_search/db/schema.sql: pipeline_runs table added
@@ -469,27 +479,36 @@ references.
 
 After that entry is accepted, issue an Anna implementation task referencing it.
 
-### Step 3 - Prompt ATLAS Desktop Package 1 implementation (Desktop track)
+### Step 3 - Prompt ATLAS Desktop Package 2 implementation (Desktop track)
 
 **Desktop v1 tech stack is accepted** (React 18 + TypeScript + Vite + Tailwind
 + FastAPI catch-all; see DECISION_LOG.md "ATLAS Desktop v1 — Frontend Technology
-Stack Decision"). Desktop Package 1 - Desktop Shell definition is now accepted;
-see DECISION_LOG.md "ATLAS Desktop Package 1 - Desktop Shell Definition
-Accepted."
+Stack Decision"). Desktop Package 1 - Desktop Shell is complete and accepted
+(commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings). Desktop Package 2 -
+Core Data Layer definition is now accepted; see DECISION_LOG.md "ATLAS Desktop
+Package 2 - Core Data Layer Definition Accepted."
 
-Package 1 implementation may now be prompted. Authorized scope is limited to:
-`frontend/` Vite React TypeScript scaffold; ATLAS shell layout; sidebar
-navigation; workspace routing placeholders; Context Panel stub; ATLAS
-design-token CSS variables; and FastAPI SPA catch-all route registered last.
+Package 2 implementation may now be prompted. Authorized scope is limited to a
+bounded, read-only, local-first desktop data layer: desktop API endpoints,
+opportunity summary/detail DTOs, pipeline stage/status DTOs, basic shell
+counts, API response models/schemas, frontend API client boundary,
+loading/error states for data access, and tests for API contracts and route
+isolation.
 
-Package 1 must not implement workspace content, real data integration,
-recommendations, Ask Atlas behavior, Pipeline Package 4 work, background runner
-work, database/schema changes, or Desktop Package 2+ scope.
+Package 2 may read from existing local data through existing service/database
+boundaries. It must not write application state unless explicitly authorized,
+and it must not introduce new database tables or schema migrations unless
+explicitly justified and separately authorized.
 
-This track is parallel to the JSA Phase 6 work. Desktop packages 1-3 are
-intended to be file-disjoint from Phase 6 Python work, but the Package 1
-implementation will touch `job_search/dashboard/app.py` for the SPA catch-all
-and must preserve all existing dashboard/API routes.
+Package 2 must not implement Command Center content, Radar content, Pipeline
+workspace content, Opportunity Detail full UI, recommendation cards, Atlas
+Focus objects, Ask Atlas behavior, LLM calls, background runner, scheduler,
+pipeline execution, Tauri packaging, cloud sync, new scoring logic, or
+resume/cover-letter generation.
+
+This track is parallel to the JSA Phase 6 work. Desktop Package 2 may touch
+backend route/API boundaries and frontend client-boundary files, so it must
+preserve existing dashboard routes and keep `/atlas` routing isolated.
 
 **Sequencing constraint:** Do not split Desktop v1 implementation into
 parallel agents before file ownership across surfaces is clearly separated.
@@ -527,10 +546,12 @@ A new Ash must not:
   state** — those are historical reference only
 - **Expand Desktop v1 scope** to include Intelligence Workspace, Professional
   Graph, Career Memory, Forecasting, or enterprise features
-- **Treat Desktop Package 1 as workspace implementation** - it is shell-only:
-  no workspace content, data integration, recommendations, Ask Atlas behavior,
-  Pipeline Package 4 work, background runner work, database/schema changes, or
-  Desktop Package 2+ scope
+- **Treat Desktop Package 2 as workspace implementation** - it is a read-only
+  core data layer only: no Command Center, Radar, Pipeline, Opportunity Detail,
+  recommendation cards, Atlas Focus objects, Ask Atlas behavior, LLM calls,
+  background runner, scheduler, pipeline execution, Tauri packaging, cloud
+  sync, new scoring logic, resume/cover-letter generation, application-state
+  writes, or unauthorized database/schema migrations
 - **Issue parallel implementation tasks** without first confirming disjoint
   file ownership across agents
 

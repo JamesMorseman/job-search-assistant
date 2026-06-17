@@ -410,13 +410,14 @@ architecture decision is now closed (local-first accepted).
 ### Package Structure
 
 ATLAS Desktop v1 is a product layer parallel to the JSA engineering roadmap.
-Desktop Package 1 is defined and may be prompted for implementation. No
-Desktop implementation has begun.
+Desktop Package 1 is accepted and complete. Desktop Package 2 - Core Data
+Layer is defined and may be prompted for implementation.
 
 | Package | Scope | Status |
 |---|---|---|
-| 1 | Desktop Shell - `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI SPA catch-all route registered last | **Definition accepted**; implementation may now be prompted |
-| 2+ | Real workspace content, data integration, recommendations, Ask Atlas, Pipeline Workspace, and other product surfaces | Not authorized by Package 1; require separate definition entries |
+| 1 | Desktop Shell - `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI `/atlas` SPA serving | **Accepted / Complete** - commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings |
+| 2 | Core Data Layer - read-only desktop API endpoints, opportunity summary/detail DTOs, pipeline stage/status DTOs, shell counts, API response models/schemas, frontend API client boundary, loading/error states, API contract/route-isolation tests | **Definition accepted**; implementation may now be prompted |
+| 3+ | Real workspace content, recommendations, Ask Atlas behavior, Pipeline Workspace, and other product surfaces | Not authorized by Package 2; require separate definition entries |
 
 ### Package 1 Boundaries
 
@@ -426,6 +427,26 @@ background runner work, database/schema changes, or Desktop Package 2+ scope.
 
 The future FastAPI SPA catch-all route must be registered last so existing
 dashboard and API routes continue to resolve first.
+
+### Package 2 Boundaries
+
+Desktop Package 2 is infrastructure for later workspaces, not the workspaces
+themselves. It may read existing local data through existing service/database
+boundaries and must remain read-only unless a separate authorization changes
+that rule.
+
+Package 2 must not introduce new database tables without separate
+authorization. It must not implement Command Center content, Radar content,
+Pipeline workspace content, Opportunity Detail full UI, recommendation cards,
+Atlas Focus objects, Ask Atlas behavior, LLM calls, background runner,
+scheduler, pipeline execution, Tauri packaging, cloud sync, new scoring logic,
+or resume/cover-letter generation.
+
+Package 2 implementation is acceptable only if existing dashboard routes remain
+unaffected, `/atlas` routing remains isolated, the frontend build passes,
+`pytest` passes, API responses are deterministic and local-first, no workspace
+content is implemented prematurely, and no database/schema migration occurs
+without separate authorization.
 
 ## Phase 7 - Future Enhancements
 
@@ -486,8 +507,8 @@ dashboard and API routes continue to resolve first.
    `6af126b`. Package 3 (pipeline infrastructure) definition accepted —
    implementation authorized; issue Anna implementation task. Packages 4–5
    require individual definition entries before their implementation begins.
-7. ATLAS Desktop Package 1 definition accepted. Desktop Shell implementation
-   may now be prompted and is limited to shell scaffold/layout/routing stubs,
-   Context Panel stub, design tokens, and FastAPI SPA catch-all registered
-   last. Desktop Package 2+ work remains unauthorized.
+7. ATLAS Desktop Package 1 complete. Desktop Package 2 - Core Data Layer
+   definition accepted; implementation may now be prompted and is limited to a
+   read-only local-first data boundary for normalized opportunity data. Desktop
+   workspace content and Package 3+ work remain unauthorized.
 8. Treat Phase 7 as optional, human-reviewed extensions.
