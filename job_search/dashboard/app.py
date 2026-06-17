@@ -21,6 +21,7 @@ from fastapi.responses import (
 from fastapi.staticfiles import StaticFiles
 
 from job_search.dashboard.render import templates
+from job_search.dashboard.routes import atlas_api as atlas_api_routes
 from job_search.dashboard.routes import documents as documents_routes
 from job_search.dashboard.routes import jobs as jobs_routes
 from job_search.dashboard.routes import metrics as metrics_routes
@@ -40,6 +41,7 @@ def create_app() -> FastAPI:
     app.include_router(tracker_routes.router, prefix="/dashboard", tags=["tracker"])
     app.include_router(metrics_routes.router, prefix="/dashboard", tags=["metrics"])
     app.include_router(source_health_routes.router, prefix="/dashboard", tags=["source-health"])
+    app.include_router(atlas_api_routes.router, prefix="/atlas/api", tags=["atlas-api"])
 
     @app.get("/healthz")
     def healthz() -> dict:
