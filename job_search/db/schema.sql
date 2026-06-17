@@ -185,6 +185,31 @@ CREATE TABLE IF NOT EXISTS followup_queue (
     created_at       TEXT DEFAULT (datetime('now'))
 );
 
+-- ── Pipeline run records ─────────────────────────────────────────────────────
+-- Written exclusively through PipelineService. No dashboard route or analytics
+-- reporter may mutate this table.
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_type        TEXT NOT NULL,               -- ingest|grade|generate|report|sync|full
+    status          TEXT NOT NULL DEFAULT 'running', -- running|complete|failed
+    started_at      TEXT DEFAULT (datetime('now')),
+    completed_at    TEXT,
+    source          TEXT,                        -- adapter source or NULL for multi-source runs
+    trigger         TEXT NOT NULL DEFAULT 'manual', -- manual|scheduled|cli
+    jobs_seen       INTEGER DEFAULT 0,
+    jobs_created    INTEGER DEFAULT 0,
+    jobs_updated    INTEGER DEFAULT 0,
+    jobs_presented  INTEGER DEFAULT 0,
+    errors_count    INTEGER DEFAULT 0,
+    metadata_json   TEXT,                        -- JSON object for structured run metadata
+    notes           TEXT                         -- free-form notes or error detail
+);
+
+CREATE INDEX IF NOT EXISTS idx_pipeline_runs_started
+    ON pipeline_runs(started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_pipeline_runs_type_started
+    ON pipeline_runs(run_type, started_at DESC);
+
 -- ── Triggers: keep updated_at fresh ──────────────────────────────────────────
 CREATE TRIGGER IF NOT EXISTS jobs_updated_at
     AFTER UPDATE ON jobs
