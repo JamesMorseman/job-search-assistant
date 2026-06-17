@@ -2150,7 +2150,157 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - State reference: `PROJECT_STATE.md`
 - Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
   `ASH_INIT_NEXT.md` (Desktop track)
-- Follow-up work: ATLAS Desktop Package 2 implementation may now be prompted.
+- Follow-up work: ATLAS Desktop Package 2 implementation is now complete and
+  accepted; see "ATLAS Desktop Package 2 - Core Data Layer Accepted /
+  Complete" below.
+
+### ATLAS Desktop Package 2 - Core Data Layer Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / core data layer
+- Date: June 2026
+- Commit: `42fff28` - `feat(atlas): implement Desktop Package 2 data API boundary`
+- Test suite: 817 passed, 1 skipped, 6 warnings
+- Acceptance basis:
+  - Scope compliance: PASS
+  - Route safety: PASS
+  - Read-only/local-first behavior: PASS
+  - DTO/API contract: PASS
+  - Frontend API boundary: PASS
+  - Validation: 817 passed, 1 skipped, 6 warnings
+  - No required fixes
+
+  **Package accepted:**
+  - ATLAS Desktop Package 2 - Core Data Layer - **Accepted / Complete**
+
+  **Delivered scope:**
+  - read-only `/atlas/api` route boundary
+  - `GET /atlas/api/opportunities`
+  - `GET /atlas/api/opportunities/{job_id}`
+  - `GET /atlas/api/summary`
+  - API-local JSON 404 fallback
+  - Pydantic DTO response models
+  - `AtlasDataService` read-only service
+  - `frontend/src/api` TypeScript client/types/state boundary
+  - targeted API route tests
+
+  **Not included / still out of scope:**
+  - workspace content
+  - recommendations
+  - Ask Atlas behavior
+  - LLM calls
+  - background runner
+  - scheduler
+  - pipeline execution
+  - document generation
+  - scoring changes
+  - database/schema changes
+
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `ASH_INIT_NEXT.md` (Desktop track)
+- Definition reference: `DECISION_LOG.md` "ATLAS Desktop Package 2 - Core
+  Data Layer Definition Accepted"
+- Follow-up work: ATLAS Desktop Package 3 - Opportunity Detail Surface MVP is
+  now defined below. Package 3 implementation may be prompted only within that
+  definition's bounded scope.
+
+### ATLAS Desktop Package 3 - Opportunity Detail Surface MVP Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / opportunity detail surface
+- Date: June 2026
+- Rationale: Defines the next ATLAS Desktop implementation package after
+  acceptance of Desktop Package 2. Package 3 authorizes the first real
+  read-only, data-consuming ATLAS desktop surface: an Opportunity Detail
+  Surface MVP that consumes the accepted Package 2 API boundary. Package 3 is
+  not the full Opportunity Workspace and must not introduce actions,
+  recommendations, generated intelligence, or new backend domain behavior.
+
+  **Package objective:**
+
+  Implement an Opportunity Detail Surface MVP that renders one selected
+  opportunity using the accepted Desktop v1 hierarchy:
+
+  1. opportunity first
+  2. Atlas advisory context second
+  3. metrics supporting
+  4. context panel subordinate
+
+  **Future implementation scope authorized by this definition:**
+
+  1. Opportunity Detail route/page implementation.
+  2. Read-only consumption of the Package 2 opportunity detail DTO.
+  3. Opportunity title/company/source/location metadata.
+  4. Pipeline stage/status/current state display.
+  5. Fit context from existing persisted fields.
+  6. Score/grade/rationale display from existing persisted data.
+  7. Knockout/risk fields if already available.
+  8. Benefit/trajectory fields if already available.
+  9. Apply URL as an external link only.
+  10. Loading/error/not-found states.
+  11. Tests for route behavior and data consumption.
+
+  **Authorized data paths:**
+
+  - Package 3 must consume the Package 2 frontend API client / DTO boundary.
+  - Package 3 must remain read-only and local-first.
+  - Package 3 may display existing persisted opportunity fields already
+    exposed by the Package 2 detail DTO.
+  - Package 3 may not bypass Package 2 by querying SQLite, dashboard services,
+    or new backend endpoints directly from the frontend.
+
+  **Out of scope / prohibited for Desktop Package 3:**
+
+  - recommendation cards
+  - generated recommendations
+  - Atlas Focus objects
+  - Ask Atlas behavior
+  - LLM calls
+  - new scoring logic
+  - state mutations
+  - select/reject/apply actions
+  - mark applied actions
+  - document regeneration
+  - Pipeline workspace content
+  - Command Center content
+  - Radar content
+  - background runner behavior
+  - scheduler behavior
+  - pipeline execution controls
+  - database/schema changes
+  - new tables
+  - cloud sync
+  - Tauri packaging
+
+  **Package boundaries:**
+
+  - Package 3 is Opportunity Detail Surface MVP, not the full Opportunity
+    Workspace.
+  - Atlas advisory context in this package is limited to presentation of
+    existing persisted data. It does not authorize recommendations,
+    generated analysis, or Ask Atlas behavior.
+  - Existing dashboard routes must remain unaffected.
+  - `/atlas` routing must remain isolated.
+  - Database/schema migrations require separate authorization.
+
+  **Acceptance criteria for the future implementation:**
+
+  1. Frontend build passes.
+  2. `pytest` passes.
+  3. Existing `/dashboard` routes remain unaffected.
+  4. `/atlas` routing remains isolated.
+  5. Package 2 API boundary is consumed rather than bypassed.
+  6. Surface remains read-only.
+  7. Loading/error/not-found states are handled.
+  8. No prohibited workspace/action/intelligence behavior is added.
+  9. Visual hierarchy remains opportunity-first.
+
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `ASH_INIT_NEXT.md` (Desktop track)
+- Definition reference: Donut Product Boundary Recommendation for Package 3
+- Follow-up work: ATLAS Desktop Package 3 implementation may now be prompted.
   The implementation prompt must reference this entry and preserve all
   prohibited-scope boundaries above.
 

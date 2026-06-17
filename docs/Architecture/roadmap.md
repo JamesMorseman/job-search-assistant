@@ -410,14 +410,16 @@ architecture decision is now closed (local-first accepted).
 ### Package Structure
 
 ATLAS Desktop v1 is a product layer parallel to the JSA engineering roadmap.
-Desktop Package 1 is accepted and complete. Desktop Package 2 - Core Data
-Layer is defined and may be prompted for implementation.
+Desktop Packages 1 and 2 are accepted and complete. Desktop Package 3 -
+Opportunity Detail Surface MVP is defined and may be prompted for
+implementation.
 
 | Package | Scope | Status |
 |---|---|---|
 | 1 | Desktop Shell - `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI `/atlas` SPA serving | **Accepted / Complete** - commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings |
-| 2 | Core Data Layer - read-only desktop API endpoints, opportunity summary/detail DTOs, pipeline stage/status DTOs, shell counts, API response models/schemas, frontend API client boundary, loading/error states, API contract/route-isolation tests | **Definition accepted**; implementation may now be prompted |
-| 3+ | Real workspace content, recommendations, Ask Atlas behavior, Pipeline Workspace, and other product surfaces | Not authorized by Package 2; require separate definition entries |
+| 2 | Core Data Layer - read-only `/atlas/api` endpoints, opportunity summary/detail DTOs, summary counts, API-local JSON 404 fallback, Pydantic response models, `AtlasDataService`, frontend API client/types/state boundary, API contract/route-isolation tests | **Accepted / Complete** - commit `42fff28`; 817 passed, 1 skipped, 6 warnings |
+| 3 | Opportunity Detail Surface MVP - first read-only data-consuming ATLAS surface; consumes Package 2 opportunity detail DTO; renders one selected opportunity with opportunity-first hierarchy, loading/error/not-found states, and tests for route behavior/data consumption | **Definition accepted**; implementation may now be prompted |
+| 4+ | Recommendations, Ask Atlas behavior, Pipeline Workspace, Command Center, Radar, and other product surfaces | Not authorized by Package 3; require separate definition entries |
 
 ### Package 1 Boundaries
 
@@ -442,11 +444,31 @@ Atlas Focus objects, Ask Atlas behavior, LLM calls, background runner,
 scheduler, pipeline execution, Tauri packaging, cloud sync, new scoring logic,
 or resume/cover-letter generation.
 
-Package 2 implementation is acceptable only if existing dashboard routes remain
-unaffected, `/atlas` routing remains isolated, the frontend build passes,
-`pytest` passes, API responses are deterministic and local-first, no workspace
-content is implemented prematurely, and no database/schema migration occurs
-without separate authorization.
+Package 2 is complete and accepted. It must remain the read-only data boundary
+for Package 3 and later surfaces unless a future governance entry supersedes
+that boundary.
+
+### Package 3 Boundaries
+
+Desktop Package 3 is Opportunity Detail Surface MVP, not the full Opportunity
+Workspace. It may implement the Opportunity Detail route/page, consume the
+Package 2 opportunity detail DTO, and display existing persisted opportunity
+fields: title, company, source/location metadata, stage/status/current state,
+fit context, score/grade/rationale, knockout/risk fields if available,
+benefit/trajectory fields if available, and apply URL as an external link only.
+
+Package 3 must remain read-only and local-first. It must consume the Package 2
+API boundary rather than bypassing it. It must handle loading, error, and
+not-found states. Its visual hierarchy must remain opportunity-first: opportunity
+first, Atlas advisory context second, metrics supporting, context panel
+subordinate.
+
+Package 3 must not implement recommendation cards, generated recommendations,
+Atlas Focus objects, Ask Atlas behavior, LLM calls, new scoring logic, state
+mutations, select/reject/apply actions, mark applied actions, document
+regeneration, Pipeline workspace content, Command Center content, Radar content,
+background runner behavior, scheduler behavior, pipeline execution controls,
+database/schema changes, new tables, cloud sync, or Tauri packaging.
 
 ## Phase 7 - Future Enhancements
 
@@ -507,8 +529,10 @@ without separate authorization.
    `6af126b`. Package 3 (pipeline infrastructure) definition accepted —
    implementation authorized; issue Anna implementation task. Packages 4–5
    require individual definition entries before their implementation begins.
-7. ATLAS Desktop Package 1 complete. Desktop Package 2 - Core Data Layer
-   definition accepted; implementation may now be prompted and is limited to a
-   read-only local-first data boundary for normalized opportunity data. Desktop
-   workspace content and Package 3+ work remain unauthorized.
+7. ATLAS Desktop Packages 1 and 2 complete. Desktop Package 3 - Opportunity
+   Detail Surface MVP definition accepted; implementation may now be prompted
+   and is limited to a read-only, local-first surface consuming the Package 2
+   opportunity detail DTO. Recommendations, Ask Atlas behavior, Pipeline
+   Workspace, Command Center, Radar, actions, and Package 4+ work remain
+   unauthorized.
 8. Treat Phase 7 as optional, human-reviewed extensions.
