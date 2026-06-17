@@ -163,9 +163,26 @@ Deferred enhancements (not blocking Phase 4):
 - ATS quarantine tier mapping (open governance decision)
 - Firm review queue in dashboard (Phase 4 dependency)
 
-## Phase 4 - Dashboard Service Layer
+## Phase 4 - Dashboard Service Layer ✓ Complete (June 2026)
 
-### Objectives
+### Delivered
+
+`job_search/services/` implements `jobs.py`, `documents.py`, `tracker.py`,
+`metrics.py`, and `firms.py`, covering read models and the read-only
+queries plus state-mutating actions (document regeneration; tracker state
+transitions and follow-up resolution) needed to back the Phase 5 MVP screen
+set (Review Queue, Job Detail, Documents, Application Tracker, Metrics) and
+the firm-detail use of Firm Intelligence. 606 tests passing, 0 failed.
+
+The pipeline-orchestration portion of this phase's original scope (the
+`pipeline.py` service and the `pipeline_runs` table) was deferred to Phase 6
+at Phase 4 closure — it functionally matches Phase 6's "Analytics &
+Pipeline Runs" scope and was gated on an unresolved background-job-runner
+decision. Deferring it did not block Phase 4 closure or the Phase 5 MVP
+screen set, none of which depend on it. See `DECISION_LOG.md`'s Phase 4
+closure entry.
+
+### Objectives (original Phase 4 scope, for reference)
 
 - Add backend service boundaries before building UI.
 - Keep route handlers thin and avoid raw SQL in frontend-facing code.
@@ -218,7 +235,44 @@ Deferred enhancements (not blocking Phase 4):
 - Pipeline actions can be represented as run records.
 - Tests cover service-layer query outputs.
 
-## Phase 5 - Dashboard UI
+## Phase 5 - Dashboard UI — MVP Complete
+
+### Package Structure (accepted)
+
+Per `DECISION_LOG.md`'s "Phase 5 — Dashboard UI Package Structure Accepted":
+
+| Package | Screen | Status |
+|---|---|---|
+| 1 | Review Queue Read | Complete |
+| 2 | Review Queue Actions | Complete |
+| 3 | Job Detail | Complete |
+| 4a | Documents Read | Complete |
+| 4b | Documents Actions | Complete |
+| 5a | Application Tracker Read | Complete |
+| 5b | Application Tracker Actions | Complete |
+| 6 | Metrics | Complete |
+| 7 | Firm Review Queue | Deferred — sync decision approved; gated on draft-to-SQLite sync *implementation* |
+| 8 | Source Health | **Complete** — `SourceHealthService.get_report()` sole authorized data path; Decision 2 closed |
+| 9a | Pipeline infrastructure (`pipeline_runs` table, `services/pipeline.py`) | Deferred — Phase 6 Package 2 |
+| 9b | Local-first background runner | Deferred — Phase 6 Package 3; depends on 9a |
+| 9c | Pipeline Runs dashboard screen | Deferred — depends on 9a+9b |
+
+Authorized dashboard mutation paths (all delegate to the Phase 4 service layer):
+
+- `TrackerService.transition_job()` — sole authorized path for all `jobs.app_state` changes from any dashboard route (Review Queue select/reject, Application Tracker transitions)
+- `DocumentsService.regenerate_documents()` — sole authorized document-regeneration path (Documents screen)
+- `TrackerService.resolve_followup()` — sole authorized follow-up resolution path (Application Tracker)
+
+Implemented in `job_search/dashboard/` (app shell, navigation shell, Review
+Queue with select/reject actions, Job Detail, Documents read + regeneration,
+Application Tracker read + state-transition/follow-up-resolution actions,
+Metrics, Source Health read-only), with 730 passing tests total as of
+Package 8 acceptance.
+
+This package list maps onto, but does not fully reconcile, this section's
+original 8-item "Recommended Screens" list below and the Phase 4
+operational plan's 5-screen MVP framing — that reconciliation remains open
+for a future governance pass (see `phase_5_governance_sync_audit_leah.md`).
 
 ### Objectives
 
@@ -271,7 +325,34 @@ Deferred enhancements (not blocking Phase 4):
 - No dashboard action submits an application.
 - Google Sheets remains optional.
 
-## Phase 6 - Analytics & Pipeline Runs
+## Phase 6 - Analytics & Pipeline Runs ← Authorized
+
+### Package Structure (accepted)
+
+Per `DECISION_LOG.md`'s "Phase 6 Authorization and Package Structure Accepted":
+
+| Package | Scope | Status |
+|---|---|---|
+| 1 | Analytics expansion — extend `FunnelReporter` / `FunnelStats` with funnel conversion rates, score percentiles, LLM grade distribution and outcome correlation, stretch category conversion rates, time-in-current-state, extended transition times, remote breakdown, source effectiveness confidence signals, threshold sensitivity, contextual navigation links; expose via `MetricsService.get_funnel_stats()` | **Definition accepted — implementation authorized** |
+| 2 | Pipeline infrastructure — `pipeline_runs` table schema, `services/pipeline.py` read/write service, run-record persistence | Authorized; definition entry required before implementation |
+| 3 | Local-first background runner — wrap ingest/grade/generate/follow-up pipeline steps in a durable local execution layer; persist run stats/errors to `pipeline_runs` | Authorized; definition entry required before implementation; depends on Package 2 |
+| 4 | Dashboard integration — Pipeline Runs screen (Phase 5 Package 9c), run-history display, Pipeline Trends screen (historical analytics) | Authorized; definition entry required before implementation; depends on Packages 2+3 |
+
+Architecture decision: local-first background runner accepted — no external
+scheduler, task queue, or remote worker required for initial implementation.
+Runner executes in-process or as a local subprocess.
+
+Analytics information architecture (accepted at Package 1 definition): three
+distinct layers — Metrics (strategic/point-in-time), Source Health (operational
+diagnostics), Pipeline Trends (historical/trend, future Package 4). Each is a
+separate screen. Trend and run-level data must not be added to the Metrics
+screen.
+
+This phase also carries the pipeline-orchestration scope deferred from
+Phase 4 (`services/pipeline.py`, the `pipeline_runs` table, and a
+background-job runner) — see Phase 4's "Delivered" note and
+`DECISION_LOG.md`'s Phase 4 closure entry. The background-job-runner
+architecture decision is now closed (local-first accepted).
 
 ### Objectives
 
@@ -371,7 +452,13 @@ Deferred enhancements (not blocking Phase 4):
 2. ✓ Implement Phase 2 before firm scoring so the scoring extension point is
    stable.
 3. ✓ Implement Phase 3 to add approved firm intelligence.
-4. Implement Phase 4 before any UI work. ← Next active phase
-5. Build Phase 5 as a local web dashboard.
-6. Add Phase 6 once dashboard actions need durable run history.
+4. ✓ Implement Phase 4 before any UI work — complete (June 2026); pipeline
+   orchestration deferred to Phase 6.
+5. ✓ Phase 5 MVP (Packages 1–6) complete. Package 8 (Source Health) complete.
+   Package 7 (Firm Review Queue) requires the draft-to-SQLite sync to be
+   built first. Package 9a/9b/9c (Pipeline Runs) gated on Phase 6 Packages
+   2+3.
+6. Phase 6 active. Package 1 (analytics expansion) definition accepted;
+   implementation authorized — issue Anna task to begin. Packages 2–4
+   require individual definition entries before implementation begins.
 7. Treat Phase 7 as optional, human-reviewed extensions.

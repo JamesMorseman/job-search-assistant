@@ -1,6 +1,6 @@
 # Ash Initialization Package — Project Master
 
-**Version:** June 2026 — Phase 3 closed, Phase 4 active
+**Version:** June 2026 — Phase 6 Package 1 definition accepted, implementation authorized
 **Use:** Paste this file's contents (or point a new chat at this path) to initialize a Project Master session with no prior chat history. This document is a navigation/governance aid, not a replacement for `PROJECT_STATE.md` or `DECISION_LOG.md` — those two remain the authoritative active-state files.
 
 ---
@@ -35,8 +35,37 @@ If a request requires touching `job_search/`, `tests/`, or `templates/`, route i
 - Phase 1 (Resume & Cover Letter Generation) — complete
 - Phase 2 (Benefit / Trajectory Scoring) — complete
 - Phase 3 (Firm Repository) — complete, formally closed June 2026 (`DECISION_LOG.md`)
-- Phase 4 (Dashboard Service Layer) — active, not yet started in code
-- Test status: 568 tests passing as of Phase 3 close (239 added during Phase 3)
+- Phase 4 (Dashboard Service Layer) — complete, formally closed June 2026
+  (`DECISION_LOG.md`). Implemented: `job_search/services/` — `jobs.py`,
+  `documents.py`, `tracker.py`, `metrics.py`, `firms.py`. Package 5
+  (Pipeline Orchestration / `pipeline_runs`) was reassigned to Phase 6 at
+  closure — see `DECISION_LOG.md`.
+- Phase 5 (Dashboard UI) — MVP complete (Packages 1–6); Package 8 (Source
+  Health) complete. Package 7 (Firm Review Queue) unblocked by decision;
+  gated on draft-to-SQLite sync *implementation* (not yet built). Package 9
+  (9a/9b/9c — Pipeline Runs) deferred on Phase 6 Packages 2+3.
+  Authorized data/mutation paths: `TrackerService.transition_job()` for all
+  `jobs.app_state` changes; `DocumentsService.regenerate_documents()` for
+  document regeneration; `TrackerService.resolve_followup()` for follow-up
+  resolution; `MetricsService.get_funnel_stats()` as sole metrics data source;
+  `SourceHealthService.get_report()` as sole Source Health data path (read-only,
+  no mutations). Decision 2 (ATS quarantine mapping) formally closed — see
+  `DECISION_LOG.md`.
+- Phase 6 (Analytics & Pipeline Runs) — active. Package structure accepted.
+  Package 1 (analytics expansion): **definition accepted; implementation
+  authorized** — see `DECISION_LOG.md`, "Phase 6 Package 1 — Analytics
+  Expansion Definition Accepted." Scope: funnel conversion rates, score
+  percentiles, LLM grade distribution and outcome correlation, stretch
+  category conversion rates, time-in-current-state, extended transition
+  times, remote/hybrid breakdown, source effectiveness confidence signals,
+  threshold sensitivity, contextual navigation links. Data path:
+  `FunnelReporter` / `FunnelStats` extended; `MetricsService.get_funnel_stats()`
+  remains sole authorized route data path; Metrics route gains no new service
+  dependencies. Packages 2–4 require individual definition entries before
+  their implementation begins. Analytics information architecture accepted
+  (Donut): Metrics = strategic/point-in-time; Source Health = operational;
+  Pipeline Trends = historical/trend (Package 4).
+- Test status: 730 tests passing, 0 failed, 1 skipped, as of Phase 5 Package 8
 - Branch: working branch is `feature/llm-abstraction` unless `git status`/`git branch` says otherwise — confirm at session start, don't assume
 - `profile/james_profile.yaml` is now tracked in git for portability (force-tracked against the general `profile/*_profile.yaml` gitignore rule) — confirm this hasn't regressed if doing any repo-hygiene work
 
@@ -66,9 +95,9 @@ The human (James) always submits applications manually — the system never appl
 | 1 — Resume & Cover Letter | Complete |
 | 2 — Benefit / Trajectory Scoring | Complete |
 | 3 — Firm Repository | Complete |
-| 4 — Dashboard Service Layer | **Active** |
-| 5 — Dashboard UI | Next |
-| 6 — Analytics & Pipeline Runs | Planned |
+| 4 — Dashboard Service Layer | Complete (Package 5 reassigned to Phase 6) |
+| 5 — Dashboard UI | **MVP Complete** (Packages 1–6 + Package 8 done; 7 gated on sync impl; 9a/9b/9c gated on Phase 6) |
+| 6 — Analytics & Pipeline Runs | **Active** — Package 1 definition accepted, implementation authorized; Packages 2–4 require definition entries |
 | 7 — Future Enhancements | Planned |
 
 `roadmap.md` is the authoritative source for phase numbering. `PROJECT_STATE.md`'s
@@ -117,20 +146,42 @@ Full history and rationale: `PROJECT_HISTORY.md` (reference only — do not load
 
 ---
 
-## 7. Open Decisions / Phase 4 Gates
+## 7. Open Decisions / Phase 6 Gates
+
+### Closed decisions (no longer gates)
+
+| Item | Resolution |
+|---|---|
+| Background-job-runner scope | **Closed** — local-first architecture accepted (`DECISION_LOG.md`, "Phase 6 Local-First Background Runner"). Phase 5 Package 9 and Phase 6 Packages 2+3 unblocked. |
+| Draft-to-SQLite sync (Addendum Decision 1) | **Decision approved** (`DECISION_LOG.md`, "Draft-to-SQLite Sync Approved"). Implementation not yet built — Package 7 gated on implementation, not the decision. |
+| ATS quarantine mapping as Package 8 prerequisite | **Closed** — Source Health authorized to proceed without it (`DECISION_LOG.md`, "Source Health Authorized"). Decision 2 remains open as a lower-urgency item. |
+| Decision 2 — ATS quarantine tier mapping (full resolution) | **Closed** — `firms.circuit_state = 'open'` is the sole quarantine signal; `ats_tier` displayed as independent context; no mapping required (`DECISION_LOG.md`, "Phase 5 — Package 8 Source Health Accepted; Decision 2 Closed"). |
+| `generated_docs.is_current` materialized flag | **Resolved for now** — query-derived resolution ships in Phase 4/5; revisit only if it becomes a real pain point. |
+| Phase 5 package structure | **Resolved** — all nine packages recorded in `DECISION_LOG.md`. |
+| CLI/service-layer alignment | **Verified** at Phase 4 closure; `MetricsService` calls `FunnelReporter.compute()` directly. |
+
+### Still-open decisions
 
 | Item | Resolve when |
 |---|---|
-| ATS quarantine tier → "quarantined" display mapping (Decision 2, `phase_3_governance_addendum.md`) | Must resolve **before** Phase 5 Source Health screen; does not block Phase 4. Resolve during Phase 4's slack rather than discovering it unresolved at Phase 5 kickoff. |
-| Whether a background job runner is in scope for this Phase 4 pass (vs. read-only service layer only) | Should resolve **before** Anna starts the action/runner portion of Phase 4 — this is explicitly an optional +3-5 day extension per `roadmap.md`, and someone needs to call it. |
-| `generated_docs.is_current` materialized flag vs. query-derived "current document" | Can defer to Phase 5+; MVP query-based resolution (`get_latest_generated_doc()` ordered by `generated_at, id`) is acceptable for Phase 4. |
-| Dashboard-internal phase scope freeze (the dashboard's own 4-stage internal numbering — read-only → tracker actions → pipeline actions → document workflow — is separate from project roadmap Phase 4/5; don't let them get conflated) | Resolve conceptually now — make sure Anna and Rin both understand these are two different numbering systems before Phase 4 work gets far along. |
-| CLI/service-layer alignment (`jsa stats` vs. service-layer metrics must agree; no divergent computation paths) | Must hold throughout Phase 4 — this is a Phase 4 acceptance criterion, not a one-time gate. |
-| PROJECT_STATE.md roadmap-numbering inconsistency (Section 4 above) | Low priority; fix at next documentation sync. |
+| ~~ATS quarantine tier → "quarantined" display mapping (Decision 2)~~ | **Closed** at Package 8 acceptance — see closed decisions above. |
+| Draft-to-SQLite sync *implementation* | Must be built before Package 7 (Firm Review Queue) can begin. Implementation is authorized; task must be issued separately. |
+| roadmap.md 8-screen "Recommended Screens" vs. Phase 4 operational plan 5-screen MVP framing | Unresolved across two prior audits; not load-bearing now that Phase 5 MVP is complete. Needs a future governance pass. |
+| Phase 6 package-level definitions (each package requires its own scope/mutation-path entry before implementation begins — see standing governance rule) | Package 1 definition: **closed** (this session). Packages 2, 3, 4: resolve per-package, immediately before each implementation begins. |
 
-**Must resolve before Phase 4 starts:** none — Phase 4 is already authorized and active.
-**Must resolve during Phase 4:** background-job-runner scope call; dashboard-internal vs. roadmap-phase numbering clarity; keep CLI/service metrics aligned throughout.
-**Can defer to Phase 5+:** ATS quarantine mapping (but don't let it slip past Phase 4's slack time), `is_current` flag.
+**Standing governance rule:** No implementation package may begin until its package structure, scope, mutation paths, and blockers have been recorded in `DECISION_LOG.md` and accepted by Project Master.
+
+**Currently authorized to begin immediately:**
+- Phase 6 Package 1 — Analytics expansion. Definition accepted. Issue Anna
+  implementation task. All new `FunnelStats` fields must be Optional with
+  safe empty defaults; `MetricsService.get_funnel_stats()` remains sole
+  route data path; Metrics route gains no new `Depends()` arguments.
+
+**Gated on draft-to-SQLite sync implementation:**
+- Phase 5 Package 7 — Firm Review Queue
+
+**Gated on Phase 6 Packages 2+3:**
+- Phase 5 Packages 9a/9b/9c — Pipeline Runs
 
 ---
 
@@ -168,17 +219,20 @@ This mapping is now formalized in `PROJECT_MASTER.md` and should be treated as a
 
 ---
 
-## 10. Phase 4 Governance Instructions
+## 10. Active Governance Instructions
 
-Ash should, for the duration of Phase 4:
+Ash should, across Phase 5 (remaining packages) and Phase 6:
 
-- approve Phase 4 scope before any implementation step that wasn't already covered by `roadmap.md`'s Phase 4 section
-- ensure the service layer (`job_search/services/`) lands before any dashboard route/UI work begins
-- prevent dashboard routes from issuing raw SQL directly — service layer must mediate
+- enforce the standing package-definitions-before-implementation rule: no package begins without a `DECISION_LOG.md` entry accepted by Project Master
+- prevent dashboard routes from issuing raw SQL directly — all reads/writes must go through the service layer
 - enforce SQLite-first architecture for every new dashboard-facing query
-- ensure the `pipeline_runs` table and background-job-runner scope decision are made *before* any long-running action endpoint is built
-- ensure the Source Health screen does not proceed until the ATS quarantine mapping decision is closed
-- keep portfolio/public-facing claims behind implementation reality — do not let README or portfolio language describe Phase 4/5 features as done before they're actually done
+- ensure the draft-to-SQLite sync is built and tested before Package 7 (Firm Review Queue) begins
+- ensure Phase 6 packages 2+3 (pipeline infrastructure and background runner) are built and tested before Package 9c (Pipeline Runs screen) begins
+- ensure `DraftFirmProfile` records synced to SQLite never participate in scoring, matching, or ingestion — the approved-firm boundary must be maintained in `FirmsService` and all ingestion paths
+- Source Health (Package 8) is complete; Decision 2 is closed — no further quarantine-mapping governance action required
+- for Phase 6 Package 1 implementation: enforce that `FunnelReporter` is the sole analytics SQL location; `MetricsService.get_funnel_stats()` remains the sole route data path; Metrics route gains no new `Depends()` arguments; all new `FunnelStats` fields are Optional with safe empty defaults; no chart library introduced; no trend/historical data added to Metrics
+- enforce the analytics information architecture: Metrics = strategic/point-in-time only; trend and historical analytics belong on a future Pipeline Trends screen (Package 4), not Metrics
+- keep portfolio/public-facing claims behind implementation reality — do not let README or portfolio language describe unimplemented features as done
 
 ---
 
@@ -199,7 +253,7 @@ A new Ash should not:
 
 - restart completed Phase 1–3 debates (e.g. re-litigating deterministic rendering, SQLite-as-source-of-truth, or the FirmConfig/FirmProfile split)
 - trust `MIGRATION_SOURCE_MATERIAL.md` or `PROJECT_HISTORY.md` as current state
-- authorize Phase 5 UI work before the Phase 4 service layer's acceptance criteria are met
+- authorize Phase 5 screens that need data the service layer doesn't yet expose (e.g. Source Health, Firm Review Queue) without first closing their respective gating decisions (§7)
 - let `profile/james_profile.yaml`'s tracked-for-portability status silently regress during any repo/machine migration work
 - allow stale documentation (especially the Section 4 roadmap-numbering conflict) to be treated as settled without flagging it
 - approve public-facing/portfolio claims describing unimplemented Phase 4/5 features as complete

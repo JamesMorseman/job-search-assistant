@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 — Phase 3 closure
+Version: June 2026 — Phase 5 Package 8 complete
 
 ## Purpose
 
@@ -26,11 +26,24 @@ Build an automated engineering job-search platform for James Morseman that:
 
 ## Current Objectives
 
-Phase 1, Phase 2, and Phase 3 are complete. The project is ready to begin Phase 4.
+Phases 1–5 MVP and Package 8 (Source Health) are complete. Phase 6
+(Analytics & Pipeline Runs) is authorized. Phase 6 Package 1 (Analytics
+expansion) is the next authorized implementation package.
+
+Phase 5 remaining package status:
+- Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
+  gated on sync implementation (not yet built).
+- Package 8 (Source Health): **complete**. `SourceHealthService.get_report()`
+  is the sole authorized data path. Decision 2 (ATS quarantine mapping) is
+  formally closed — see `DECISION_LOG.md`.
+- Package 9 (9a/9b/9c — Pipeline Runs): deferred; gated on Phase 6
+  Packages 2+3 (pipeline infrastructure and background runner).
 
 Current objectives:
 
-- begin Phase 4 Dashboard Service Layer planning
+- implement Phase 6 Package 1 (Analytics expansion) — definition accepted,
+  implementation now authorized
+- prepare Phase 6 Package 2 definition entry before its implementation begins
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -100,10 +113,23 @@ Implemented:
 - trajectory scoring — signal engine, reason persistence, report display (Phase 2)
 - document generation audit layer
 - firm repository — full lifecycle: discovery, draft, review, approve/reject, YAML sync, SQLite sync, firm-prior scoring integration (Phase 3)
+- dashboard service layer — job, document, tracker, metrics, and firm-intelligence read services; document regeneration and tracker state-transition/follow-up-resolution actions (Phase 4 Packages 1, 2a/2b, 3a/3b, 4, 6)
+- dashboard UI (Phase 5 Packages 1–6 / MVP complete, Package 8 complete): `job_search/dashboard/` — FastAPI app shell, navigation shell, Review Queue (display + select/reject actions), Job Detail, Documents (read + regeneration), Application Tracker (read + state-transition/follow-up-resolution actions), Metrics (read-only funnel stats), and Source Health (read-only, GET only). 124 dashboard tests passing (730 total). Authorized data/mutation paths: `TrackerService.transition_job()` for all `jobs.app_state` changes; `DocumentsService.regenerate_documents()` for document regeneration; `TrackerService.resolve_followup()` for follow-up resolution; `MetricsService.get_funnel_stats()` as sole metrics data source; `SourceHealthService.get_report()` as sole Source Health data path. Decision 2 (ATS quarantine mapping) formally closed — quarantine display driven by `firms.circuit_state`; `ats_tier` displayed as independent context.
 
 Architecture complete, implementation pending:
 
-- dashboard (Phase 4)
+- Phase 6 Package 1 — Analytics expansion: definition accepted; implementation
+  authorized. Scope: funnel conversion rates, score distribution percentiles,
+  stretch category conversion rates, LLM grade distribution and outcome
+  correlation, time-in-current-state, extended transition times, remote/hybrid
+  breakdown, source effectiveness confidence signals, threshold sensitivity,
+  contextual navigation links. Data path: `FunnelReporter` / `FunnelStats`
+  extended; `MetricsService.get_funnel_stats()` remains sole authorized path.
+  See `DECISION_LOG.md`, "Phase 6 Package 1 — Analytics Expansion Definition
+  Accepted."
+- draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
+- dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 2+3)
+- pipeline orchestration service, `pipeline_runs` table, and background-run execution visibility (deferred from Phase 4 Package 5 to Phase 6 — see Technical Debt)
 
 Deferred — post-Phase-1 resume optimization backlog:
 
@@ -170,9 +196,9 @@ Current roadmap:
 1. Phase 1 - Resume and Cover Letter ✓ Complete
 2. Phase 2 - Benefit / Trajectory Scoring ✓ Complete
 3. Phase 3 - Firm Repository ✓ Complete
-4. Phase 4 - Dashboard Service Layer ← Next active phase
-5. Phase 5 - Dashboard UI
-6. Phase 6 - Analytics & Pipeline Runs
+4. Phase 4 - Dashboard Service Layer ✓ Complete (Pipeline Orchestration deferred to Phase 6 — see Technical Debt)
+5. Phase 5 - Dashboard UI — MVP Complete (Packages 1–6). Package 8 (Source Health) complete. Package 7 gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c) deferred on Phase 6 infrastructure.
+6. Phase 6 - Analytics & Pipeline Runs ← **Active**. Package structure accepted. Package 1 (Analytics expansion) definition accepted; implementation authorized. Packages 2–4 require individual definition entries before implementation begins.
 7. Phase 7 - Future Enhancements
 
 Phase numbering is authoritative in `roadmap.md`; this list mirrors it. Portfolio
@@ -186,17 +212,27 @@ future enhancements rather than scheduled phases.
 
 Known technical debt:
 
-- dashboard is not implemented
+- dashboard UI MVP is complete (Phase 5 Packages 1–6); Package 8 (Source Health) complete; Package 7 gated on draft-to-SQLite sync implementation; Package 9 (9a/9b/9c) gated on Phase 6 infrastructure
+- pipeline orchestration service (`services/pipeline.py`), `pipeline_runs`
+  table, and background-job runner do not exist yet — Phase 6 Packages 2+3;
+  local-first background runner architecture accepted
+  (`DECISION_LOG.md`, "Phase 6 Local-First Background Runner Architecture
+  Accepted"). Phase 5 Package 9 (9a/9b/9c) is gated on these.
 - some orchestration classes remain large
-- no pipeline run tracking table exists yet
-- no background-job architecture exists yet
 - firm alias matching for public-source jobs (USAJOBS, Adzuna) deferred to Phase 4+
 - LLM-assisted draft generation deferred (skeleton drafts only in Phase 3)
 - grading prompt firm-intelligence enrichment deferred to Phase 4+
 - firm profile diff in review command deferred to Phase 4+
-- ATS quarantine tier mapping is an open decision — must be resolved before the
-  Source Health screen is built (see Decision 2, phase_3_governance_addendum.md)
-- firm review queue in dashboard is a Phase 4/5 dependency, not yet built
+- ATS quarantine tier mapping (Decision 2, `phase_3_governance_addendum.md`)
+  formally closed at Package 8 acceptance — quarantine display driven by
+  `firms.circuit_state`; `ats_tier` displayed as independent context; no
+  mapping required (see `DECISION_LOG.md`, "Phase 5 — Package 8 Source Health
+  Accepted; Decision 2 Closed")
+- draft-to-SQLite sync approved as a decision and authorized for
+  implementation; not yet built — only approved firm profiles sync to SQLite
+  today. Firm Review Queue (Package 7) is gated on this being built.
+- firm review queue in dashboard (Package 7) is unblocked by decision but
+  still requires the draft-to-SQLite sync implementation before it can begin
 
 ## Known Risks
 
@@ -342,7 +378,34 @@ Repository presentation should eventually include:
 Status:
 
 - architecture complete
-- implementation pending
+- service layer implemented (Phase 4): job, document, tracker, metrics,
+  and firm-intelligence read services; document regeneration and tracker
+  state-transition/follow-up-resolution actions
+- UI implementation: Phase 5 MVP (Packages 1–6) complete. Package 8 (Source
+  Health) complete. Package 7 (Firm Review Queue) unblocked by decision but
+  gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c —
+  Pipeline Runs) deferred on Phase 6 Packages 2+3.
+- Authorized data/mutation paths:
+  - `TrackerService.transition_job()` — sole authorized path for all
+    `jobs.app_state` changes from any dashboard route
+  - `DocumentsService.regenerate_documents()` — sole authorized
+    document-regeneration path
+  - `TrackerService.resolve_followup()` — sole authorized follow-up
+    resolution path
+  - `MetricsService.get_funnel_stats()` — sole authorized metrics data
+    source; delegates to `FunnelReporter.compute()` (no duplicate
+    computation path)
+  - `SourceHealthService.get_report()` — sole authorized Source Health
+    data path; read-only, no mutations permitted from the dashboard route
+  - `FunnelReporter` / `FunnelStats` extension — sole authorized analytics
+    path for Package 1; `MetricsService.get_funnel_stats()` remains sole
+    authorized route data path; Metrics route gains no new service dependencies
+- Analytics information architecture (accepted per Donut study, Package 1
+  definition): Metrics = strategic/point-in-time; Source Health = operational
+  diagnostics; Pipeline Trends = historical/trend (future, Package 4). Each
+  layer is a distinct screen. Trend and historical data must not be added to
+  the Metrics screen.
+- pipeline orchestration / `pipeline_runs` deferred to Phase 6 Packages 2+3
 
 Preferred architecture:
 
@@ -463,8 +526,13 @@ Important dependencies:
 
 - resume and cover-letter generation depend on the master profile and evidence
   selector
-- dashboard depends on SQLite and stable service boundaries
-- firm repository is implemented; dashboard will depend on approved firm profiles for firm detail and review queue screens
+- dashboard UI (Phase 5) depends on the now-implemented Phase 4 service
+  layer; pipeline-action screens additionally depend on Phase 6's pipeline
+  orchestration work
+- firm repository is implemented; dashboard firm detail screens can use the
+  approved-firm read service now (Phase 4 Package 6); the firm review queue
+  additionally depends on the deferred draft-to-SQLite sync (see Technical
+  Debt)
 - benefit/trajectory scoring integrates approved firm-prior signals (Phase 3 complete); grading prompt enrichment deferred
 - GitHub/portfolio strategy depends on code quality, docs, and public-facing
   readiness
