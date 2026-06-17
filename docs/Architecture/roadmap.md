@@ -253,8 +253,8 @@ Per `DECISION_LOG.md`'s "Phase 5 — Dashboard UI Package Structure Accepted":
 | 6 | Metrics | Complete |
 | 7 | Firm Review Queue | Deferred — sync decision approved; gated on draft-to-SQLite sync *implementation* |
 | 8 | Source Health | **Complete** — `SourceHealthService.get_report()` sole authorized data path; Decision 2 closed |
-| 9a | Pipeline infrastructure (`pipeline_runs` table, `services/pipeline.py`) | Deferred — Phase 6 Package 2 |
-| 9b | Local-first background runner | Deferred — Phase 6 Package 3; depends on 9a |
+| 9a | Pipeline infrastructure (`pipeline_runs` table, `services/pipeline.py`) | Deferred — Phase 6 Package 3 |
+| 9b | Local-first background runner | Deferred — Phase 6 Package 4; depends on 9a |
 | 9c | Pipeline Runs dashboard screen | Deferred — depends on 9a+9b |
 
 Authorized dashboard mutation paths (all delegate to the Phase 4 service layer):
@@ -333,10 +333,11 @@ Per `DECISION_LOG.md`'s "Phase 6 Authorization and Package Structure Accepted":
 
 | Package | Scope | Status |
 |---|---|---|
-| 1 | Analytics expansion — extend `FunnelReporter` / `FunnelStats` with funnel conversion rates, score percentiles, LLM grade distribution and outcome correlation, stretch category conversion rates, time-in-current-state, extended transition times, remote breakdown, source effectiveness confidence signals, threshold sensitivity, contextual navigation links; expose via `MetricsService.get_funnel_stats()` | **Definition accepted — implementation authorized** |
-| 2 | Pipeline infrastructure — `pipeline_runs` table schema, `services/pipeline.py` read/write service, run-record persistence | Authorized; definition entry required before implementation |
-| 3 | Local-first background runner — wrap ingest/grade/generate/follow-up pipeline steps in a durable local execution layer; persist run stats/errors to `pipeline_runs` | Authorized; definition entry required before implementation; depends on Package 2 |
-| 4 | Dashboard integration — Pipeline Runs screen (Phase 5 Package 9c), run-history display, Pipeline Trends screen (historical analytics) | Authorized; definition entry required before implementation; depends on Packages 2+3 |
+| 1 | Analytics expansion (MVP) — funnel conversion rates, LLM grade distribution, stretch category conversion rates, source effectiveness confidence signals (`n=`), contextual navigation links (Tracker / Review Queue / Source Health); Source Breakdown table removed; expose via `MetricsService.get_funnel_stats()` | **Complete** — 755 passing, 1 skipped; no new routes/services/screens; Metrics route read-only; no mutation paths. Scope corrected from over-broad 11-item definition — see `DECISION_LOG.md`. |
+| 2 | Analytics depth — Score Distribution (Q1/Median/Q3), stretch category response rates, Unified Source Comparison (replaces Source Effectiveness), operator velocity pairs (presented→selected, selected→applied); conditional: LLM grade correlation (≥ 5 terminal-resolved per grade); employer-stage velocity pairs deferred to Package 3 | **Complete** — 778 passing, 1 skipped; commit `6af126b`; no new routes/services/screens; Metrics route read-only; no mutation paths |
+| 3 | Pipeline infrastructure — `pipeline_runs` table schema, `services/pipeline.py` read/write service, run-record persistence | Authorized; definition entry required before implementation |
+| 4 | Local-first background runner — wrap ingest/grade/generate/follow-up pipeline steps in a durable local execution layer; persist run stats/errors to `pipeline_runs` | Authorized; definition entry required before implementation; depends on Package 3 |
+| 5 | Dashboard integration — Pipeline Runs screen (Phase 5 Package 9c), run-history display, Pipeline Trends screen (historical analytics) | Authorized; definition entry required before implementation; depends on Packages 3+4 |
 
 Architecture decision: local-first background runner accepted — no external
 scheduler, task queue, or remote worker required for initial implementation.
@@ -344,7 +345,7 @@ Runner executes in-process or as a local subprocess.
 
 Analytics information architecture (accepted at Package 1 definition): three
 distinct layers — Metrics (strategic/point-in-time), Source Health (operational
-diagnostics), Pipeline Trends (historical/trend, future Package 4). Each is a
+diagnostics), Pipeline Trends (historical/trend, future Package 5). Each is a
 separate screen. Trend and run-level data must not be added to the Metrics
 screen.
 
@@ -458,7 +459,9 @@ architecture decision is now closed (local-first accepted).
    Package 7 (Firm Review Queue) requires the draft-to-SQLite sync to be
    built first. Package 9a/9b/9c (Pipeline Runs) gated on Phase 6 Packages
    2+3.
-6. Phase 6 active. Package 1 (analytics expansion) definition accepted;
-   implementation authorized — issue Anna task to begin. Packages 2–4
-   require individual definition entries before implementation begins.
+6. Phase 6 active. Package 1 (analytics expansion) complete — 755 passing.
+   Package 2 (analytics depth) complete — 778 passing, 1 skipped; commit
+   `6af126b`. Package 3 (pipeline infrastructure) definition entry required
+   before implementation begins. Packages 4–5 require individual definition
+   entries before their implementation begins.
 7. Treat Phase 7 as optional, human-reviewed extensions.

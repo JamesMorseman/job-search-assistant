@@ -1,6 +1,6 @@
 # Ash Initialization Package — Project Master
 
-**Version:** June 2026 — Phase 6 Package 1 definition accepted, implementation authorized
+**Version:** June 2026 — Phase 6 Packages 1 and 2 complete; Package 3 definition pending
 **Use:** Paste this file's contents (or point a new chat at this path) to initialize a Project Master session with no prior chat history. This document is a navigation/governance aid, not a replacement for `PROJECT_STATE.md` or `DECISION_LOG.md` — those two remain the authoritative active-state files.
 
 ---
@@ -51,21 +51,43 @@ If a request requires touching `job_search/`, `tests/`, or `templates/`, route i
   `SourceHealthService.get_report()` as sole Source Health data path (read-only,
   no mutations). Decision 2 (ATS quarantine mapping) formally closed — see
   `DECISION_LOG.md`.
-- Phase 6 (Analytics & Pipeline Runs) — active. Package structure accepted.
-  Package 1 (analytics expansion): **definition accepted; implementation
-  authorized** — see `DECISION_LOG.md`, "Phase 6 Package 1 — Analytics
-  Expansion Definition Accepted." Scope: funnel conversion rates, score
-  percentiles, LLM grade distribution and outcome correlation, stretch
-  category conversion rates, time-in-current-state, extended transition
-  times, remote/hybrid breakdown, source effectiveness confidence signals,
-  threshold sensitivity, contextual navigation links. Data path:
-  `FunnelReporter` / `FunnelStats` extended; `MetricsService.get_funnel_stats()`
-  remains sole authorized route data path; Metrics route gains no new service
-  dependencies. Packages 2–4 require individual definition entries before
-  their implementation begins. Analytics information architecture accepted
-  (Donut): Metrics = strategic/point-in-time; Source Health = operational;
-  Pipeline Trends = historical/trend (Package 4).
-- Test status: 730 tests passing, 0 failed, 1 skipped, as of Phase 5 Package 8
+- Phase 6 (Analytics & Pipeline Runs) — active. Package 1 (analytics
+  expansion): **accepted and complete at MVP scope** — 755 tests passing, 1
+  skipped, 0 failed. MVP scope (5 items): funnel conversion rates, LLM grade
+  distribution, stretch category conversion rates, source effectiveness
+  confidence signals, contextual navigation links; Source Breakdown removed.
+  The original DECISION_LOG 11-item definition was over-broad governance drift
+  (drew from the research planning study rather than Donut's MVP scope
+  recommendation). Six items deferred: score distribution and extended
+  transition times → Package 2; LLM grade correlation → Package 2 conditional;
+  Pipeline Age → Package 3; remote/hybrid breakdown and threshold sensitivity
+  → future packages. See `DECISION_LOG.md`, "Phase 6 Package 1 — Scope
+  Correction." Package 2 (analytics depth): **accepted and complete** —
+  778 tests passing, 1 skipped, 0 failed; commit `6af126b`. Implemented:
+  Score Distribution (Q1/Median/Q3 per state), Stretch Response Rates,
+  Unified Source Comparison (replaces Source Effectiveness), Pipeline Velocity
+  operator pairs (presented→selected, selected→applied), LLM Grade Outcome
+  Correlation (conditional on ≥5 terminal outcomes per grade; scarcity notice
+  fallback). Employer-stage velocity pairs deferred to Package 3.
+  `FunnelReporter` sole analytics layer; `MetricsService.get_funnel_stats()`
+  sole route data path; Metrics route read-only; no new routes, services, or
+  screens. Packages 3–5 require individual definition entries before their
+  implementation begins. Analytics information architecture accepted (Donut):
+  Metrics = strategic/point-in-time; Source Health = operational; Pipeline
+  Trends = historical/trend (Package 5).
+
+  **Phase 6 package numbering (revised — authoritative):**
+  | Package | Scope | Status |
+  |---|---|---|
+  | 1 | Analytics expansion | **Complete** (755 passing) |
+  | 2 | Analytics depth | **Complete** (778 passing; commit `6af126b`) |
+  | 3 | Pipeline infrastructure (was Package 2) | Authorized; **definition entry required before implementation** |
+  | 4 | Local-first background runner (was Package 3) | Authorized; definition required; depends on Package 3 |
+  | 5 | Dashboard integration (was Package 4) | Authorized; definition required; depends on Packages 3+4 |
+
+  Phase 5 Package 9 cross-references: 9a=Package 3, 9b=Package 4, 9c=Package 5.
+  See `DECISION_LOG.md`, "Phase 6 Package Numbering Revised."
+- Test status: 778 tests passing, 0 failed, 1 skipped, as of Phase 6 Package 2
 - Branch: working branch is `feature/llm-abstraction` unless `git status`/`git branch` says otherwise — confirm at session start, don't assume
 - `profile/james_profile.yaml` is now tracked in git for portability (force-tracked against the general `profile/*_profile.yaml` gitignore rule) — confirm this hasn't regressed if doing any repo-hygiene work
 
@@ -97,7 +119,7 @@ The human (James) always submits applications manually — the system never appl
 | 3 — Firm Repository | Complete |
 | 4 — Dashboard Service Layer | Complete (Package 5 reassigned to Phase 6) |
 | 5 — Dashboard UI | **MVP Complete** (Packages 1–6 + Package 8 done; 7 gated on sync impl; 9a/9b/9c gated on Phase 6) |
-| 6 — Analytics & Pipeline Runs | **Active** — Package 1 definition accepted, implementation authorized; Packages 2–4 require definition entries |
+| 6 — Analytics & Pipeline Runs | **Active** — Packages 1 + 2 complete; Package 3 definition entry required before implementation; Packages 4–5 require definition entries |
 | 7 — Future Enhancements | Planned |
 
 `roadmap.md` is the authoritative source for phase numbering. `PROJECT_STATE.md`'s
@@ -167,20 +189,24 @@ Full history and rationale: `PROJECT_HISTORY.md` (reference only — do not load
 | ~~ATS quarantine tier → "quarantined" display mapping (Decision 2)~~ | **Closed** at Package 8 acceptance — see closed decisions above. |
 | Draft-to-SQLite sync *implementation* | Must be built before Package 7 (Firm Review Queue) can begin. Implementation is authorized; task must be issued separately. |
 | roadmap.md 8-screen "Recommended Screens" vs. Phase 4 operational plan 5-screen MVP framing | Unresolved across two prior audits; not load-bearing now that Phase 5 MVP is complete. Needs a future governance pass. |
-| Phase 6 package-level definitions (each package requires its own scope/mutation-path entry before implementation begins — see standing governance rule) | Package 1 definition: **closed** (this session). Packages 2, 3, 4: resolve per-package, immediately before each implementation begins. |
+| Phase 6 package-level definitions (each package requires its own scope/mutation-path entry before implementation begins — see standing governance rule) | Packages 1 and 2: **complete**. Package 3: definition entry required. Packages 4, 5: resolve per-package, immediately before each implementation begins. |
 
 **Standing governance rule:** No implementation package may begin until its package structure, scope, mutation paths, and blockers have been recorded in `DECISION_LOG.md` and accepted by Project Master.
 
-**Currently authorized to begin immediately:**
-- Phase 6 Package 1 — Analytics expansion. Definition accepted. Issue Anna
-  implementation task. All new `FunnelStats` fields must be Optional with
-  safe empty defaults; `MetricsService.get_funnel_stats()` remains sole
-  route data path; Metrics route gains no new `Depends()` arguments.
+**Requires definition entry before implementation begins (next authorized step):**
+- Phase 6 Package 3 — Pipeline infrastructure (`pipeline_runs` table,
+  `services/pipeline.py`). Was originally Package 2 — renumbered. See
+  `DECISION_LOG.md`, "Phase 6 Package Numbering Revised." No implementation
+  is authorized until a Package 3 definition entry is written and accepted
+  by Project Master. Also carries employer-stage velocity pairs
+  (`acknowledged→screen`, `screen→interview`) deferred from Package 2 — these
+  may be scoped into Package 3 or deferred further; requires explicit decision
+  in the Package 3 definition entry.
 
 **Gated on draft-to-SQLite sync implementation:**
 - Phase 5 Package 7 — Firm Review Queue
 
-**Gated on Phase 6 Packages 2+3:**
+**Gated on Phase 6 Packages 3+4:**
 - Phase 5 Packages 9a/9b/9c — Pipeline Runs
 
 ---
@@ -227,11 +253,11 @@ Ash should, across Phase 5 (remaining packages) and Phase 6:
 - prevent dashboard routes from issuing raw SQL directly — all reads/writes must go through the service layer
 - enforce SQLite-first architecture for every new dashboard-facing query
 - ensure the draft-to-SQLite sync is built and tested before Package 7 (Firm Review Queue) begins
-- ensure Phase 6 packages 2+3 (pipeline infrastructure and background runner) are built and tested before Package 9c (Pipeline Runs screen) begins
+- ensure Phase 6 packages 3+4 (pipeline infrastructure and background runner) are built and tested before Package 9c (Pipeline Runs screen) begins
 - ensure `DraftFirmProfile` records synced to SQLite never participate in scoring, matching, or ingestion — the approved-firm boundary must be maintained in `FirmsService` and all ingestion paths
 - Source Health (Package 8) is complete; Decision 2 is closed — no further quarantine-mapping governance action required
-- for Phase 6 Package 1 implementation: enforce that `FunnelReporter` is the sole analytics SQL location; `MetricsService.get_funnel_stats()` remains the sole route data path; Metrics route gains no new `Depends()` arguments; all new `FunnelStats` fields are Optional with safe empty defaults; no chart library introduced; no trend/historical data added to Metrics
-- enforce the analytics information architecture: Metrics = strategic/point-in-time only; trend and historical analytics belong on a future Pipeline Trends screen (Package 4), not Metrics
+- Phase 6 Package 1 (analytics expansion) is complete — governance constraints recorded in `DECISION_LOG.md`; the analytics boundaries below remain standing constraints for any future Metrics screen work
+- enforce the analytics information architecture: Metrics = strategic/point-in-time only; trend and historical analytics belong on a future Pipeline Trends screen (Package 5), not Metrics
 - keep portfolio/public-facing claims behind implementation reality — do not let README or portfolio language describe unimplemented features as done
 
 ---

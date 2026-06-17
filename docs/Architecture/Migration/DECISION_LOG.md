@@ -796,6 +796,660 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   1 ships, Phase 6 Package 2 (pipeline infrastructure) definition entry must
   be written and accepted before its implementation begins.
 
+### Phase 6 Package 1 — Analytics Expansion Accepted / Complete
+
+- Status: accepted
+- Area: roadmap / analytics / dashboard
+- Rationale: Records acceptance of Phase 6 Package 1 — Analytics Expansion
+  as implemented and complete.
+
+  **Package accepted:**
+  - Package 1 — Analytics Expansion — **Accepted / Complete**
+
+  **Implemented scope (all eleven items from the Package 1 definition entry):**
+  1. Funnel conversion rates — per-stage rates across the full funnel
+  2. Score distribution percentiles — Q1 / median / Q3 per `app_state`
+  3. Stretch category conversion rates
+  4. LLM grade distribution across presented jobs
+  5. LLM grade vs. outcome correlation
+  6. Time-in-current-state summary — median days non-terminal jobs per state
+  7. Extended median transition times — applied→interview, screen→interview
+  8. Remote / hybrid breakdown of presented jobs
+  9. Confidence signals (`n=` counts) on all source effectiveness rows
+  10. Threshold sensitivity table (display-only; no POST route)
+  11. Contextual navigation links — Metrics → filtered Tracker and Source Health
+
+  **Data path governance — unchanged from definition:**
+  - `FunnelReporter` (in `job_search/reporting/funnel.py`) remains the sole
+    class authorized for analytics SQL for the Metrics screen. No analytics
+    SQL was placed in `MetricsService`, the Metrics route, or any other module.
+  - `FunnelStats` gained new optional fields for each implemented metric.
+    All new fields are `Optional` with safe empty defaults;
+    `FunnelStats(total_jobs=0)` constructs without error.
+  - `MetricsService.get_funnel_stats()` remains the sole authorized data
+    path from the Metrics route to analytics data. The Metrics route gained
+    no new `Depends()` arguments.
+  - No new service modules were created.
+  - No chart library was introduced.
+
+  **No new routes, services, or screens introduced by Package 1.**
+  The Metrics route remains read-only. No POST routes, no mutation paths,
+  no scoring.yaml editing, no threshold adjustment controls.
+
+  **Authorized data path (recorded verbatim):**
+  `MetricsService.get_funnel_stats()` → `FunnelReporter.compute()` is the
+  sole authorized path from dashboard to analytics. No alternate aggregation,
+  no raw SQL in the route, no direct database access in the route module.
+
+  As of this entry: 755 tests pass, 1 skipped, 0 failed.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section),
+  `docs/Architecture/phase_6_package1_analytics_planning.md` (Donut study),
+  `DECISION_LOG.md` "Phase 6 Package 1 — Analytics Expansion Definition Accepted"
+- Audit reference: Leah Phase 6 Package 1 Implementation Audit
+- Follow-up work: Phase 6 Package 2 (pipeline infrastructure) definition entry
+  must be written and accepted before its implementation begins. No Package 2
+  implementation is authorized until that entry exists.
+
+### Phase 6 Package 1 — Scope Correction: MVP Definition Supersedes 11-Item Entry
+
+- Status: accepted
+- Area: roadmap / analytics / governance
+- Rationale: The "Phase 6 Package 1 — Analytics Expansion Definition Accepted"
+  entry recorded 11 items as Package 1 scope. The "Phase 6 Package 1 —
+  Analytics Expansion Accepted / Complete" entry claimed all 11 as
+  implemented. Both entries are now found to reflect scope drift beyond the
+  authoritative Donut MVP recommendation.
+
+  **Source of drift:** The 11-item definition entry drew from Donut's
+  Analytics Expansion Planning Study (`phase_6_package1_analytics_planning.md`),
+  which is a research document enumerating all candidate features. It is not
+  a scope decision. Donut's subsequent MVP Scope Recommendation
+  (`phase_6_package1_mvp_scope.md`) is the authoritative scope document — it
+  explicitly reviewed the full candidate list and deferred six of the eleven
+  items from Package 1, naming each item and the reason for deferral. That
+  document was not incorporated into the original DECISION_LOG definition
+  entry. This entry corrects that gap.
+
+  **Authoritative source:** `docs/Architecture/phase_6_package1_mvp_scope.md`
+  (Donut, 2026-06-17) — the MVP scope recommendation produced after
+  reviewing the planning study. The planning study (`phase_6_package1_analytics_planning.md`)
+  is research context only; it does not authorize scope.
+
+  ---
+
+  **Corrected Package 1 accepted scope (5 items + 1 removal):**
+
+  1. **Funnel conversion rates.** Per-stage conversion rates across the full
+     funnel (discovered → offered). Arithmetic on existing `by_state` counts;
+     no new SQL query. Renders "—" when prior stage count is zero. Each
+     conversion section links to Tracker / Review Queue for contextual
+     navigation. `funnel_conversion_rates` field on `FunnelStats`.
+     *(Donut MVP item 1 — highest-value, zero new queries.)*
+
+  2. **LLM grade distribution.** COUNT per `llm_grade` among graded jobs,
+     with percentage of graded total. One new GROUP BY query on
+     `jobs.llm_grade`. Conditional render: only appears when at least one
+     job has `llm_grade` set. `llm_grade_distribution` field on `FunnelStats`.
+     *(Donut MVP item 2 — makes grader aggregate output visible for the
+     first time.)*
+
+  3. **Stretch category conversion rates.** For each `stretch_category`,
+     the fraction of jobs that reached `applied` and the fraction that reached
+     `screen`. Arithmetic on existing `by_stretch` dict; no new SQL query.
+     `stretch_conversion_rates` field on `FunnelStats`.
+     *(Donut MVP item 3 — makes stretch strategy answerable.)*
+
+  4. **Confidence signals on source effectiveness rows.** n= count on each
+     Source Effectiveness row. Rows with `applied < 5` render as
+     "insufficient data (n=N)" rather than a percentage, preventing
+     small-sample misread. No new queries; `data.applied` is already in the
+     route context. Template-only change for the guard; `n=` annotation on
+     the applied cell.
+     *(Donut MVP item 4 — data trust, not a new feature.)*
+
+  5. **Contextual navigation links.** Section-level link to Source Health
+     from Source Effectiveness. Links to Application Tracker and Review Queue
+     from the Funnel Conversion section. Template-only changes. Closes the
+     "Metrics is a dead end" problem.
+     *(Donut MVP item 5.)*
+
+  6. **Source Breakdown table removed.** The source × state flat table is
+     removed from the Metrics template. Its information is already partially
+     visible in Funnel Overview and more usefully visible in Source
+     Effectiveness. Its removal keeps the section count flat (5 before,
+     5 after: −Source Breakdown, +LLM Grade Distribution).
+     *(Donut MVP anti-bloat requirement.)*
+
+  ---
+
+  **Items removed from Package 1 scope and re-homed:**
+
+  The following six items were in the original 11-item Package 1 definition
+  entry. They are now moved to their correct homes per Donut's MVP scope
+  document's deferral decisions and the already-accepted Package 2 definition.
+
+  | Item | Original entry | Correct home | Reason for deferral |
+  |---|---|---|---|
+  | Score distribution (Q1/Median/Q3 per state) | Package 1 item 2 | **Package 2** | Adding 3–5 columns to the State Distribution table competes with the new Conversion column; better to evaluate table width after Package 1 ships *(Donut MVP doc)* |
+  | LLM grade vs. outcome correlation | Package 1 item 5 | **Package 2 conditional** | Requires historical join; most meaningful after outcome data accumulates; Package 1's grade distribution surfaces the same concern with simpler computation *(Donut MVP doc)* |
+  | Extended median transition times (applied→interview, screen→interview) | Package 1 item 7 | **Package 2** | Belongs with the full transition velocity analysis in Package 2; operator pairs (presented→selected, selected→applied) also move there *(Donut MVP doc)* |
+  | Time-in-current-state / Pipeline Age | Package 1 item 6 | **Package 3** | Requires new query joining `jobs` to most-recent `app_transitions` row per job; per-state stagnation thresholds need deliberate design *(Donut MVP doc; Package 2 definition entry)* |
+  | Remote / hybrid breakdown | Package 1 item 8 | **Deferred — future analytics package** | Medium value; a preference confirmation, not a diagnostic; not in Package 2 definition scope; re-evaluate when discipline breakdown is scoped *(Donut MVP doc: "Package 2 or later")* |
+  | Threshold sensitivity table | Package 1 item 10 | **Deferred — future scoring calibration package** | Configuration-adjacent, not analytics; belongs on a Scoring Configuration screen, not the Metrics screen *(Donut MVP doc: "Future Package — Scoring Calibration / Configuration")* |
+
+  **Consistency check — Package 2 definition:** The Package 2 definition
+  entry ("Phase 6 Package 2 — Analytics Depth Definition Accepted") already
+  includes score distribution, LLM grade correlation (conditional), and the
+  extended transition velocity operator pairs. This re-homing is therefore
+  consistent with the accepted Package 2 definition; no Package 2 governance
+  update is required.
+
+  ---
+
+  **Status of the two prior Package 1 entries:**
+
+  - "Phase 6 Package 1 — Analytics Expansion Definition Accepted" — **superseded
+    by this entry** for scope and acceptance criteria. Data path governance
+    in that entry (FunnelReporter sole analytics location, FunnelStats Optional
+    fields, MetricsService sole route data path, no new Depends() arguments,
+    no chart library, read-only Metrics route) remains valid and is carried
+    forward unchanged.
+
+  - "Phase 6 Package 1 — Analytics Expansion Accepted / Complete" — **superseded
+    by this entry** for the implementation claim. The 11-item "complete"
+    status is incorrect; the 5-item MVP scope is what was implemented and is
+    now the accepted complete state. The data path governance statements in
+    that entry remain valid.
+
+  ---
+
+  **Package 1 — corrected accepted / complete status:**
+
+  Package 1 is **Accepted / Complete** at the 5-item MVP scope defined above.
+  The test count stands: 755 passing, 1 skipped, 0 failed. No governance
+  documents require updates before commit beyond this correction entry.
+
+  **Accepted data path governance (carried forward):**
+  - `FunnelReporter` is the sole class authorized for analytics SQL on the
+    Metrics screen
+  - `FunnelStats` gains new fields only as `Optional` with safe empty defaults
+  - `MetricsService.get_funnel_stats()` is the sole authorized data path
+    from the Metrics route to analytics data
+  - Metrics route gained no new `Depends()` arguments
+  - No chart library introduced; no new services, routes, or screens
+  - Metrics route is read-only; no POST routes, no mutation paths
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Authority reference: `docs/Architecture/phase_6_package1_mvp_scope.md`
+  (Donut MVP scope recommendation — the authoritative input for Package 1
+  scope, superseding the planning study as a scope document)
+- Supersedes: "Phase 6 Package 1 — Analytics Expansion Definition Accepted"
+  (scope and acceptance criteria only); "Phase 6 Package 1 — Analytics
+  Expansion Accepted / Complete" (implementation claim corrected to 5-item
+  MVP scope)
+
+### Phase 6 Package 2 — Analytics Depth Definition Accepted
+
+- Status: accepted
+- Area: roadmap / analytics / dashboard
+- Rationale: Records the formal package definition for Phase 6 Package 2 —
+  Analytics Depth. Per the standing governance rule, no implementation may
+  begin before this entry is accepted by Project Master. This entry
+  constitutes that acceptance. Implementation is now authorized.
+
+  **Planning study basis:**
+  Donut's Phase 6 Package 2 Analytics Depth Planning Study
+  (`docs/Architecture/phase_6_package2_analytics_depth_planning.md`,
+  2026-06-17) is incorporated below, with explicit acceptance and deferral
+  decisions on each item.
+
+  **Note:** No Leah technical readiness review document for Package 2
+  was found in the repo at the time of this entry. Project Master proceeds
+  on the basis of Donut's planning study, which includes per-item
+  implementation grounding. If a Leah audit is produced before implementation
+  begins, its findings should be reconciled against this entry; any scope or
+  constraint changes require a new governance entry.
+
+  ---
+
+  **Scope — accepted for Package 2 MVP implementation:**
+
+  All items in this list extend `FunnelReporter` and `FunnelStats`.
+  `MetricsService.get_funnel_stats()` remains the sole authorized data path.
+  The Metrics route gains no new `Depends()` arguments. No new service
+  modules are created.
+
+  1. **Score Distribution section.** New section on the Metrics screen,
+     placed below Funnel Overview. Per-state Q1 / Median / Q3 / n from
+     `jobs.match_score`. Computed in Python from a full per-state score list
+     (SQLite lacks native percentile functions); `_avg_match_by_state()`
+     is modified or supplemented to return raw score lists. Rows with no
+     match_score data are omitted (not shown as empty rows). If the section
+     has no data, it does not render.
+     *(Donut MVP item 1 — accepted in full.)*
+
+  2. **Response rate by stretch category.** Employer response rates (response
+     rate, screen rate, interview rate) added to the existing Stretch Strategy
+     Analysis section alongside Package 1's operator conversion rates.
+     New `FunnelStats` field: `response_rate_by_stretch`. Implementation
+     structurally identical to `_response_rate_by_source()` with
+     `stretch_category` replacing `source`. Rates with n < 5 render as
+     "— (n=N)". All rate columns carry n= counts.
+     *(Donut MVP item 2 — accepted in full.)*
+
+  3. **Unified Source Comparison table.** Replaces the Package 1 Source
+     Effectiveness table. One row per source; columns: Discovered | Presented |
+     Present% | Applied | Response% | Screen% | Interview% | Avg Score | → Source Health.
+     Per-source discovered/presented counts are derivable from the existing
+     `by_source` dict. A new per-source average match_score query is required
+     (`AVG(match_score)` per source, presented+ jobs). Response rate data
+     already in `response_rate_by_source`. Net section count: unchanged
+     (replacement, not addition). All rate columns carry n= counts; rates
+     with n < 5 render as "— (n=N)".
+     *(Donut MVP item 3 — accepted. Source Effectiveness table removed.)*
+
+  4. **Extended Transition Velocity — operator pairs.** Two new transition
+     pairs added to the existing Time to Response section, which is renamed
+     "Pipeline Velocity": `presented→selected` (operator review speed) and
+     `selected→applied` (document generation + submission speed). Implemented
+     by adding two new keys to `_median_days_between_states()` using the
+     existing generic `_median_transition_days()` function. Each pair shows
+     median days + n; renders "—" when n < 3.
+     *(Donut MVP item 4, operator-pairs only — accepted.)*
+
+  ---
+
+  **Scope — conditional delivery within Package 2 (build the logic; render
+  conditionally):**
+
+  These items are built as part of Package 2. Their rendering is gated on
+  data preconditions that may not be met in early searches. The conditional
+  render logic and the data-scarcity notice/absent behavior are both required
+  by Package 2 acceptance criteria — it is not acceptable to build the happy
+  path and skip the scarcity path.
+
+  5. **LLM Grade vs. Outcome Correlation table.** Extends the Package 1
+     "LLM Grade Distribution" section (renamed "LLM Grader Analysis"). Per
+     LLM grade (Strong / Good / Marginal / Pass): Applied | Terminal |
+     Interview Rate | Still Active. **Precondition:** at least one grade
+     category must have ≥ 5 terminal-resolved jobs (jobs in `rejected`,
+     `ghosted`, or `offer` states). When precondition is not met: the section
+     renders a data-scarcity notice with per-grade terminal counts; the
+     correlation table does not render. Precondition logic lives in the route,
+     not the template; the route passes either the correlation data dict or
+     `None`; the template branches on the value.
+     *(Donut conditional item 5 — accepted. Precondition threshold: ≥ 5
+     terminal-resolved jobs per grade category.)*
+
+  6. **Extended Transition Velocity — employer-stage pairs.** Three additional
+     transition pairs in the Pipeline Velocity section: `acknowledged→screen`,
+     `screen→interview`, `interview→offer`. **Precondition:** each pair renders
+     only when it has ≥ 3 completed transitions. Below the threshold, the pair
+     is absent (not shown as "—"); the section footer notes "Additional velocity
+     pairs appear as applications advance to those stages."
+     *(Donut conditional item 6 — accepted. Precondition threshold:
+     ≥ 3 completed transitions per pair.)*
+
+  ---
+
+  **Scope — deferred from Package 2:**
+
+  The following Donut recommendations are acknowledged and deferred. None may
+  be implemented as part of Package 2 without a separate governance entry.
+
+  - **Pipeline Age section.** Time-in-current-state with per-state stagnation
+    thresholds and Tracker navigation links. Deferred because: (a) requires a
+    new query design joining `jobs` to the most-recent `app_transitions` row
+    per job, which no other Package 2 item requires; (b) per-state stagnation
+    thresholds need deliberate design to avoid false alarms — rushing them at
+    the end of a Package 2 delivery risks eroding operator trust. Pipeline Age
+    is the first item in Package 3 planning.
+    *(Donut Package 3 candidate — deferred.)*
+
+  - **Discipline breakdown (`by_discipline_state`).** Complex JSON-array
+    aggregation; deferred to Package 3.
+    *(Donut Package 3 candidate — deferred.)*
+
+  - **Score Calibration surface items.** Score bracket outcome table (outcomes
+    by match_score range), threshold sensitivity table. These belong on a
+    dedicated Score Calibration screen or surface, not the Metrics screen.
+    Deferred to a future package; require their own governance entry before
+    implementation.
+    *(Donut "Not in Package 2" — deferred.)*
+
+  - **Pipeline Trends screen (historical time-series).** Deferred to Phase 6
+    Package 4 per the analytics information architecture decision.
+    *(Donut "Out of scope for Packages 2 and 3" — deferred.)*
+
+  - **All other items from the Donut study's "Out of Scope" list.** Firm
+    analytics, document analytics, predictive analytics, location metro
+    breakdown — deferred as per Donut's study and prior Package 1 governance.
+
+  ---
+
+  **Information architecture decisions (from Donut study — accepted):**
+
+  - Score Distribution: separate section below Funnel Overview (Option B —
+    not columns added to the Funnel Overview table). Rationale: the Funnel
+    Overview table already received a Conversion column in Package 1; adding
+    three more score columns would make it too dense.
+  - LLM Grader Analysis: expand the Package 1 "LLM Grade Distribution" section
+    in place; rename to "LLM Grader Analysis"; two sub-tables (distribution +
+    correlation).
+  - Pipeline Velocity: rename the Package 1 "Time to Response" section to
+    "Pipeline Velocity"; restructure with two clearly labeled groups — Operator
+    Velocity and Employer Velocity. The existing Package 1 transition pairs
+    (all employer-side) fall under Employer Velocity.
+  - Section count after Package 2: 7 sections (Funnel Overview, Score
+    Distribution, LLM Grader Analysis, Unified Source Comparison, Pipeline
+    Velocity, Stretch Strategy Analysis, and the existing remaining sections).
+    Seven sections is the stated upper limit per Donut's study before a
+    secondary navigation mechanism becomes necessary. If Package 3 adds further
+    sections, an information architecture revision must be assessed.
+
+  ---
+
+  **Data path governance:**
+
+  - `FunnelReporter` (in `job_search/reporting/funnel.py`) is the sole class
+    authorized to add new analytics queries for the Metrics screen. No
+    analytics SQL may be placed in `MetricsService`, the Metrics route, or any
+    other module.
+  - `FunnelStats` gains new optional fields for each accepted item above. **All
+    new fields must be typed as `Optional` with a safe empty default** (e.g.,
+    `None`, `{}`, or `[]`). `FunnelStats(total_jobs=0)` must continue to
+    construct without errors after Package 2.
+  - `MetricsService.get_funnel_stats()` remains the sole authorized data path
+    from the Metrics route to analytics data. The Metrics route must not gain
+    new `Depends()` arguments as a result of Package 2.
+  - No `get_db()` or raw SQL in `job_search/dashboard/routes/metrics.py`.
+    Enforced by the existing source-inspection test.
+  - No new service modules are created by Package 2.
+
+  **Confidence signal rule (standing constraint for Package 2):**
+  Every rate column displayed in Package 2 (response rate, screen rate,
+  interview rate, present rate, LLM outcome rate) must carry an n= count.
+  Rates with n < 5 render as "— (n=N)" rather than a percentage. This rule
+  is mandatory for all Package 2 rate tables and is a Package 2 acceptance
+  criterion, not an implementation choice.
+
+  ---
+
+  **Prohibited mutation paths:**
+
+  The Metrics screen is read-only. Package 2 introduces no mutation paths.
+  Specifically prohibited:
+  - No POST routes on `/dashboard/metrics` or any sub-path
+  - No scoring configuration editing from the dashboard
+  - No `jobs.app_state` transitions from the Metrics route
+  - No firm configuration changes from the dashboard
+  - No chart libraries introduced
+
+  ---
+
+  **Acceptance criteria:**
+
+  1. 755 existing tests continue to pass; no regressions.
+  2. All new `FunnelStats` fields are `Optional` with safe empty defaults;
+     `FunnelStats(total_jobs=0)` constructs without error after Package 2.
+  3. Score Distribution section renders only states with match_score data;
+     if no data exists, the section does not render at all.
+  4. Score Distribution uses Python-computed Q1/Median/Q3 from a per-state
+     score list; no SQLite percentile function is required.
+  5. LLM Grade Correlation table: when precondition is not met (< 5 terminal-
+     resolved jobs in any grade category), the data-scarcity notice renders
+     with per-grade terminal counts; the correlation table does not render.
+  6. LLM Grade Correlation table: when precondition is met, the correlation
+     table renders with Applied | Terminal | Interview Rate | Still Active per
+     grade; "Still Active" count prevents misleading 0% interview rate displays.
+  7. Employer-stage velocity pairs are absent (not "—") when < 3 completed
+     transitions exist per pair; section footer note renders when any pair is
+     absent.
+  8. All rate columns in Package 2 carry n= counts; rates with n < 5 render
+     as "— (n=N)".
+  9. Unified Source Comparison table replaces the Package 1 Source Effectiveness
+     table (not added alongside it).
+  10. Metrics route `Depends()` argument count does not increase from the
+      Package 1 baseline.
+  11. Route source-inspection test passes: `get_db`, `sqlite3`, `SELECT` not
+      present in `metrics.py` route source.
+  12. No POST routes exist on `/dashboard/metrics` or any sub-path.
+  13. No chart library is introduced.
+  14. All four MVP items (Score Distribution, Stretch Response Rates, Unified
+      Source Comparison, Operator Velocity pairs) are implemented and
+      test-covered.
+  15. Both conditional items (LLM Correlation, Employer Velocity pairs) have
+      both the conditional render path and the data-scarcity/absent path
+      test-covered.
+  16. Pipeline Age section is not implemented in Package 2.
+
+  **Donut scope confirmation supplemental decisions (from
+  `phase_6_package2_product_scope_confirmation.md`, 2026-06-17):**
+
+  - **`interview→offer` velocity pair:** Explicitly **deferred**. Donut's
+    scope confirmation found that the study's own Workflow 3 decision table
+    says "no operator action available" for this pair — it fails the same
+    MVP inclusion test applied across all Package 1 and Package 2 items.
+    Including a row that surfaces no actionable signal lowers the
+    signal-to-noise ratio of the Pipeline Velocity section. `interview→offer`
+    is not in scope for Package 2. It may be revisited when there is
+    sufficient outcome data to make it informative.
+
+  - **Unified Source Comparison table layout:** Accepted as **two narrower
+    tables** rather than one 10-column table, per Donut's scope confirmation.
+    Table A: discovery quality (Source | Discovered | Presented | Present% |
+    Avg Score). Table B: outcome quality (Source | Applied | Response% |
+    Screen% | Interview% | → Source Health). Net section count unchanged.
+    This resolves Risk 5 (column overflow) from the planning study.
+
+  - **Interpretive footnote — Unified Source Table:** A one-line interpretive
+    note is required in the template: "A high Present% with low Response%
+    indicates good discovery quality with weak employer follow-through — not
+    necessarily a bad source." This prevents the predictable misread identified
+    by Donut's scope confirmation.
+
+  - **Finding B (naming collision):** Resolved by renumbering — see
+    "Phase 6 Package Numbering Revised" entry in this log. The pipeline
+    infrastructure work is now Package 3; background runner is Package 4;
+    dashboard integration is Package 5.
+
+  **Open pre-implementation risk — Finding A (code integrity):**
+
+  Donut's scope confirmation (`phase_6_package2_product_scope_confirmation.md`,
+  Finding A) notes that on branch `feature/llm-abstraction`, `job_search/dashboard/`,
+  `job_search/services/`, `tests/test_dashboard.py`, and `tests/test_services.py`
+  are all untracked in git, and `job_search/reporting/funnel.py` is unstaged.
+  The Package 1 "Accepted / Complete" governance claim rests on an implementation
+  that exists in the local working tree but has not been committed to any git
+  commit on this branch.
+
+  Project Master notes this risk explicitly. The PM's directive for this
+  governance session states Package 1 is implemented and 755 tests pass —
+  that claim is accepted here at face value. However, the implementation
+  must be committed before Package 2 implementation begins. **Anna's Package 2
+  implementation task is conditional on: (1) the Package 1 implementation
+  being committed to the working branch; and (2) tests passing against the
+  committed state.** If the committed test count differs materially from 755,
+  a Leah audit of Package 1 should be completed before Package 2 proceeds.
+
+  As of definition acceptance: 755 tests pass, 1 skipped, 0 failed (as
+  reported by PM directive — implementation not yet committed to git).
+  Package 2 implementation is authorized, conditional on Package 1
+  implementation being committed.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section),
+  `docs/Architecture/phase_6_package2_analytics_depth_planning.md` (Donut planning study),
+  `docs/Architecture/phase_6_package2_product_scope_confirmation.md` (Donut scope confirmation)
+- Follow-up work: (1) Commit Package 1 implementation to the working branch
+  and confirm test count before issuing Anna's Package 2 task. (2) After
+  Package 2 ships, Phase 6 Package 3 (pipeline infrastructure) definition
+  entry must be written and accepted before its implementation begins.
+
+### Phase 6 Package 2 — Analytics Depth Accepted / Complete
+
+- Status: accepted
+- Area: roadmap / analytics / dashboard
+- Rationale: Records acceptance of Phase 6 Package 2 — Analytics Depth as
+  implemented and complete.
+
+  **Package accepted:**
+  - Package 2 — Analytics Depth — **Accepted / Complete**
+
+  **Commit:** `6af126b` — `feat(analytics): Phase 6 Package 2 — analytics depth
+  on Metrics screen`
+
+  **Files changed (5 files, 763 insertions / 128 deletions):**
+  - `job_search/reporting/funnel.py` — new methods and FunnelStats fields
+  - `job_search/dashboard/routes/metrics.py` — new fields passed to template
+  - `job_search/dashboard/templates/metrics.html` — new sections rendered
+  - `tests/test_dashboard.py` — new route/render tests (19 new functions)
+  - `tests/test_funnel.py` — new FunnelReporter unit tests (13 new functions)
+
+  **Implemented scope (all MVP items and conditional items from the Package 2
+  definition entry):**
+
+  *MVP items (unconditional):*
+  1. **Score Distribution** — `_score_distribution_by_state()` queries
+     `jobs.match_score` per state; Python linear-interpolation percentile
+     (`_percentile()` module function); returns Q1 / Median / Q3 / n per
+     state. Section renders only when data is present; omits states with no
+     `match_score` data. `score_distribution_by_state` field on `FunnelStats`.
+  2. **Stretch Response Rates** — `_stretch_response_rates()` computes
+     employer response rate and interview rate per stretch category from
+     existing `by_stretch` dict. `stretch_response_rates` field on
+     `FunnelStats`. Rates with n < 5 suppressed in template.
+  3. **Unified Source Comparison** — `_unified_source_data()` single query
+     per source: `jobs_seen`, `jobs_presented`, `presentation_rate`,
+     `applied`, `responded`, `response_rate`, `interviewed`,
+     `interview_rate`, `offers`. Rendered as two tables in template
+     (Discovery and Outcome). Replaces Package 1 Source Effectiveness table.
+     `unified_source_data` field on `FunnelStats`.
+  4. **Pipeline Velocity — operator pairs** — `_pipeline_velocity()` computes
+     exactly two transition pairs: `presented→selected` and
+     `selected→applied`. Median days and n per pair. n < 3 guard in template
+     (suppresses display). `pipeline_velocity` field on `FunnelStats`.
+
+  *Conditional items (built; render conditionally):*
+  5. **LLM Grade Outcome Correlation** — `_llm_grade_outcome_correlation()`
+     queries per grade: total, terminal count, advanced count, advance_rate.
+     Adds `qualifies` boolean (True when `terminal_count ≥ 5`). Route passes
+     the dict; template renders the correlation table only when all grades
+     qualify, otherwise renders the data-scarcity notice. Confirmed by two
+     test cases: `test_metrics_llm_correlation_shows_table_when_all_qualify`
+     and `test_metrics_llm_correlation_shows_scarcity_notice_when_not_qualified`.
+
+  **Employer-stage velocity pairs not implemented:**
+  The Package 2 definition entry included `acknowledged→screen`,
+  `screen→interview`, and `interview→offer` as conditional items (render
+  when ≥ 3 completed transitions). These were not implemented in this
+  delivery. `_pipeline_velocity()` contains only the two operator pairs.
+  Project Master accepts this as a deliberate scope narrowing: the operator
+  pairs deliver immediate value from day one; the employer-stage pairs require
+  accumulated data and are deferred to Package 3 planning. No implementation
+  of employer-stage pairs is authorized without a Package 3 definition entry.
+
+  **Data path governance — verified unchanged:**
+  - `FunnelReporter` is the sole class containing analytics SQL. All five
+    new methods are in `FunnelReporter`. No analytics SQL appears in
+    `MetricsService`, the route, or any other module.
+  - `FunnelStats` gained five new `Optional`-equivalent fields (all
+    `default_factory=dict`); `FunnelStats(total_jobs=0)` constructs without
+    error.
+  - `MetricsService.get_funnel_stats()` remains the sole authorized data
+    path. Route has exactly one `Depends()` argument (`get_metrics_service`),
+    unchanged from Package 1.
+  - Source-inspection test at `tests/test_dashboard.py:1548`
+    (`test_metrics_route_does_not_query_sqlite_directly`) confirms `get_db`,
+    `sqlite3`, and `SELECT` are absent from `metrics.py` route source.
+  - No chart library introduced.
+
+  **No new routes, services, or screens:**
+  Only five files changed. No new route files. No new service files.
+  No new templates. The commit is entirely contained within the Metrics
+  analytics stack.
+
+  **Read-only enforcement verified:**
+  `metrics.py` contains exactly one route decorator: `@router.get("/metrics")`.
+  No POST, PUT, DELETE, or PATCH routes exist or were added.
+
+  As of this entry: 778 tests pass, 1 skipped, 0 failed (761 test functions;
+  17 additional cases from parametrized tests).
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Definition reference: `DECISION_LOG.md` "Phase 6 Package 2 — Analytics
+  Depth Definition Accepted"
+- Follow-up work: Phase 6 Package 3 (pipeline infrastructure — `pipeline_runs`
+  table, `services/pipeline.py`) definition entry must be written and accepted
+  before its implementation begins. Employer-stage velocity pairs
+  (`acknowledged→screen`, `screen→interview`, `interview→offer`) may be
+  scoped into Package 3 or later; they require their own definition entry
+  before implementation.
+
+### Phase 6 Package Numbering Revised — Analytics Depth Inserted as Package 2
+
+- Status: accepted
+- Area: roadmap / governance
+- Rationale: When the "Phase 6 Authorization and Package Structure Accepted"
+  entry was written, the Phase 6 package map was:
+
+  | Package | Scope |
+  |---|---|
+  | 1 | Analytics expansion |
+  | 2 | Pipeline infrastructure |
+  | 3 | Local-first background runner |
+  | 4 | Dashboard integration |
+
+  Donut's Phase 6 Package 2 Analytics Depth Planning Study
+  (`docs/Architecture/phase_6_package2_analytics_depth_planning.md`,
+  2026-06-17) identified a significant analytical gap between Package 1
+  (Analytics expansion) and the pipeline work — six analytical questions
+  raised by Package 1 that Package 1 cannot answer, none of which depend on
+  pipeline infrastructure. Project Master accepts the insertion of "Analytics
+  Depth" as the new Package 2, causing the original Packages 2–4 to shift
+  outward.
+
+  **Revised Phase 6 package numbering (authoritative):**
+
+  | Package | Scope | Status |
+  |---|---|---|
+  | 1 | Analytics expansion | Complete |
+  | 2 | Analytics depth (new) | Definition accepted; authorized |
+  | 3 | Pipeline infrastructure (was Package 2) | Authorized; definition required |
+  | 4 | Local-first background runner (was Package 3) | Authorized; definition required; depends on Package 3 |
+  | 5 | Dashboard integration (was Package 4) | Authorized; definition required; depends on Packages 3+4 |
+
+  **Downstream reference updates:**
+
+  The Phase 5 Package 9 sub-package breakdown (defined in "Phase 6
+  Authorization and Package Structure Accepted") used Phase 6 package
+  numbers to express its dependencies. Those references are updated here:
+
+  | Phase 5 sub-package | Was | Now |
+  |---|---|---|
+  | 9a — Pipeline infrastructure | = Phase 6 Package 2 | = Phase 6 Package 3 |
+  | 9b — Background runner | = Phase 6 Package 3 | = Phase 6 Package 4 |
+  | 9c — Pipeline Runs screen | = Phase 6 Package 4 | = Phase 6 Package 5 |
+
+  Phase 5 Package 9 remains fully deferred — only the phase-6 cross-reference
+  numbers change. The dependency chain is otherwise unchanged: 9a must ship
+  before 9b, 9b before 9c.
+
+  The analytics information architecture reference to "Pipeline Trends (future
+  Package 4)" is updated to "Package 5" accordingly.
+
+  All other content in the Phase 6 Authorization entry remains authoritative;
+  only the package numbers for the pipeline and runner items shift.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`, `roadmap.md` (Phase 6 section)
+- Supersedes: the original package numbering in "Phase 6 Authorization and
+  Package Structure Accepted" for Packages 2–4; those package numbers are
+  no longer current
+
 ### Standing Governance Rule: Package Definitions Before Implementation
 
 - Status: accepted

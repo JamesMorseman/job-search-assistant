@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 — Phase 5 Package 8 complete
+Version: June 2026 — Phase 6 Package 2 complete
 
 ## Purpose
 
@@ -27,8 +27,9 @@ Build an automated engineering job-search platform for James Morseman that:
 ## Current Objectives
 
 Phases 1–5 MVP and Package 8 (Source Health) are complete. Phase 6
-(Analytics & Pipeline Runs) is authorized. Phase 6 Package 1 (Analytics
-expansion) is the next authorized implementation package.
+(Analytics & Pipeline Runs) is active. Phase 6 Packages 1 (Analytics
+expansion) and 2 (Analytics depth) are complete. Package 3 (Pipeline
+infrastructure) definition entry is required before its implementation begins.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -41,9 +42,15 @@ Phase 5 remaining package status:
 
 Current objectives:
 
-- implement Phase 6 Package 1 (Analytics expansion) — definition accepted,
-  implementation now authorized
-- prepare Phase 6 Package 2 definition entry before its implementation begins
+- Phase 6 Package 1 (Analytics expansion) — **complete** (755 passing, 1
+  skipped, 0 failed; Leah audit passed; no regressions)
+- Phase 6 Package 2 (Analytics depth) — **complete** (778 passing, 1
+  skipped, 0 failed; commit `6af126b`). Score Distribution, Stretch Response
+  Rates, Unified Source Comparison, Pipeline Velocity operator pairs,
+  LLM Grade Correlation (conditional). Employer-stage velocity pairs
+  deferred to Package 3.
+- write and accept Phase 6 Package 3 definition entry before any Package 3
+  implementation begins
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -114,19 +121,22 @@ Implemented:
 - document generation audit layer
 - firm repository — full lifecycle: discovery, draft, review, approve/reject, YAML sync, SQLite sync, firm-prior scoring integration (Phase 3)
 - dashboard service layer — job, document, tracker, metrics, and firm-intelligence read services; document regeneration and tracker state-transition/follow-up-resolution actions (Phase 4 Packages 1, 2a/2b, 3a/3b, 4, 6)
-- dashboard UI (Phase 5 Packages 1–6 / MVP complete, Package 8 complete): `job_search/dashboard/` — FastAPI app shell, navigation shell, Review Queue (display + select/reject actions), Job Detail, Documents (read + regeneration), Application Tracker (read + state-transition/follow-up-resolution actions), Metrics (read-only funnel stats), and Source Health (read-only, GET only). 124 dashboard tests passing (730 total). Authorized data/mutation paths: `TrackerService.transition_job()` for all `jobs.app_state` changes; `DocumentsService.regenerate_documents()` for document regeneration; `TrackerService.resolve_followup()` for follow-up resolution; `MetricsService.get_funnel_stats()` as sole metrics data source; `SourceHealthService.get_report()` as sole Source Health data path. Decision 2 (ATS quarantine mapping) formally closed — quarantine display driven by `firms.circuit_state`; `ats_tier` displayed as independent context.
+- dashboard UI (Phase 5 Packages 1–6 / MVP complete, Package 8 complete): `job_search/dashboard/` — FastAPI app shell, navigation shell, Review Queue (display + select/reject actions), Job Detail, Documents (read + regeneration), Application Tracker (read + state-transition/follow-up-resolution actions), Metrics (read-only funnel stats), and Source Health (read-only, GET only). 124 dashboard tests passing. Authorized data/mutation paths: `TrackerService.transition_job()` for all `jobs.app_state` changes; `DocumentsService.regenerate_documents()` for document regeneration; `TrackerService.resolve_followup()` for follow-up resolution; `MetricsService.get_funnel_stats()` as sole metrics data source; `SourceHealthService.get_report()` as sole Source Health data path. Decision 2 (ATS quarantine mapping) formally closed — quarantine display driven by `firms.circuit_state`; `ats_tier` displayed as independent context.
+- Phase 6 Package 1 — Analytics expansion: **accepted and complete** at MVP
+  scope (755 passing, 1 skipped, 0 failed). `FunnelReporter` / `FunnelStats`
+  extended with: funnel conversion rates, LLM grade distribution, stretch
+  category conversion rates, source effectiveness confidence signals (`n=`
+  counts), and contextual navigation links (Tracker, Review Queue, Source
+  Health). Source Breakdown table removed. `MetricsService.get_funnel_stats()`
+  remains sole authorized data path; Metrics route gained no new `Depends()`
+  arguments; no new services, routes, or screens; no mutation paths.
+  Items deferred from the original over-broad 11-item definition: score
+  distribution percentiles and extended transition times → Package 2; LLM
+  grade correlation → Package 2 conditional; Pipeline Age → Package 3;
+  remote/hybrid breakdown and threshold sensitivity → future packages.
+  See `DECISION_LOG.md`, "Phase 6 Package 1 — Scope Correction."
 
 Architecture complete, implementation pending:
-
-- Phase 6 Package 1 — Analytics expansion: definition accepted; implementation
-  authorized. Scope: funnel conversion rates, score distribution percentiles,
-  stretch category conversion rates, LLM grade distribution and outcome
-  correlation, time-in-current-state, extended transition times, remote/hybrid
-  breakdown, source effectiveness confidence signals, threshold sensitivity,
-  contextual navigation links. Data path: `FunnelReporter` / `FunnelStats`
-  extended; `MetricsService.get_funnel_stats()` remains sole authorized path.
-  See `DECISION_LOG.md`, "Phase 6 Package 1 — Analytics Expansion Definition
-  Accepted."
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
 - dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 2+3)
 - pipeline orchestration service, `pipeline_runs` table, and background-run execution visibility (deferred from Phase 4 Package 5 to Phase 6 — see Technical Debt)
@@ -198,7 +208,7 @@ Current roadmap:
 3. Phase 3 - Firm Repository ✓ Complete
 4. Phase 4 - Dashboard Service Layer ✓ Complete (Pipeline Orchestration deferred to Phase 6 — see Technical Debt)
 5. Phase 5 - Dashboard UI — MVP Complete (Packages 1–6). Package 8 (Source Health) complete. Package 7 gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c) deferred on Phase 6 infrastructure.
-6. Phase 6 - Analytics & Pipeline Runs ← **Active**. Package structure accepted. Package 1 (Analytics expansion) definition accepted; implementation authorized. Packages 2–4 require individual definition entries before implementation begins.
+6. Phase 6 - Analytics & Pipeline Runs ← **Active**. Package 1 (Analytics expansion) complete. Package 2 (Analytics depth) complete (778 passing, 1 skipped; commit `6af126b`). Package 3 (Pipeline infrastructure) definition entry required before implementation begins. Packages 4–5 require individual definition entries before their implementation begins.
 7. Phase 7 - Future Enhancements
 
 Phase numbering is authoritative in `roadmap.md`; this list mirrors it. Portfolio
@@ -398,14 +408,20 @@ Status:
   - `SourceHealthService.get_report()` — sole authorized Source Health
     data path; read-only, no mutations permitted from the dashboard route
   - `FunnelReporter` / `FunnelStats` extension — sole authorized analytics
-    path for Package 1; `MetricsService.get_funnel_stats()` remains sole
-    authorized route data path; Metrics route gains no new service dependencies
+    path for Package 1 (complete); `MetricsService.get_funnel_stats()` sole
+    authorized route data path; Metrics route gained no new service dependencies
 - Analytics information architecture (accepted per Donut study, Package 1
   definition): Metrics = strategic/point-in-time; Source Health = operational
   diagnostics; Pipeline Trends = historical/trend (future, Package 4). Each
   layer is a distinct screen. Trend and historical data must not be added to
   the Metrics screen.
-- pipeline orchestration / `pipeline_runs` deferred to Phase 6 Packages 2+3
+- Phase 6 Package 1 complete — 755 passing; no new routes, services, or screens
+- Phase 6 Package 2 complete — 778 passing (commit `6af126b`); Score
+  Distribution, Stretch Response Rates, Unified Source Comparison, Pipeline
+  Velocity operator pairs, LLM Correlation conditional; no new routes,
+  services, or screens; Metrics route read-only; employer-stage velocity
+  pairs deferred to Package 3
+- pipeline orchestration / `pipeline_runs` deferred to Phase 6 Package 3
 
 Preferred architecture:
 
