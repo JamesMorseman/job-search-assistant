@@ -8,8 +8,17 @@ Pipeline Runs) remain as placeholder nav links until their packages land.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+)
+from fastapi.staticfiles import StaticFiles
 
 from job_search.dashboard.render import templates
 from job_search.dashboard.routes import documents as documents_routes
@@ -17,6 +26,10 @@ from job_search.dashboard.routes import jobs as jobs_routes
 from job_search.dashboard.routes import metrics as metrics_routes
 from job_search.dashboard.routes import source_health as source_health_routes
 from job_search.dashboard.routes import tracker as tracker_routes
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_FRONTEND_DIST = _PROJECT_ROOT / "frontend" / "dist"
+_FRONTEND_INDEX = _FRONTEND_DIST / "index.html"
 
 
 def create_app() -> FastAPI:
@@ -39,5 +52,31 @@ def create_app() -> FastAPI:
     @app.get("/dashboard", response_class=HTMLResponse)
     def dashboard_root(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "base.html", {})
+
+    app.mount(
+        "/atlas/assets",
+        StaticFiles(directory=_FRONTEND_DIST / "assets", check_dir=False),
+        name="atlas-assets",
+    )
+
+    @app.get(
+        "/atlas",
+        response_class=HTMLResponse,
+        include_in_schema=False,
+        response_model=None,
+    )
+    @app.get(
+        "/atlas/{path:path}",
+        response_class=HTMLResponse,
+        include_in_schema=False,
+        response_model=None,
+    )
+    def atlas_spa(path: str = "") -> Response:
+        if not _FRONTEND_INDEX.exists():
+            return PlainTextResponse(
+                "ATLAS frontend has not been built. Run npm run build in frontend.",
+                status_code=404,
+            )
+        return FileResponse(_FRONTEND_INDEX)
 
     return app

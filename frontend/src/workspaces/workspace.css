@@ -1,0 +1,56 @@
+.workspace-placeholder {
+  display: grid;
+  align-content: start;
+  min-height: calc(100vh - 68px);
+  padding: 28px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(13, 18, 27, 0.78);
+  box-shadow: var(--atlas-shadow);
+}
+
+.workspace-eyebrow {
+  margin: 0 0 12px;
+  color: var(--atlas-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.workspace-placeholder h2 {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.workspace-intent {
+  max-width: 660px;
+  margin: 14px 0 28px;
+  color: var(--atlas-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.workspace-frame {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  border: 1px dashed rgba(146, 160, 182, 0.35);
+  border-radius: var(--atlas-radius);
+  color: var(--atlas-soft);
+  background:
+    linear-gradient(180deg, rgba(88, 166, 255, 0.07), rgba(56, 211, 196, 0.04)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.workspace-frame span {
+  padding: 10px 14px;
+  border: 1px solid var(--atlas-line);
+  border-radius: 999px;
+  color: var(--atlas-muted);
+  background: rgba(6, 8, 13, 0.6);
+  font-size: 13px;
+  font-weight: 700;
+}

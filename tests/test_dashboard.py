@@ -108,6 +108,21 @@ def test_dashboard_root_renders_navigation_shell(client):
 # ── Service integration boundary ─────────────────────────────────────────
 
 
+def test_atlas_spa_route_does_not_capture_dashboard_routes(client):
+    resp = client.get("/dashboard/review-queue")
+    assert resp.status_code == 200
+    assert "Review Queue" in resp.text
+
+
+def test_atlas_spa_route_resolves_or_reports_missing_build(client):
+    resp = client.get("/atlas")
+    assert resp.status_code in (200, 404)
+    if resp.status_code == 200:
+        assert "<!doctype html>" in resp.text.lower()
+    else:
+        assert "ATLAS frontend has not been built" in resp.text
+
+
 def test_dependency_functions_return_service_instances():
     assert isinstance(get_jobs_service(), JobsService)
     assert isinstance(get_documents_service(), DocumentsService)
