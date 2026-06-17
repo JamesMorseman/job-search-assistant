@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} — {{ job.company }} — Job Search Assistant{% endblock %}
+{% block content %}
+<p><a href="/dashboard/review-queue">&larr; Back to Review Queue</a></p>
+
+<h2 data-testid="job-title">{{ job.title }}</h2>
+<h3 data-testid="job-company">{{ job.company }}</h3>
+
+<p><a data-testid="documents-link" href="/dashboard/jobs/{{ job.canonical_job_id }}/documents">View Documents</a></p>
+
+<section data-testid="job-overview">
+    <dl>
+        <dt>Location</dt>
+        <dd data-testid="job-location">
+            {{ job.location_city or "" }}{% if job.location_city and job.location_state %}, {% endif %}{{ job.location_state or "" }}{% if job.location_country %} ({{ job.location_country }}){% endif %}
+        </dd>
+
+        <dt>Remote status</dt>
+        <dd data-testid="job-remote-flag">{{ job.remote_flag }}</dd>
+
+        <dt>Salary</dt>
+        <dd data-testid="job-salary">
+            {% if job.salary_min or job.salary_max %}
+                {{ job.salary_min or "?" }} - {{ job.salary_max or "?" }}
+            {% else %}
+                Not stated
+            {% endif %}
+        </dd>
+
+        <dt>Source</dt>
+        <dd data-testid="job-source">{{ job.source }}{% if job.firm_id %} ({{ job.firm_id }}){% endif %}</dd>
+
+        <dt>Application status</dt>
+        <dd data-testid="job-app-state">{{ job.app_state }}</dd>
+
+        <dt>Posting</dt>
+        <dd>
+            {% if job.apply_url %}
+            <a data-testid="apply-link" href="{{ job.apply_url }}" target="_blank" rel="noopener">Open posting</a>
+            {% else %}
+            Not available
+            {% endif %}
+        </dd>
+    </dl>
+</section>
+
+<section data-testid="job-scoring">
+    <h3>Score &amp; Grade</h3>
+    <dl>
+        <dt>Match score</dt>
+        <dd data-testid="job-match-score">{{ job.match_score if job.match_score is not none else "Not scored" }}</dd>
+
+        <dt>Stretch category</dt>
+        <dd data-testid="job-stretch-category">{{ job.stretch_category or "" }}</dd>
+
+        <dt>Benefit score</dt>
+        <dd data-testid="job-benefit-score">{{ job.benefit_score }}</dd>
+
+        <dt>Career trajectory score</dt>
+        <dd data-testid="job-trajectory-score">{{ job.career_trajectory_score }}</dd>
+
+        <dt>LLM grade</dt>
+        <dd data-testid="job-llm-grade">{{ job.llm_grade or "Not graded" }}</dd>
+
+        <dt>Fit rationale</dt>
+        <dd data-testid="job-llm-rationale">{{ job.llm_rationale or "" }}</dd>
+    </dl>
+</section>
+
+<section data-testid="job-knockouts">
+    <h3>Knockout Criteria</h3>
+    <ul>
+        <li>Work authorization: {{ job.ko_work_auth or "Not stated" }}</li>
+        <li>Minimum years required: {{ job.ko_min_years if job.ko_min_years is not none else "Not stated" }}</li>
+        <li>EIT required: {{ job.ko_eit_required if job.ko_eit_required is not none else "Not stated" }}</li>
+        <li>PE required: {{ job.ko_pe_required if job.ko_pe_required is not none else "Not stated" }}</li>
+        <li>Clearance: {{ job.ko_clearance or "Not stated" }}</li>
+        <li>Relocation: {{ job.ko_relocation or "Not stated" }}</li>
+        <li>Degree required: {{ job.ko_degree_required or "Not stated" }}</li>
+    </ul>
+</section>
+
+<section data-testid="job-benefit-reasons">
+    <h3>Benefit Reasons</h3>
+    {% if job.benefit_reasons %}
+    <ul>
+        {% for reason in job.benefit_reasons %}
+        <li>{{ reason.label if reason.label is defined else reason }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No benefit signals recorded.</p>
+    {% endif %}
+</section>
+
+<section data-testid="job-trajectory-reasons">
+    <h3>Trajectory Reasons</h3>
+    {% if job.trajectory_reasons %}
+    <ul>
+        {% for reason in job.trajectory_reasons %}
+        <li>{{ reason.label if reason.label is defined else reason }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No trajectory signals recorded.</p>
+    {% endif %}
+</section>
+{% endblock %}

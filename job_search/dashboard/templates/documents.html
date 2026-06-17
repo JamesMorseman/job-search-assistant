@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Documents — {{ job.title }} — Job Search Assistant{% endblock %}
+{% block content %}
+<p><a href="/dashboard/jobs/{{ job.canonical_job_id }}">&larr; Back to Job Detail</a></p>
+
+<h2 data-testid="documents-job-title">{{ job.title }}</h2>
+<h3 data-testid="documents-job-company">{{ job.company }}</h3>
+
+{% if error %}
+<p data-testid="regeneration-error">{{ error }}</p>
+{% endif %}
+
+<form method="post" action="/dashboard/jobs/{{ job.canonical_job_id }}/documents/regenerate">
+    <button type="submit" data-testid="regenerate-button">Regenerate Documents</button>
+</form>
+
+<section data-testid="current-documents">
+    <h3>Current Documents</h3>
+    {% if current.resume or current.cover_letter %}
+    <dl>
+        <dt>Resume</dt>
+        <dd data-testid="current-resume">
+            {% if current.resume %}
+            <a href="{{ current.resume.drive_url }}" target="_blank" rel="noopener">Open current resume</a>
+            (generated {{ current.resume.generated_at }})
+            {% else %}
+            None generated yet.
+            {% endif %}
+        </dd>
+
+        <dt>Cover Letter</dt>
+        <dd data-testid="current-cover-letter">
+            {% if current.cover_letter %}
+            <a href="{{ current.cover_letter.drive_url }}" target="_blank" rel="noopener">Open current cover letter</a>
+            (generated {{ current.cover_letter.generated_at }})
+            {% else %}
+            None generated yet.
+            {% endif %}
+        </dd>
+    </dl>
+    {% else %}
+    <p data-testid="empty-state">No documents have been generated for this job yet.</p>
+    {% endif %}
+</section>
+
+<section data-testid="document-history">
+    <h3>Document History</h3>
+    {% if history %}
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Generated</th>
+                <th>Model</th>
+                <th>Keyword Coverage</th>
+                <th>Link</th>
+                <th>Current</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in history %}
+            <tr>
+                <td>{{ doc.doc_type }}</td>
+                <td>{{ doc.generated_at }}</td>
+                <td>{{ doc.model_used or "" }}</td>
+                <td>{{ doc.keyword_coverage if doc.keyword_coverage is not none else "" }}</td>
+                <td>
+                    {% if doc.drive_url %}
+                    <a href="{{ doc.drive_url }}" target="_blank" rel="noopener">Open</a>
+                    {% endif %}
+                </td>
+                <td data-testid="is-current">
+                    {% if current.get(doc.doc_type) and current.get(doc.doc_type).id == doc.id %}
+                    current
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</section>
+{% endblock %}

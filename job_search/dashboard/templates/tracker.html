@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Application Tracker — Job Search Assistant{% endblock %}
+{% block content %}
+<h2>Application Tracker</h2>
+
+{% if error %}
+<p data-testid="tracker-error">{{ error }}</p>
+{% endif %}
+
+<section data-testid="tracker-section">
+    <h3>Active Applications</h3>
+    {% if rows %}
+    <table>
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Title</th>
+                <th>State</th>
+                <th>Last Transition</th>
+                <th>Note</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            {% set next_states = valid_transitions.get(row.app_state, []) %}
+            <tr data-testid="tracker-row">
+                <td data-testid="tracker-company">{{ row.company }}</td>
+                <td>
+                    <a data-testid="tracker-job-detail-link"
+                       href="/dashboard/jobs/{{ row.canonical_job_id }}">{{ row.title }}</a>
+                </td>
+                <td data-testid="tracker-state">{{ row.app_state }}</td>
+                <td data-testid="tracker-last-transitioned-at">{{ row.last_transitioned_at or "" }}</td>
+                <td data-testid="tracker-last-note">{{ row.last_transition_note or "" }}</td>
+                <td>
+                    {% if next_states %}
+                    <form method="post"
+                          action="/dashboard/tracker/{{ row.canonical_job_id }}/transition"
+                          data-testid="transition-form">
+                        <select name="to_state" data-testid="transition-select-{{ row.canonical_job_id }}">
+                            {% for state in next_states | sort %}
+                            <option value="{{ state }}">{{ state }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" data-testid="transition-submit-{{ row.canonical_job_id }}">
+                            Move
+                        </button>
+                    </form>
+                    {% else %}
+                    <span data-testid="no-transitions">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p data-testid="tracker-empty-state">No applications are currently being tracked.</p>
+    {% endif %}
+</section>
+
+<section data-testid="followups-section">
+    <h3>Due Follow-ups</h3>
+    {% if followups %}
+    <table>
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Title</th>
+                <th>Action</th>
+                <th>Due Date</th>
+                <th>Note</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in followups %}
+            <tr data-testid="followup-row">
+                <td data-testid="followup-company">{{ item.company }}</td>
+                <td>
+                    <a data-testid="followup-job-detail-link"
+                       href="/dashboard/jobs/{{ item.canonical_job_id }}">{{ item.title }}</a>
+                </td>
+                <td data-testid="followup-action-type">{{ item.action_type }}</td>
+                <td data-testid="followup-due-date">{{ item.due_date }}</td>
+                <td data-testid="followup-note">{{ item.note or "" }}</td>
+                <td>
+                    <form method="post"
+                          action="/dashboard/tracker/followups/{{ item.id }}/resolve"
+                          data-testid="resolve-form">
+                        <button type="submit" data-testid="resolve-submit-{{ item.id }}">
+                            Resolve
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p data-testid="followups-empty-state">No follow-ups are currently due.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Source Health — Job Search Assistant{% endblock %}
+
+{% block content %}
+<h2>Source Health</h2>
+
+<section data-testid="global-health-bar">
+    {% if global_summary.all_healthy %}
+    <p data-testid="all-sources-healthy">All sources healthy</p>
+    {% else %}
+    <ul>
+        {% if global_summary.open_circuit_count > 0 %}
+        <li data-testid="open-circuit-count">Open circuits: {{ global_summary.open_circuit_count }}</li>
+        {% endif %}
+        {% if global_summary.recent_error_count > 0 %}
+        <li data-testid="recent-error-count">Errors (last 7 days): {{ global_summary.recent_error_count }}</li>
+        {% endif %}
+    </ul>
+    {% endif %}
+    <p>Total sources tracked: <span data-testid="total-sources">{{ global_summary.total_sources }}</span></p>
+    {% if global_summary.last_successful_run %}
+    <p>Last successful run: <span data-testid="last-successful-run">{{ global_summary.last_successful_run }}</span></p>
+    {% endif %}
+</section>
+
+{% if sources %}
+<table data-testid="source-health-table">
+    <thead>
+        <tr>
+            <th>Source</th>
+            <th>Firm</th>
+            <th>Last Run</th>
+            <th>Status</th>
+            <th>Records Fetched</th>
+            <th>Error Class</th>
+            <th>Circuit State</th>
+            <th>ATS Tier</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in sources %}
+        <tr data-testid="source-row">
+            <td data-testid="source-name">{{ s.source }}</td>
+            <td data-testid="firm-name">
+                {% if s.firm_id is none %}Global{% elif s.firm_name %}{{ s.firm_name }}{% else %}{{ s.firm_id }}{% endif %}
+            </td>
+            <td data-testid="run-at">{{ s.run_at or "—" }}</td>
+            <td data-testid="status">{{ s.status or "—" }}</td>
+            <td data-testid="records-fetched">
+                {% if s.records_fetched is none %}—{% else %}{{ s.records_fetched }}{% endif %}
+            </td>
+            <td data-testid="error-class">{{ s.error_class or "—" }}</td>
+            <td data-testid="circuit-state">
+                {% if s.is_quarantined %}
+                    {% if s.quarantine_active %}
+                    <span data-testid="quarantined-active">open (quarantined until {{ s.quarantine_until }})</span>
+                    {% else %}
+                    <span data-testid="quarantine-expired">closed (quarantine expired)</span>
+                    {% endif %}
+                {% else %}
+                closed
+                {% endif %}
+            </td>
+            <td data-testid="ats-tier">{{ s.ats_tier or "—" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p data-testid="no-runs-recorded">No runs recorded</p>
+{% endif %}
+{% endblock %}

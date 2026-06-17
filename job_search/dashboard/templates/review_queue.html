@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Review Queue — Job Search Assistant{% endblock %}
+{% block content %}
+<h2>Review Queue</h2>
+<p>Jobs currently presented for review. Select or reject each job, or open its posting.</p>
+
+{% if error %}
+<p data-testid="action-error">{{ error }}</p>
+{% endif %}
+
+{% if jobs %}
+<table>
+    <thead>
+        <tr>
+            <th>Company</th>
+            <th>Title</th>
+            <th>Location</th>
+            <th>Remote</th>
+            <th>Source</th>
+            <th>Match Score</th>
+            <th>Stretch Category</th>
+            <th>Grade</th>
+            <th>Posting</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in jobs %}
+        <tr>
+            <td>{{ job.company }}</td>
+            <td><a data-testid="job-detail-link" href="/dashboard/jobs/{{ job.canonical_job_id }}">{{ job.title }}</a></td>
+            <td>{{ job.location_city or "" }}{% if job.location_city and job.location_state %}, {% endif %}{{ job.location_state or "" }}</td>
+            <td data-testid="remote-flag">{{ job.remote_flag }}</td>
+            <td>{{ job.source }}</td>
+            <td>{{ job.match_score }}</td>
+            <td data-testid="stretch-category">{{ job.stretch_category or "" }}</td>
+            <td>{{ job.llm_grade or "" }}</td>
+            <td>
+                {% if job.apply_url %}
+                <a data-testid="apply-link" href="{{ job.apply_url }}" target="_blank" rel="noopener">Open posting</a>
+                {% endif %}
+            </td>
+            <td>
+                <form method="post" action="/dashboard/review-queue/{{ job.canonical_job_id }}/select">
+                    <button type="submit" data-testid="select-button">Select</button>
+                </form>
+                <form method="post" action="/dashboard/review-queue/{{ job.canonical_job_id }}/reject">
+                    <button type="submit" data-testid="reject-button">Reject</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p data-testid="empty-state">No jobs are currently presented for review.</p>
+{% endif %}
+{% endblock %}

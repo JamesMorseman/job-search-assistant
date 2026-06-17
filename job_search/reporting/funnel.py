@@ -16,6 +16,11 @@ from job_search.db import get_db
 FUNNEL_STAGES = ["discovered", "presented", "selected", "applied", "screen", "interview", "offer"]
 TERMINAL_STATES = ("rejected", "ghosted", "offer")
 
+_APPLIED_AND_BEYOND = frozenset({
+    "applied", "acknowledged", "screen", "interview", "offer", "rejected", "ghosted"
+})
+_SCREEN_AND_BEYOND = frozenset({"screen", "interview", "offer"})
+
 
 @dataclass
 class FunnelStats:
@@ -28,6 +33,9 @@ class FunnelStats:
     avg_match_by_state: dict[str, float] = field(default_factory=dict)
     response_rate_by_source: dict[str, dict] = field(default_factory=dict)
     median_days: dict[str, float | None] = field(default_factory=dict)
+    funnel_conversion_rates: dict[str, float | None] = field(default_factory=dict)
+    llm_grade_distribution: dict[str, dict] = field(default_factory=dict)
+    stretch_conversion_rates: dict[str, dict] = field(default_factory=dict)
 
 
 class FunnelReporter:
@@ -41,6 +49,9 @@ class FunnelReporter:
             stats.avg_match_by_state = self._avg_match_by_state(db)
             stats.response_rate_by_source = self._response_rate_by_source(db)
             stats.median_days = self._median_days_between_states(db)
+            stats.llm_grade_distribution = self._llm_grade_distribution(db)
+        stats.funnel_conversion_rates = self._funnel_conversion_rates(stats.by_state)
+        stats.stretch_conversion_rates = self._stretch_conversion_rates(stats.by_stretch)
         return stats
 
     # ── Aggregations ──────────────────────────────────────────────────────────
@@ -132,6 +143,51 @@ class FunnelReporter:
                 to_states=("rejected", "ghosted"),
             ),
         }
+
+    def _funnel_conversion_rates(self, by_state: dict[str, int]) -> dict[str, float | None]:
+        """Conversion rate from each funnel stage to the next. None when prior stage count is 0."""
+        if not by_state:
+            return {}
+        result: dict[str, float | None] = {}
+        for i, stage in enumerate(FUNNEL_STAGES):
+            if i == 0:
+                result[stage] = None
+            else:
+                prior_count = by_state.get(FUNNEL_STAGES[i - 1], 0)
+                if prior_count == 0:
+                    result[stage] = None
+                else:
+                    result[stage] = round(by_state.get(stage, 0) / prior_count, 3)
+        return result
+
+    def _llm_grade_distribution(self, db: Connection) -> dict[str, dict]:
+        rows = db.execute("""
+            SELECT llm_grade, COUNT(*) as n FROM jobs
+            WHERE llm_grade IS NOT NULL
+            GROUP BY llm_grade
+        """).fetchall()
+        if not rows:
+            return {}
+        total = sum(r["n"] for r in rows)
+        return {
+            r["llm_grade"]: {"count": r["n"], "pct": round(r["n"] / total, 3)}
+            for r in rows
+        }
+
+    def _stretch_conversion_rates(self, by_stretch: dict[str, dict[str, int]]) -> dict[str, dict]:
+        result: dict[str, dict] = {}
+        for category, states in by_stretch.items():
+            total = sum(states.values())
+            if total == 0:
+                continue
+            applied_count = sum(states.get(s, 0) for s in _APPLIED_AND_BEYOND)
+            screen_count = sum(states.get(s, 0) for s in _SCREEN_AND_BEYOND)
+            result[category] = {
+                "total": total,
+                "applied_rate": round(applied_count / total, 3),
+                "screen_rate": round(screen_count / total, 3),
+            }
+        return result
 
     def _median_transition_days(
         self,

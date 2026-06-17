@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Job Search Assistant — Dashboard{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <h1>Job Search Assistant</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard/review-queue">Review Queue</a></li>
+                <li>Job Detail (open a job from Review Queue)</li>
+                <li>Documents (open a job, then view its documents)</li>
+                <li><a href="/dashboard/tracker">Application Tracker</a></li>
+                <li><a href="/dashboard/metrics">Metrics</a></li>
+                <li>Firm Review Queue (not yet implemented)</li>
+                <li>Pipeline Runs (not yet implemented)</li>
+                <li><a href="/dashboard/source-health">Source Health</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
