@@ -1,7 +1,7 @@
 # Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 — Phase 6 Packages 1+2 complete; ATLAS Desktop v1
-visually frozen; Package 3 definition accepted; implementation authorized
+**Version:** June 2026 — Phase 6 Package 3 complete; Desktop v1 tech stack
+accepted; deferred recovery file review closed; Package 4 definition required
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -47,7 +47,7 @@ Documentation strategy and portfolio presentation go to Rin.
 - **Branch:** `feature/llm-abstraction`
 - **Governance files:** Clean — all committed in `95d7eda` + recovery closure
 - **Implementation files:** Clean — committed in `2b52967` and `6af126b`
-- **Test suite:** 778 passing, 1 skipped, 0 failed (as of Phase 6 Package 2)
+- **Test suite:** 806 passing, 1 skipped, 5 warnings (as of Phase 6 Package 3)
 
 **Confirm at session start:**
 
@@ -79,7 +79,7 @@ explicit PM authorization):**
 | 3 — Firm Repository | Complete (June 2026) |
 | 4 — Dashboard Service Layer | Complete (June 2026; Package 5 reassigned to Phase 6) |
 | 5 — Dashboard UI | **MVP Complete** (Packages 1–6 + Package 8 done; 7 gated on sync implementation; 9a/9b/9c gated on Phase 6) |
-| 6 — Analytics & Pipeline Runs | **Active** — Packages 1+2 complete; Package 3 definition entry required |
+| 6 — Analytics & Pipeline Runs | **Active** — Packages 1+2+3 complete; Package 4 definition entry required |
 | 7 — Future Enhancements | Planned |
 
 ### Phase 6 Package Status (revised numbering — authoritative)
@@ -88,8 +88,8 @@ explicit PM authorization):**
 |---|---|---|
 | 1 | Analytics expansion (MVP) | **Complete** — 755 passing; commit `2b52967` |
 | 2 | Analytics depth | **Complete** — 778 passing; commit `6af126b` |
-| 3 | Pipeline infrastructure (`pipeline_runs` table, `services/pipeline.py`) | **Definition accepted — implementation authorized** |
-| 4 | Local-first background runner | Authorized; definition required; depends on Package 3 |
+| 3 | Pipeline infrastructure (`pipeline_runs` table, `services/pipeline.py`) | **Complete** — 806 passing; commit `f882405`; Leah audit PASS WITH MINOR NOTES |
+| 4 | Local-first background runner | Authorized; **definition entry required before implementation**; depends on Package 3 (complete) |
 | 5 | Dashboard integration / Pipeline Runs screen | Authorized; definition required; depends on Packages 3+4 |
 
 ### Phase 5 Deferred Packages
@@ -107,33 +107,26 @@ explicit PM authorization):**
 ## 4. Recent Commits and What They Mean
 
 ```text
+(current governance commit)
+         docs(governance): close Package 3 and accept Desktop v1 stack
+         DECISION_LOG.md: Package 3 completion, Desktop v1 stack decision,
+           deferred recovery file review closure
+         PROJECT_STATE.md: Package 3 complete, Package 4 next, Desktop stack
+         roadmap.md: Package 3 complete
+         ASH_INIT_NEXT.md: synchronized to current state
+
+f882405  feat(pipeline): Phase 6 Package 3 pipeline_runs table and PipelineService
+         job_search/db/schema.sql: pipeline_runs table added
+         job_search/services/pipeline.py: PipelineService + PipelineRun
+         tests/test_pipeline_service.py: 28 unit tests (806 passing total)
+
+19fcf2c  docs(governance): define Phase 6 Package 3 pipeline infrastructure
+d96313a  docs(governance): close ATLAS recovery import and prepare next Ash
 ab29f27  docs(recovery): import ATLAS recovered studies and dissemination instructions
-         28 markdown files: docs/Brand/, docs/Documentation/, docs/Strategy/,
-         docs/Architecture/Migration/REPOSITORY_DISSEMINATION_INSTRUCTIONS.md
-
 6f1d2f4  docs(recovery): import ATLAS visual artifacts and companion references
-         11 Desktop v1 PNGs under artifacts/png/ (workspaces, objects, ecosystem)
-         11 generated companion .md files paired with each PNG
-
-66b6f51  chore: correct CI badge URL and add Phase 5 dashboard dependencies
-         README.md: badge URL corrected (smorseman -> JamesMorseman)
-         pyproject.toml: fastapi, uvicorn, jinja2, python-multipart added
-
 95d7eda  docs(governance): reconcile Phase 6 package numbering
-         Four governance files committed:
-         - DECISION_LOG.md: Package 1 scope correction, Package 2 definition
-           and completion, numbering revision
-         - PROJECT_STATE.md: Package 2 complete
-         - roadmap.md: Phase 5 table 9a/9b cross-references corrected to
-           revised numbering; Phase 6 table updated
-         - ASH_INIT.md: fully synchronized to Package 2 complete state
-
 6af126b  feat(analytics): Phase 6 Package 2 — analytics depth on Metrics screen
-         Score Distribution, Stretch Response Rates, Unified Source Comparison,
-         Pipeline Velocity operator pairs, LLM Grade Correlation (conditional)
-
 2b52967  feat(dashboard): Phase 5 dashboard and Phase 6 Package 1 analytics
-         Phase 5 MVP complete (Packages 1–6, 8); Package 1 analytics expansion
 ```
 
 ---
@@ -302,22 +295,29 @@ implementation in v1.
 
 ---
 
-## 11. Remaining Deferred and Review-Required Files
+## 11. Deferred Recovery Files — Review Complete
 
-These seven files from the recovery package were not imported due to potential
-overlap with committed canonical specs. A content comparison pass is required
-before PM can authorize their import. **None may be committed without explicit
-PM authorization following that comparison.**
+The content comparison pass for the seven deferred overlap-risk files is
+complete. See `DECISION_LOG.md`, "ATLAS Recovery — Deferred Overlap-Risk File
+Review Completed."
 
-1. `Compents/Recommendation Card/ATLAS_Recommendation_Card_v1.md`
-2. `Compents/Opportunity Signal Card/Opportunity_Signal_Card_v1.md`
-3. `Workspaces/Command Center/COMMAND_CENTER_SPEC.md`
-4. `ATLAS Product Documentation Framework v1.0.md`
-5. `ATLAS_Ask_Atlas_Surface_Specification_Study.md`
-6. `ATLAS_Pipeline_Surface_Specification_Study.md`
-7. `ATLAS_Recommendation_System_Surface_Specification_Study.md`
+**Result: 6 SKIP_SUPERSEDED, 1 KEEP_DEFERRED. No additional import authorized.**
 
-See `DECISION_LOG.md`, "ATLAS Recovery — Seven Overlap-Risk Files Deferred."
+Files 1–3 and 5–7 are SKIP_SUPERSEDED — source-layer drafts with committed
+canonical successors. None may be committed at any future point without a new
+PM authorization entry explicitly overriding this classification.
+
+**KEEP_DEFERRED (1 file — remains in ZIP only):**
+- `ATLAS Product Documentation Framework v1.0.md` — distinct scope from the
+  committed repo documentation taxonomy; covers product-facing user doc
+  architecture. "Planning Draft" status; not an active workstream. Potential
+  destination if ever imported: `docs/Documentation/ATLAS_Product_Documentation_Framework_v1.0.md`.
+  Re-evaluate when product documentation becomes an active workstream.
+
+**No deferred files remain that require a content comparison pass.** The only
+untracked files requiring PM decision before commit remain:
+- `docs/ATLAS_Recovery_Package_20260617.zip` — source material; permanent
+- `docs/Strategy/ATLAS Workspace Ecosystem Study.md` — advisory/unaccepted
 
 ---
 
@@ -445,47 +445,48 @@ Run `git status --short --untracked-files=all` and `git log --oneline -8`.
 Confirm repo state matches §2 and §4. Identify any contradictions or
 ambiguities before proceeding.
 
-### Step 2 — Issue Package 3 implementation task to Anna (JSA track)
+### Step 2 — Write Phase 6 Package 4 definition entry (JSA track)
 
-**Package 3 definition is accepted (DECISION_LOG.md, "Phase 6 Package 3 —
-Pipeline Infrastructure Definition Accepted"). Implementation is authorized.**
+**Package 3 is complete (commit `f882405`, 806 passing, Leah audit PASS WITH
+MINOR NOTES). Package 4 (local-first background runner) is the next JSA
+engineering package.**
 
-Issue an Anna implementation task. Standard task structure: authority list
-pointing to the DECISION_LOG definition entry, objective, accepted scope
-(5 items: table schema, service boundary, run creation, run
-update/completion/failure, read APIs), authorized mutation paths, prohibited
-paths, and acceptance criteria. All are recorded in the DECISION_LOG entry.
+Package 4 is authorized but requires its own definition entry before any
+implementation begins. Per the standing governance rule, write and accept a
+DECISION_LOG entry covering: scope (wrap ingest/grade/generate/follow-up
+pipeline steps in a durable local execution layer; persist run stats and errors
+to `pipeline_runs`), authorized mutation paths (via PipelineService only),
+prohibited paths, acceptance criteria, and any Leah or Donut planning study
+references.
 
-Employer-stage velocity pairs (`acknowledged→screen`, `screen→interview`,
-`interview→offer`) are deferred to Package 5 / Pipeline Trends per the
-definition entry. Do not include them in the Package 3 implementation task.
+After that entry is accepted, issue an Anna implementation task referencing it.
 
-### Step 3 — After Package 3 ships
+### Step 3 — Write ATLAS Desktop Package 1 definition entry (Desktop track)
 
-After Package 3 implementation passes acceptance criteria, write the Phase 6
-Package 4 (local-first background runner) definition entry before issuing
-any Package 4 implementation task.
+**Desktop v1 tech stack is accepted** (React 18 + TypeScript + Vite + Tailwind
++ FastAPI catch-all; see DECISION_LOG.md "ATLAS Desktop v1 — Frontend Technology
+Stack Decision"). Desktop Package 1 — Desktop Shell — may now be defined.
 
-### Step 4 — Desktop v1 implementation package boundaries (ATLAS track)
+Package 1 scope is fully knowable: Vite project scaffold, TypeScript, Tailwind
+configuration; FastAPI SPA catch-all route; shell layout (sidebar nav for 5
+workspaces, main content area, Context Panel stub); ATLAS design-token CSS
+variables; React Router workspace routing; shell renders with placeholder
+workspace content; Context Panel opens/closes and persists across navigation;
+no data integration.
 
-ATLAS Desktop v1 is visually frozen and ready for implementation planning.
-This is a parallel track to the JSA engineering roadmap and does not block
-or gate Phase 6 Package 3.
-
-The next step is for Ash (or Donut under Ash's authority) to produce
-implementation package boundaries for Desktop v1. Authority:
-`docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`.
+Write and accept a DECISION_LOG Desktop Package 1 definition entry before
+issuing any implementation task to Anna. This track is parallel to the JSA
+Phase 6 work — Desktop packages 1–3 are file-disjoint from Phase 6 Python work.
 
 **Sequencing constraint:** Do not split Desktop v1 implementation into
 parallel agents before file ownership across surfaces is clearly separated.
-Surface packages must be defined with non-overlapping file sets before
-parallel Anna agents can be safely issued.
+Surface packages must be defined with non-overlapping file sets.
 
-### Step 5 — Deferred content comparison pass (lower urgency)
+### Step 4 — Deferred content comparison (CLOSED)
 
-A future Leah content comparison pass should assess the 7 deferred
-overlap-risk files for import authorization. This is not blocking any
-current work.
+The 7-file deferred recovery comparison is complete. No action required.
+See DECISION_LOG.md "ATLAS Recovery — Deferred Overlap-Risk File Review
+Completed." Only one file remains KEEP_DEFERRED; six are SKIP_SUPERSEDED.
 
 ---
 
@@ -495,7 +496,7 @@ A new Ash must not:
 
 - **Restart completed Phase 1–3 debates** — deterministic rendering,
   SQLite-as-source-of-truth, FirmConfig/FirmProfile split are settled
-- **Authorize Phase 6 Package 3 implementation before writing its definition
+- **Authorize Phase 6 Package 4 implementation before writing its definition
   entry** — the standing governance rule is non-negotiable
 - **Treat the ATLAS Workspace Ecosystem Study as accepted** — it is advisory
   and untracked

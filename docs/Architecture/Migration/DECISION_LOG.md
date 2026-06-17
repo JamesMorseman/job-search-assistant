@@ -1737,3 +1737,244 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   Package 3 ships and passes acceptance criteria, Phase 6 Package 4
   (local-first background runner) definition entry must be written and
   accepted before its implementation begins.
+
+### Phase 6 Package 3 — Pipeline Infrastructure Complete
+
+- Status: accepted
+- Area: roadmap / pipeline infrastructure / service layer
+- Date: June 2026
+- Commit: `f882405` — `feat(pipeline): Phase 6 Package 3 pipeline_runs table
+  and PipelineService`
+- Test suite: 806 passed, 1 skipped, 5 warnings
+- Audit: Leah — PASS WITH MINOR NOTES
+
+  **Package accepted:**
+  - Package 3 — Pipeline Infrastructure — **Accepted / Complete**
+
+  **Files changed (3 files):**
+  - `job_search/db/schema.sql` — `pipeline_runs` table added to schema
+  - `job_search/services/pipeline.py` — `PipelineService` and `PipelineRun`
+    read model
+  - `tests/test_pipeline_service.py` — 28 unit tests
+
+  **Implemented scope (all five required items from the definition entry):**
+
+  1. **`pipeline_runs` table schema.** Durable SQLite table for run records
+     created through the existing project database schema/migration path.
+     All required fields implemented: `id`, `run_type`, `status`,
+     `started_at`, `completed_at`, `source`, `trigger`, `jobs_seen`,
+     `jobs_created`, `jobs_updated`, `jobs_presented`, `errors_count`,
+     `metadata_json`, `notes_json`.
+
+  2. **`services/pipeline.py` service boundary.** `PipelineService` class
+     owns all writes to `pipeline_runs`. Route handlers, analytics reporters,
+     templates, and future runners must route all writes through this service.
+
+  3. **Pipeline run creation.** `PipelineService.create_run()` — centralized
+     API for creating run records with run type, initial status, trigger,
+     optional source, and start timestamp.
+
+  4. **Run status updates and completion/failure recording.**
+     `PipelineService.update_counters()` for counter updates during execution;
+     `PipelineService.complete_run()` for marking a run complete and persisting
+     completion timestamp and final counters; `PipelineService.fail_run()` for
+     marking a run failed with error count and structured metadata.
+
+  5. **Read APIs.** `PipelineService.list_recent_runs()` and
+     `PipelineService.get_run()` for future dashboard integration; returns
+     `PipelineRun` read model instances.
+
+  **Unit test coverage (28 tests in `tests/test_pipeline_service.py`):**
+  - Service creation / `PipelineRun` read model
+  - Run creation and start behavior
+  - Counter updates
+  - Status updates
+  - Completion recording
+  - Failure recording
+  - Recent-run listing
+  - Run-detail retrieval
+
+  **Not implemented (explicitly deferred per definition entry):**
+  - Local-first background runner (Package 4)
+  - Scheduled or background execution
+  - Dashboard route or template for Pipeline Runs
+  - Pipeline Runs screen (Package 5 / Phase 5 Package 9c)
+  - Desktop v1 implementation
+  - Metrics trend analytics
+  - Employer-stage velocity pairs (`acknowledged→screen`, `screen→interview`,
+    `interview→offer`)
+
+  **Authorized mutation paths — verified:**
+  - `PipelineService` in `job_search/services/pipeline.py` is the sole
+    authorized path for all `pipeline_runs` writes. No scattered raw SQL write
+    paths introduced.
+
+  **Leah audit — PASS WITH MINOR NOTES:**
+
+  Minor notes for downstream packages:
+  - Existing live databases require the normal `init_db` / schema
+    initialization path before `PipelineService` use; the schema does not
+    auto-create the table outside the initialization path.
+  - Package 4 should avoid arbitrary `update_status()` terminal-state
+    transitions and prefer `complete_run()` / `fail_run()` for all terminal
+    state changes.
+  - Package 5 should review timestamp format assumptions if joining
+    `pipeline_runs` timestamps against other tables.
+
+  As of this entry: 806 tests pass, 1 skipped, 5 warnings.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Definition reference: `DECISION_LOG.md` "Phase 6 Package 3 — Pipeline
+  Infrastructure Definition Accepted"
+- Audit reference: Leah Phase 6 Package 3 Implementation Audit
+- Follow-up work: Phase 6 Package 4 (local-first background runner) definition
+  entry must be written and accepted before its implementation begins. No
+  Package 4 implementation is authorized until that entry exists.
+
+### ATLAS Desktop v1 — Frontend Technology Stack Decision
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / frontend implementation
+- Date: June 2026
+
+  **Decision:** Option B — React/Vite SPA served by FastAPI; Tauri deferred
+  to Desktop v2 / post-v1 proof.
+
+  **Accepted stack:**
+  - Frontend: React 18 + TypeScript + Vite
+  - Styling: Tailwind CSS with ATLAS design-token CSS variables
+  - Routing: React Router v6 for client-side workspace routing
+  - Build: Vite static bundle, served by existing FastAPI via a catch-all
+    route registered after all existing `/dashboard/` and API routes
+  - Future: Tauri 2.x wrapper deferred to Desktop v2
+
+  **Rejected alternatives:**
+
+  - **Jinja2 extension (Option A) — rejected.** The existing Jinja2 dashboard
+    is a correct internal ops/monitoring tool and is preserved as-is. It cannot
+    deliver ATLAS Desktop v1: the frozen visual spec requires a persistent
+    client-side shell, Context Panel (survives workspace navigation), card
+    component architecture, and a CSS design-token system — none of which are
+    achievable in server-rendered Jinja2 without building a SPA inside template
+    strings. ATLAS product surfaces must not be built as Jinja2 templates.
+
+  - **Tauri now (Option C) — rejected as premature.** Tauri wraps a web
+    frontend; it does not replace the framework decision. Adding Tauri now
+    means adding Rust toolchain, cross-platform build pipeline, installer
+    packaging, and signing complexity before the product experience is proven.
+    Tauri 2.x is designed to wrap React/Vite apps — the migration path exists
+    and is well-defined. Tauri integration is deferred until Desktop v1 is
+    proven.
+
+  - **Mixed Jinja2 + React (Option D hybrid) — rejected.** Two rendering
+    paradigms in the same product produce two design systems, no shared Context
+    Panel behavior, and immediate tech debt. The correct reading of "hybrid" is
+    React/Vite SPA now + Tauri later, which is Option B under a different name.
+
+  **Implementation boundaries:**
+
+  - New ATLAS frontend lives under `frontend/` — a new top-level directory
+    containing the Vite project
+  - Existing Jinja2 dashboard remains unchanged as internal ops/monitoring tool
+  - No ATLAS product surface may be built as a Jinja2 template
+  - FastAPI backend remains the existing backend; adds JSON APIs and SPA
+    static-file serving as needed
+  - `job_search/dashboard/app.py` receives a single catch-all route (registered
+    last, after all existing routes) serving `frontend/dist/index.html`
+  - Tauri integration is not authorized until Desktop v1 product proof is
+    complete
+
+  **Package boundary impact:**
+
+  - ATLAS Desktop Package 1 — Desktop Shell may now be defined
+  - Desktop Package 1 should scaffold `frontend/`, establish shell layout,
+    sidebar nav, Context Panel stub, React Router workspace routing, and ATLAS
+    design-token CSS variables (Tailwind)
+  - Desktop Packages 1–3 are file-disjoint from Phase 6 Python work and may
+    proceed in parallel once Package 1 is defined and accepted
+  - Desktop Package 4 (Pipeline Workspace) has a data dependency on Phase 6
+    Package 3 (`pipeline_runs` service — now complete) and Phase 6 Package 4
+    (background runner — not yet started)
+  - No Desktop implementation begins until Desktop Package 1 definition entry
+    is written and accepted per the standing governance rule
+
+  **Standing rules:**
+
+  - ATLAS Desktop v1 frontend lives in `frontend/`; no desktop UI code in
+    `job_search/`
+  - No Jinja2 templates may be created for ATLAS product surfaces
+  - Tauri integration is not authorized until Desktop v1 proof is complete
+  - Ask Atlas (Desktop Package 7) must include an explicit prohibited-scope
+    list enforcing "Investigation Surface not Chat Surface" at implementation time
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 / ATLAS Desktop section),
+  `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`,
+  `docs/Brand/ATLAS_Desktop_v1_Visual_Implementation_Readiness_Study.md`
+- Follow-up work: Write and accept the ATLAS Desktop Package 1 — Desktop Shell
+  definition entry. No implementation begins until that entry is accepted.
+
+### ATLAS Recovery — Deferred Overlap-Risk File Review Completed
+
+- Status: accepted
+- Area: documentation / ATLAS product
+- Date: June 2026
+- Rationale: Records completion of the content comparison pass for the seven
+  files deferred from the ATLAS recovery import (see "ATLAS Recovery — Seven
+  Overlap-Risk Files Deferred" above). No files were modified, staged, or
+  committed during this review. This entry closes the open deferred comparison
+  task.
+
+  **Classification results:**
+
+  *SKIP_SUPERSEDED (6 files):*
+
+  1. `ATLAS_Recommendation_Card_v1.md` — source-layer draft superseded by
+     committed `docs/Brand/ATLAS Recommendation Card Specification v1.0.md`
+     and `docs/Brand/ATLAS Recommendation Card v1.0 Production Candidate..md`.
+
+  2. `Opportunity_Signal_Card_v1.md` — source-layer draft superseded by
+     committed `docs/Brand/ATLAS Opportunity Signal Card Specification v1.0.md`.
+
+  3. `COMMAND_CENTER_SPEC.md` — pre-freeze source draft superseded by committed
+     `docs/Brand/ATLAS Command Center Workspace Specification v1.0.md`.
+
+  4. `ATLAS_Ask_Atlas_Surface_Specification_Study.md` — source study superseded
+     by committed `docs/Brand/ATLAS Ask Atlas Conversation Surface Specification
+     v1.0.md`, `docs/Brand/ATLAS_Ask_Atlas_Final_Validation_Review.md`, and
+     `docs/Brand/ATLAS_Ask_Atlas_Workspace_v1_Visual_Reference.md`.
+
+  5. `ATLAS_Pipeline_Surface_Specification_Study.md` — source study superseded
+     by committed `docs/Brand/ATLAS Pipeline Workspace Specification v1.0.md`,
+     `docs/Brand/Workspaces/Pipeline/ATLAS Pipeline Workspace Architecture Study
+     v2.md`, and `docs/Brand/Workspaces/Pipeline/Pipeline_Workspace_v5_Reference.md`.
+     The committed repository is three generations ahead of this source study.
+
+  6. `ATLAS_Recommendation_System_Surface_Specification_Study.md` — source study
+     superseded by the recommendation placement rules embedded in the committed
+     suite of workspace specifications (`Command Center`, `Opportunity Detail`,
+     `Pipeline`). Cross-surface placement rules established in this study are
+     absorbed into individual workspace specs. No dedicated committed file is
+     required.
+
+  *KEEP_DEFERRED (1 file):*
+
+  7. `ATLAS Product Documentation Framework v1.0.md` — distinct in scope from
+     the committed `docs/Documentation/ATLAS_Canonical_Documentation_Taxonomy.md`
+     (which covers repo documentation taxonomy). This file defines product-facing
+     documentation architecture for end users — a 5-layer hierarchy (What is
+     ATLAS / How to use / How it works / How to operate / How to extend) across
+     five documentation domains. Status in file: "Planning Draft." Deferred
+     because product-facing documentation is not an active Phase 6 or Phase 7
+     workstream. Potential destination if imported later:
+     `docs/Documentation/ATLAS_Product_Documentation_Framework_v1.0.md`.
+     Re-evaluate when product documentation becomes an active workstream.
+
+  **No additional import is authorized.** The prior deferral entry ("ATLAS
+  Recovery — Seven Overlap-Risk Files Deferred") remains in the record as
+  history; this entry records its resolution. None of the six SKIP_SUPERSEDED
+  files should be committed at any future point without a new PM authorization
+  entry overriding this classification.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`

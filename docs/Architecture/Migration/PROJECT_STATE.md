@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 — Phase 6 Package 2 complete; ATLAS recovery import complete; Package 3 definition accepted
+Version: June 2026 — Phase 6 Package 3 complete; Desktop v1 tech stack accepted; ATLAS recovery file review closed
 
 ## Purpose
 
@@ -27,9 +27,13 @@ Build an automated engineering job-search platform for James Morseman that:
 ## Current Objectives
 
 Phases 1–5 MVP and Package 8 (Source Health) are complete. Phase 6
-(Analytics & Pipeline Runs) is active. Phase 6 Packages 1 (Analytics
-expansion) and 2 (Analytics depth) are complete. Package 3 (Pipeline
-infrastructure) definition entry is required before its implementation begins.
+(Analytics & Pipeline Runs) is active. Phase 6 Packages 1, 2, and 3 are
+complete. Package 4 (local-first background runner) definition entry is
+required before its implementation begins.
+
+ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
+by FastAPI. Desktop Package 1 — Desktop Shell definition entry must be written
+and accepted before any Desktop implementation begins.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -38,7 +42,8 @@ Phase 5 remaining package status:
   is the sole authorized data path. Decision 2 (ATS quarantine mapping) is
   formally closed — see `DECISION_LOG.md`.
 - Package 9 (9a/9b/9c — Pipeline Runs): deferred; gated on Phase 6
-  Packages 3+4 (pipeline infrastructure and background runner).
+  Packages 3+4 (pipeline infrastructure and background runner). Package 3 is
+  now complete.
 
 Current objectives:
 
@@ -48,12 +53,18 @@ Current objectives:
   skipped, 0 failed; commit `6af126b`). Score Distribution, Stretch Response
   Rates, Unified Source Comparison, Pipeline Velocity operator pairs,
   LLM Grade Correlation (conditional). Employer-stage velocity pairs
-  deferred to Package 3.
-- Phase 6 Package 3 (Pipeline infrastructure) — **definition accepted;
-  implementation authorized** — issue Anna implementation task. Scope:
-  `pipeline_runs` table schema, `services/pipeline.py` read/write service,
-  run-record persistence. See `DECISION_LOG.md`, "Phase 6 Package 3 —
-  Pipeline Infrastructure Definition Accepted."
+  deferred to Package 3 planning.
+- Phase 6 Package 3 (Pipeline infrastructure) — **complete** (806 passing,
+  1 skipped, 5 warnings; commit `f882405`; Leah audit PASS WITH MINOR NOTES).
+  `pipeline_runs` table, `PipelineService`, `PipelineRun` read model, 28 unit
+  tests. `PipelineService` is sole authorized write path for `pipeline_runs`.
+  See `DECISION_LOG.md`, "Phase 6 Package 3 — Pipeline Infrastructure Complete."
+- Phase 6 Package 4 (Local-first background runner) — **definition entry
+  required before implementation begins.** Authorized; not yet defined.
+  Depends on Package 3 (now complete).
+- ATLAS Desktop v1 — tech stack accepted (React 18 + TypeScript + Vite +
+  Tailwind + FastAPI catch-all). Desktop Package 1 — Desktop Shell definition
+  entry must be written and accepted before any implementation begins.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -139,10 +150,17 @@ Implemented:
   remote/hybrid breakdown and threshold sensitivity → future packages.
   See `DECISION_LOG.md`, "Phase 6 Package 1 — Scope Correction."
 
+- Phase 6 Package 3 — Pipeline infrastructure: **complete** (commit `f882405`,
+  806 passing). `pipeline_runs` table (schema migration path); `PipelineService`
+  (`create_run`, `update_counters`, `complete_run`, `fail_run`,
+  `list_recent_runs`, `get_run`); `PipelineRun` read model; 28 unit tests.
+  `PipelineService` is sole authorized write path for `pipeline_runs`.
+
 Architecture complete, implementation pending:
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
-- dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 3+4)
-- pipeline orchestration service, `pipeline_runs` table, and background-run execution visibility (deferred from Phase 4 Package 5 to Phase 6 — see Technical Debt)
+- dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 4+5)
+- local-first background runner (Phase 6 Package 4): definition entry required before implementation
+- ATLAS Desktop v1: tech stack accepted (React 18 + TypeScript + Vite); Desktop Package 1 definition entry required before implementation
 
 Deferred — post-Phase-1 resume optimization backlog:
 
