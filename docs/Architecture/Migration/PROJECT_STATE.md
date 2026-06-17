@@ -32,8 +32,8 @@ complete. Package 4 (local-first background runner) definition entry is
 required before its implementation begins.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
-by FastAPI. Desktop Package 1 — Desktop Shell definition entry must be written
-and accepted before any Desktop implementation begins.
+by FastAPI. Desktop Package 1 - Desktop Shell definition entry is accepted;
+implementation may now be prompted, but no Desktop implementation has begun.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -63,8 +63,11 @@ Current objectives:
   required before implementation begins.** Authorized; not yet defined.
   Depends on Package 3 (now complete).
 - ATLAS Desktop v1 — tech stack accepted (React 18 + TypeScript + Vite +
-  Tailwind + FastAPI catch-all). Desktop Package 1 — Desktop Shell definition
-  entry must be written and accepted before any implementation begins.
+  Tailwind + FastAPI catch-all). Desktop Package 1 - Desktop Shell definition
+  accepted. Future implementation is limited to `frontend/` Vite React
+  TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace
+  routing placeholders, Context Panel stub, ATLAS design-token CSS variables,
+  and FastAPI SPA catch-all route registered last.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -160,7 +163,7 @@ Architecture complete, implementation pending:
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
 - dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 4+5)
 - local-first background runner (Phase 6 Package 4): definition entry required before implementation
-- ATLAS Desktop v1: tech stack accepted (React 18 + TypeScript + Vite); Desktop Package 1 definition entry required before implementation
+- ATLAS Desktop v1: tech stack accepted (React 18 + TypeScript + Vite); Desktop Package 1 definition entry accepted; implementation may now be prompted
 
 Deferred — post-Phase-1 resume optimization backlog:
 
@@ -596,7 +599,15 @@ Graph, Career Memory, Forecasting, multi-user / enterprise / collaboration.
   (see `DECISION_LOG.md`, "ATLAS Recovery — Seven Overlap-Risk Files Deferred")
 
 Desktop v1 implementation authorization is a separate decision from Phase 6
-package sequencing. See `ASH_INIT_NEXT.md` §7–9 for full Desktop v1 governance.
+package sequencing. Desktop Package 1 - Desktop Shell definition is accepted
+and implementation may now be prompted. Package 1 is shell-only: `frontend/`
+Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation,
+workspace routing placeholders, Context Panel stub, ATLAS design-token CSS
+variables, and FastAPI SPA catch-all route registered last. It does not
+authorize workspace content, real data integration, recommendations, Ask Atlas
+implementation, Pipeline Package 4 work, background runner work,
+database/schema changes, or Desktop Package 2+ work. See `ASH_INIT_NEXT.md`
+§7–9 for full Desktop v1 governance.
 
 ## Cross-System Dependencies
 

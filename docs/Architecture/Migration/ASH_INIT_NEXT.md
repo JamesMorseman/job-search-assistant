@@ -1,7 +1,8 @@
 # Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 — Phase 6 Package 3 complete; Desktop v1 tech stack
-accepted; deferred recovery file review closed; Package 4 definition required
+**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Package 1
+definition accepted; deferred recovery file review closed; Package 4 definition
+required
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -101,6 +102,13 @@ explicit PM authorization):**
 | 9a — Pipeline infrastructure | Deferred — Phase 6 Package 3 |
 | 9b — Local-first background runner | Deferred — Phase 6 Package 4; depends on 9a |
 | 9c — Pipeline Runs screen | Deferred — depends on 9a+9b |
+
+### ATLAS Desktop Package Status
+
+| Package | Scope | Status |
+|---|---|---|
+| 1 - Desktop Shell | `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI SPA catch-all route registered last | **Definition accepted**; implementation may now be prompted |
+| 2+ | Workspace content, real data integration, recommendations, Ask Atlas, Pipeline Workspace, and other product surfaces | Not authorized; require separate definition entries |
 
 ---
 
@@ -461,22 +469,27 @@ references.
 
 After that entry is accepted, issue an Anna implementation task referencing it.
 
-### Step 3 — Write ATLAS Desktop Package 1 definition entry (Desktop track)
+### Step 3 - Prompt ATLAS Desktop Package 1 implementation (Desktop track)
 
 **Desktop v1 tech stack is accepted** (React 18 + TypeScript + Vite + Tailwind
 + FastAPI catch-all; see DECISION_LOG.md "ATLAS Desktop v1 — Frontend Technology
-Stack Decision"). Desktop Package 1 — Desktop Shell — may now be defined.
+Stack Decision"). Desktop Package 1 - Desktop Shell definition is now accepted;
+see DECISION_LOG.md "ATLAS Desktop Package 1 - Desktop Shell Definition
+Accepted."
 
-Package 1 scope is fully knowable: Vite project scaffold, TypeScript, Tailwind
-configuration; FastAPI SPA catch-all route; shell layout (sidebar nav for 5
-workspaces, main content area, Context Panel stub); ATLAS design-token CSS
-variables; React Router workspace routing; shell renders with placeholder
-workspace content; Context Panel opens/closes and persists across navigation;
-no data integration.
+Package 1 implementation may now be prompted. Authorized scope is limited to:
+`frontend/` Vite React TypeScript scaffold; ATLAS shell layout; sidebar
+navigation; workspace routing placeholders; Context Panel stub; ATLAS
+design-token CSS variables; and FastAPI SPA catch-all route registered last.
 
-Write and accept a DECISION_LOG Desktop Package 1 definition entry before
-issuing any implementation task to Anna. This track is parallel to the JSA
-Phase 6 work — Desktop packages 1–3 are file-disjoint from Phase 6 Python work.
+Package 1 must not implement workspace content, real data integration,
+recommendations, Ask Atlas behavior, Pipeline Package 4 work, background runner
+work, database/schema changes, or Desktop Package 2+ scope.
+
+This track is parallel to the JSA Phase 6 work. Desktop packages 1-3 are
+intended to be file-disjoint from Phase 6 Python work, but the Package 1
+implementation will touch `job_search/dashboard/app.py` for the SPA catch-all
+and must preserve all existing dashboard/API routes.
 
 **Sequencing constraint:** Do not split Desktop v1 implementation into
 parallel agents before file ownership across surfaces is clearly separated.
@@ -514,6 +527,10 @@ A new Ash must not:
   state** — those are historical reference only
 - **Expand Desktop v1 scope** to include Intelligence Workspace, Professional
   Graph, Career Memory, Forecasting, or enterprise features
+- **Treat Desktop Package 1 as workspace implementation** - it is shell-only:
+  no workspace content, data integration, recommendations, Ask Atlas behavior,
+  Pipeline Package 4 work, background runner work, database/schema changes, or
+  Desktop Package 2+ scope
 - **Issue parallel implementation tasks** without first confirming disjoint
   file ownership across agents
 

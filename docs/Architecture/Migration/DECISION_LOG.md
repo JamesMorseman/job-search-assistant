@@ -1915,6 +1915,119 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Write and accept the ATLAS Desktop Package 1 — Desktop Shell
   definition entry. No implementation begins until that entry is accepted.
 
+### ATLAS Desktop Package 1 - Desktop Shell Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / frontend implementation
+- Date: June 2026
+- Rationale: Records the formal package definition for ATLAS Desktop Package 1
+  after acceptance of the Desktop v1 frontend technology stack. This entry
+  authorizes a future implementation prompt for the Desktop Shell only. It does
+  not implement the shell, create `frontend/`, modify FastAPI routing, install
+  frontend dependencies, or scaffold any package files.
+
+  **Package objective:**
+
+  Establish the Desktop v1 application shell as a React/TypeScript SPA served
+  by the existing FastAPI backend. The shell is the structural frame for future
+  ATLAS workspaces, not a workspace-content package.
+
+  **Future implementation scope authorized by this definition:**
+
+  1. Create `frontend/` as a Vite React TypeScript scaffold for ATLAS Desktop
+     v1.
+  2. Implement the ATLAS shell layout: persistent app frame, main workspace
+     region, and right-side Context Panel region.
+  3. Implement sidebar navigation for the frozen Desktop v1 workspaces:
+     Command Center, Radar, Pipeline, Opportunity Detail, and Ask Atlas.
+  4. Implement workspace routing placeholders so navigation resolves to
+     placeholder workspace surfaces without real data integration.
+  5. Implement a Context Panel stub that can be displayed as part of the shell
+     and reserved for future contextual investigation content.
+  6. Define ATLAS design-token CSS variables needed by the shell.
+  7. Register a FastAPI SPA catch-all route last, after existing dashboard and
+     API routes, to serve the built SPA.
+
+  **Out of scope / prohibited for Desktop Package 1:**
+
+  - Workspace content beyond inert placeholders.
+  - Real data integration with SQLite, dashboard services, pipeline services,
+    source health, tracker, jobs, documents, or firms.
+  - Recommendation system implementation.
+  - Ask Atlas implementation beyond a navigation placeholder and shell route
+    placeholder.
+  - Pipeline Workspace implementation beyond a navigation placeholder and shell
+    route placeholder.
+  - Phase 6 Package 4 work, including local-first background runner behavior.
+  - Background runner work of any kind.
+  - Database, schema, migration, or seed-data changes.
+  - New backend service modules.
+  - JSA dashboard screen changes or Jinja2 ATLAS product surfaces.
+  - Desktop Package 2+ work, including real Command Center, Radar, Pipeline,
+    Opportunity Detail, Ask Atlas, recommendation, investigation, or data
+    workflow implementation.
+
+  **Authorized data paths:**
+
+  - Desktop Package 1 authorizes no real data reads and no real data writes.
+  - Placeholder workspace routes must use static placeholder state only.
+  - No dashboard service, `job_search.db`, `PipelineService`,
+    `MetricsService`, `SourceHealthService`, `TrackerService`,
+    `JobsService`, `DocumentsService`, or `FirmsService` may be called by the
+    Desktop Package 1 frontend.
+  - The only backend integration authorized by this package is static SPA
+    serving through the FastAPI catch-all route registered last.
+
+  **Prohibited mutation paths:**
+
+  - No SQLite writes.
+  - No `pipeline_runs` writes.
+  - No `jobs.app_state` transitions.
+  - No document regeneration.
+  - No follow-up resolution.
+  - No application submission.
+  - No config, profile, firm, recommendation, or scoring writes.
+  - No background-process or runner triggers.
+
+  **Package boundaries:**
+
+  - **Versus JSA dashboard:** Desktop Package 1 must not alter existing
+    Jinja2 dashboard routes, templates, or screen behavior except for the
+    future SPA catch-all route registered last in `job_search/dashboard/app.py`.
+  - **Versus Phase 6 Package 4:** local-first background runner behavior is
+    separate JSA infrastructure work and remains outside this Desktop shell.
+  - **Versus Desktop Package 2+:** future workspace packages own real workspace
+    content, data integrations, recommendations, Ask Atlas behavior, and
+    pipeline workspace behavior.
+  - **Versus ATLAS product docs:** this package implements only the common
+    shell frame needed to host the frozen Desktop v1 surfaces; it does not
+    expand or reinterpret the frozen surface specifications.
+
+  **Acceptance criteria for the future implementation:**
+
+  1. `frontend/` exists and contains a Vite React TypeScript ATLAS Desktop v1
+     scaffold.
+  2. The shell renders a persistent sidebar, main workspace region, and Context
+     Panel stub.
+  3. Sidebar navigation exposes the five frozen Desktop v1 workspace names.
+  4. Workspace routes resolve to inert placeholders and do not fetch real data.
+  5. ATLAS design-token CSS variables are defined and used by the shell.
+  6. FastAPI serves the built SPA through a catch-all route registered after all
+     existing dashboard/API routes.
+  7. Existing `/dashboard/` routes continue to resolve before the SPA catch-all.
+  8. No database/schema files are changed.
+  9. No recommendation, Ask Atlas, Pipeline Package 4, background runner, or
+     Desktop Package 2+ functionality is present.
+  10. Tests or verification demonstrate that existing dashboard routes still
+      work and the SPA shell route resolves.
+
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `ASH_INIT_NEXT.md` (Desktop track)
+- Follow-up work: ATLAS Desktop Package 1 implementation may now be prompted.
+  The implementation prompt must reference this entry and preserve all
+  prohibited-scope boundaries above.
+
 ### ATLAS Recovery — Deferred Overlap-Risk File Review Completed
 
 - Status: accepted
