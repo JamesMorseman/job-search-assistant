@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 053483051b7177ba511d61f610568471
+Company: AMT Engineering
+Title: Transportation Engineer
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_064650_AMT_Engineering_Transportation_Engineer_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_064650_AMT_Engineering_Transportation_Engineer_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_064650_AMT_Engineering_Transportation_Engineer_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: Project scheduling | Microsoft Excel decision support | RAM Structural System | Python; SQLite; Google Sheets
+Engineering: Construction management planning | Stormwater runoff calculations | Transportation engineering coursework | Highway engineering coursework | Traffic control planning | Bridge replacement phasing | Constructability analysis | Work-zone safety planning | Surveying coursework | Water and wastewater systems coursework
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: []
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-13
+AMT Engineering
+Columbus, Franklin County
+Dear Hiring Manager,
+I am writing to express my interest in the Transportation Engineer position with AMT Engineering in Columbus. AMT’s multidisciplinary transportation practice—supported by civil engineering, construction management and inspection, traffic and transportation design, water and wastewater, and water resources services—aligns well with the way my Civil Engineering Technology background has developed across transportation, highway engineering, field practices, stormwater, and constructability. I am open to relocation for the right opportunity and would be motivated to contribute to AMT’s project teams while continuing to build toward my FE Civil exam and long-term professional licensure goals.
+My strongest engineering evidence comes from project-based work that required both technical analysis and practical project judgment. In my senior capstone, I led the structural scope for a proposed campus facility addition while coordinating multidisciplinary deliverables, milestone tracking, report integration, and final presentation support. That work included evaluating occupied-campus constructability constraints such as site access, pedestrian circulation, emergency access, staging, and phased construction sequencing. In related coursework and projects, I prepared construction management planning content for a bridge replacement project, including schedule logic, traffic control, work-zone safety, equipment needs, permitting awareness, and cost discussion. I have also completed transportation engineering, highway engineering, surveying, hydraulics, and water/wastewater coursework, with additional stormwater work involving runoff calculations and cistern system concepts.
+
+Cover-letter closing block:
+Alongside my engineering preparation, I bring operations leadership that is relevant to a transportation project environment where coordination, documentation, schedules, and real-time constraints matter. As Event Coordination Department Head at Urban Air Adventure Park, I supervise approximately 45 direct reports and coordinate staffing, training, logistics, guest flow, and problem solving for high-volume operations. I have also built Excel-based tracking systems for inventory, accountability, and decision-support metrics. Separately, I developed a Python job-search automation platform using SQLite, Google Drive/Sheets workflows, CLI processes, and automated testing, which reflects the workflow design, data management, and technical initiative I would bring to AMT’s transportation team.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

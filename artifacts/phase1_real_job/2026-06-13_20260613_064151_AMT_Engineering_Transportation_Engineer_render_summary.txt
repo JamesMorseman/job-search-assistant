@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 053483051b7177ba511d61f610568471
+Company: AMT Engineering
+Title: Transportation Engineer
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_064151_AMT_Engineering_Transportation_Engineer_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_064151_AMT_Engineering_Transportation_Engineer_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_064151_AMT_Engineering_Transportation_Engineer_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: Project scheduling and phasing | Excel-based decision support | RAM Structural System | Python; SQLite; Google Sheets workflow automation
+Engineering: Construction management planning | Stormwater runoff and cistern concepts | Soils and foundations coursework | Transportation engineering coursework | Highway engineering coursework | Traffic control planning | Constructability analysis | Work-zone safety planning | Water and wastewater systems coursework | Surveying and field practices
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: []
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-13
+AMT Engineering
+Columbus, Franklin County
+Dear Hiring Manager,
+I am interested in AMT Engineering’s Transportation Engineer opportunity in Columbus because AMT’s multidisciplinary work in civil engineering, construction management and inspection, traffic and transportation design, water and wastewater systems, and water resources aligns closely with the way I have prepared academically. As a recent B.S. Civil Engineering Technology graduate from Farmingdale State College preparing for the FE Civil exam, I would welcome consideration for this role or an aligned transportation/civil engineering opportunity where I can contribute strong fundamentals, careful documentation, and a practical operations mindset.
+My strongest project experience comes from a multidisciplinary senior capstone for a proposed three-story classroom addition, where I led the structural scope while coordinating deliverables, milestone tracking, report integration, and final presentation support. The project also required evaluation of occupied-campus constructability constraints, including site access, pedestrian circulation, emergency access, staging, and phased sequencing. In related coursework and project work, I prepared construction management planning content for a bridge replacement project, including schedule logic, traffic control, safety, equipment needs, permitting awareness, and cost discussion, and I completed transportation, highway engineering, surveying, field practices, hydraulics, and water and wastewater coursework that supports AMT’s transportation and civil infrastructure practice areas.
+
+Cover-letter closing block:
+Alongside my engineering preparation, I have supervised approximately 45 direct reports in high-volume event operations, coordinating staffing, training, logistics, guest flow, and real-time problem solving. I have also built Excel-based tracking systems for inventory, alerts, accountability, and decision support, and developed a Python job-search automation platform using SQLite, Google Drive/Sheets workflows, CLI processes, and an automated test suite with 100+ passing tests. Those experiences reflect the same habits I would bring to AMT: organized workflow design, reliable data management, testing, communication across moving parts, and initiative in improving how work gets done.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

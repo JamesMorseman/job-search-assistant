@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 38163ef2d7d3f515178a7b23a13d7478
+Company: Kimley-Horn
+Title: Civil Engineer - Land Development
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_062816_Kimley-Horn_Civil_Engineer_-_Land_Developm_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_062816_Kimley-Horn_Civil_Engineer_-_Land_Developm_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-13_20260613_062816_Kimley-Horn_Civil_Engineer_-_Land_Developm_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: Excel and Microsoft Office | Revit; RAM Structural System; Python; SQLite | Project coordination and milestone tracking
+Engineering: Site civil (SC) design support | Hydrology/hydraulics (H&H) | Stormwater runoff calculations | Soils, foundations, and earth structures | Land development (LD) preparation | Cistern storage and irrigation reuse concepts | Surveying coursework | Transportation and highway engineering coursework | Constructability analysis | Permitting awareness | Traffic control and staging planning
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-13
+Kimley-Horn
+Dublin, Alameda County
+Dear Hiring Manager,
+I am applying for the Civil Engineer - Land Development role with Kimley-Horn’s Pleasanton land development team. I am especially interested in the role because it connects site civil design, hydrology, permitting awareness, and project management—areas I have been building toward through my Civil Engineering Technology degree, capstone work, and applied project experience. I am based in New York and am willing to relocate for a strong opportunity, including to the East Bay as the team transitions toward Walnut Creek.
+For my senior capstone, I served as Structural Engineering Lead / Project Leader for a proposed three-story classroom addition at Baldwin High School, where I coordinated technical deliverables, milestone tracking, report integration, and final presentation support. While the capstone’s strongest technical component was structural, it also required practical site thinking: evaluating occupied-campus constraints such as site access, pedestrian circulation, emergency access, staging, and phased construction sequencing. My related site-civil preparation includes stormwater runoff calculations for an 81,000 sf roof catchment and evaluation of cistern storage, filtration, pumping, overflow, and irrigation reuse concepts, supported by coursework in Hydraulics, Water and Wastewater Systems, Surveying, Transportation Engineering, Highway Engineering, and Soils, Foundations, and Earth Structures.
+
+Cover-letter closing block:
+Beyond academics, I bring management maturity that would translate well to Kimley-Horn’s project-driven environment. As an Event Coordination Department Head, I supervise approximately 45 direct reports and coordinate staffing, training, logistics, guest flow, and real-time problem solving in high-volume operations. I have also built Excel-based tracking systems for inventory, alerts, accountability, and decision support. Separately, I developed a Python job-search automation platform with SQLite persistence, Google Drive/Sheets workflows, CLI tools, and an automated test suite, which reflects how I approach workflow design, data organization, testing, and technical initiative. I would welcome the opportunity to contribute that combination of engineering preparation, coordination ability, and disciplined follow-through to Kimley-Horn’s land development work.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 3f30b9cb9b390eb27c36cd2cf05fe018
+Company: Leidos
+Title: Civil/Structural Engineer
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_133635_Leidos_CivilStructural_Engineer_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_133635_Leidos_CivilStructural_Engineer_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_133635_Leidos_CivilStructural_Engineer_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: RAM Structural System | Microsoft Excel tracking systems | Python and SQLite automation | Project coordination
+Engineering: Structural analysis and design | Steel beam and column design | Reinforced concrete design | Foundation design concepts | Construction planning | LRFD design methodology | Constructability analysis | Safety and traffic control planning
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-12
+Leidos
+Aurora, Arapahoe County
+Dear Hiring Manager,
+I am applying for the Civil/Structural Engineer position with Leidos in Aurora. Leidos’ Energy, Infrastructure, and Automation work interests me because it combines engineering, planning, project management, construction management, and commissioning for utility infrastructure—an environment where disciplined structural analysis has to connect with constructability, documentation, and coordination. As a recent B.S. Civil Engineering Technology graduate from an ABET-accredited program preparing for the FE Civil exam, I would value the opportunity to support civil/structural work for substations, transmission and distribution infrastructure, and related utility projects while continuing to build toward EIT certification.
+My strongest technical preparation is in structural engineering. For my senior capstone, I served as Structural Engineering Lead / Project Leader for a proposed three-story classroom addition at Baldwin High School, where I built and analyzed RAM Structural System models, evaluated gravity and lateral loading, and supported preliminary steel framing decisions. That work required applying ASCE 7-22 loading criteria and AISC steel design methodology while considering framing layouts, tributary areas, line loads, axial loads, serviceability behavior, foundations, and occupied-campus constructability constraints. My related academic work also includes steel beam and column design, reinforced concrete design, soils and foundations, surveying, civil materials, and construction planning for a bridge replacement project with schedule logic, safety, traffic control, equipment, permitting awareness, and cost discussion.
+
+Cover-letter closing block:
+Beyond coursework, I bring practical coordination and workflow experience that fits a project-based engineering environment. In my current role as Event Coordination Department Head at Urban Air Adventure Park, I supervise approximately 45 direct reports and coordinate staffing, logistics, training, guest flow, and real-time problem solving for high-volume operations. I have also built Excel-based tracking systems for inventory and voucher data, and independently developed a Python job-search automation platform using SQLite persistence, Google Drive/Sheets workflows, CLI processes, and an automated test suite with 100+ passing tests. Those projects reflect how I approach technical work: organize information clearly, build reliable workflows, test what I create, and communicate across moving parts. I would be excited to bring that mindset to Leidos’ civil/structural engineering team.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW

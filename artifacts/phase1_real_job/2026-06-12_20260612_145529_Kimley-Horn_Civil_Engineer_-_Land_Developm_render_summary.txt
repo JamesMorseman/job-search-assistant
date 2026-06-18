@@ -1,0 +1,39 @@
+Phase 1 Real-Job Artifact Summary
+
+Job ID: 38163ef2d7d3f515178a7b23a13d7478
+Company: Kimley-Horn
+Title: Civil Engineer - Land Development
+Resume: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_145529_Kimley-Horn_Civil_Engineer_-_Land_Developm_resume.docx
+Cover letter: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_145529_Kimley-Horn_Civil_Engineer_-_Land_Developm_cover_letter.docx
+Audit: C:\Users\James\Documents\job-search-assistant\artifacts\phase1_real_job\2026-06-12_20260612_145529_Kimley-Horn_Civil_Engineer_-_Land_Developm_audit.json
+
+Resume header:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com
+https://www.linkedin.com/in/james-morseman-82a449344/ | https://github.com/JamesMorseman
+
+Resume technical skills:
+Software: Excel | RAM Structural System | Revit | Project coordination
+Engineering: Site civil design concepts | Hydrology / hydraulics (H&H) | Stormwater runoff calculations | Construction planning and sequencing | Land development (LD) preparation | Cistern design and storage evaluation | Surveying coursework | Transportation and highway engineering coursework | Constructability analysis | Permitting awareness
+Codes/Standards: ASCE 7 | AISC Steel Construction Manual | ACI 318 | ASTM D854
+
+Resume QA warnings: ['expansion_order_risk']
+Document audit status: PASS
+
+Cover-letter leading block:
+James Morseman
+(631) 559-5622 | Jamesmorseman@gmail.com | Stony Brook, New York
+2026-06-12
+Kimley-Horn
+Dublin, Alameda County
+Dear Hiring Manager,
+I am writing to apply for the Civil Engineer - Land Development position with Kimley-Horn’s Pleasanton land development team. As a recent B.S. Civil Engineering Technology graduate from Farmingdale State College preparing for the FE Civil exam, I am interested in this role because it connects the areas I have been building toward academically: site civil design concepts, hydrology, permitting awareness, constructability, and project coordination. I am also open to relocating for the right opportunity and would welcome the chance to begin my engineering career with a team focused on site development engineering and project management.
+My senior capstone gave me a practical foundation for coordinating engineering work on a real building addition concept. As Structural Engineering Lead / Project Leader for a proposed three-story classroom addition at Baldwin High School, I coordinated multidisciplinary deliverables while evaluating constraints such as site access, pedestrian circulation, emergency access, staging, and phased construction sequencing on an occupied campus. Beyond the capstone, my academic preparation includes stormwater runoff calculations for an 81,000 sf roof catchment, cistern storage and overflow evaluation, hydraulics, water and wastewater systems, surveying, transportation, highway engineering, soils, foundations, and field practices coursework. That mix has helped me connect design calculations with the site constraints and coordination demands that matter in land development work.
+
+Cover-letter closing block:
+Alongside my engineering coursework, I have built management habits that would help me contribute in an entry-level civil role. At Urban Air Adventure Park, I supervise approximately 45 direct reports and coordinate staffing, training, logistics, guest flow, and real-time problem solving in high-volume operations. I have also developed Excel-based tracking systems with automated alerts and accountability metrics, and independently built a Python job-search automation platform using structured workflows, SQLite data persistence, Google Drive/Sheets integration, and automated testing. I would bring that same attention to organization, follow-through, and continuous workflow improvement to Kimley-Horn’s land development projects.
+Sincerely,
+James Morseman
+
+Cover-letter audit warnings:
+COVER_LOCATION_REVIEW
