@@ -3862,6 +3862,182 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   recorded below. Desktop Package 12+ requires a separate definition entry before
   any implementation begins.
 
+### Phase 6 Package 4 — Local-First Background Runner Accepted / Complete
+
+- Status: accepted
+- Area: Phase 6 / pipeline infrastructure / background runner
+- Date: June 2026
+- Commit: `31a560d` — `feat(pipeline): implement Phase 6 Package 4 local-first background runner`
+- Rationale: Records Project Master acceptance of Phase 6 Package 4 — Local-First
+  Background Runner as implemented and complete.
+
+  **Package accepted:**
+  - Phase 6 Package 4 — Local-First Background Runner — **Accepted / Complete**
+
+  **Files created:**
+  - `job_search/pipeline/__init__.py` — exports `PipelineRunner`, `PipelineRunResult`,
+    `StepOutcome`
+  - `job_search/pipeline/runner.py` — `PipelineRunner` orchestrator; `PipelineRunResult`
+    and `StepOutcome` dataclasses; `STEP_ORDER`, `RUN_TYPES`, `DRY_RUN_CAPABLE_STEPS`
+    constants; `_run_dry()`, `_execute_step()`, `_step_error_count()`,
+    `_aggregate_counters()` helpers
+  - `tests/test_pipeline_runner.py` — 10 test functions covering full run with real
+    DB, single-step run types, invalid run type, exception failure path, recoverable-
+    error failure path, dry-run no-write behavior, dry-run capable-steps-only
+    execution, and two write-boundary enforcement tests
+
+  **Files modified:**
+  - `job_search/cli.py` — `jsa run` command with `--dry-run` flag, `--run-type`
+    option (full | ingest | grade | report | generate | followup), per-step colored
+    output, lazy import of `PipelineRunner`
+
+  **Implemented scope (all items from the Package 4 definition entry):**
+  1. Pipeline runner module — `job_search/pipeline/runner.py`; orchestrates
+     ingest → grade → report → generate → followup; partial failures do not silently
+     swallow — each step exception is caught, recorded, and the run closes as `failed`
+  2. `pipeline_runs` write path via `PipelineService` — `start_run()` before any step;
+     `update_counters()` with aggregated stats after all steps; `complete_run()` or
+     `fail_run()` to close the record. No direct SQL writes in the runner.
+  3. CLI entry point — `jsa run`; `--run-type` targets individual steps or `full`;
+     `--dry-run` executes without any DB writes
+  4. Error and stats persistence — `jobs_seen`, `jobs_created`, `jobs_updated`,
+     `jobs_presented`, `errors_count` aggregated from step stats; step-level error
+     detail passed to `fail_run()` as JSON; step stats passed as `metadata`
+
+  **Authorized data path (recorded verbatim):**
+  `PipelineService` is the sole authorized write path for `pipeline_runs`.
+  `PipelineRunner` never writes to `pipeline_runs` directly — enforced by two
+  source-inspection tests: `test_pipeline_service_is_sole_writer_of_pipeline_runs`
+  (scans all `job_search/**/*.py` for direct SQL) and
+  `test_runner_module_contains_no_direct_pipeline_runs_writes` (inspects runner.py
+  specifically).
+
+  **Dry-run semantics (recorded):**
+  `DRY_RUN_CAPABLE_STEPS = {"ingest", "grade"}`. These two steps support a native
+  `dry_run=True` argument and are executed; all other steps (`report`, `generate`,
+  `followup`) write to the database unconditionally and are skipped in dry-run mode
+  with a descriptive reason recorded in `StepOutcome.stats`. A dry-run run produces
+  no `pipeline_runs` record (`run_id=None`, `status="dry_run"`).
+
+  **Scope boundary verified — none of the following were introduced:**
+  Dashboard UI changes, new database tables, schema changes, new service modules
+  (beyond the runner itself), external scheduler/task queue/daemon, ATLAS Desktop
+  changes, Ask Atlas or Recommendation behavior changes, scoring or ingestion logic
+  changes, cloud sync, or Tauri packaging.
+
+  **Validation:**
+  - `pytest -q`: 985 passed, 1 skipped, 6 warnings (net +10 tests over Package 11
+    baseline of 975)
+  - Leah audit: ACCEPT FOR COMMIT
+
+  As of this entry: 985 tests pass, 1 skipped, 6 warnings.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Definition reference: `DECISION_LOG.md` "Phase 6 Package 4 — Local-First Background
+  Runner Definition Accepted"
+- Follow-up work: Phase 6 Package 5 (dashboard integration — Pipeline Runs screen) is
+  defined below. **PM directive: a runtime validation pass is required before Package 5
+  implementation begins.** See the Package 5 definition entry for the precondition.
+
+### Phase 6 Package 5 — Dashboard Integration: Pipeline Runs Screen Definition Accepted
+
+- Status: accepted
+- Area: Phase 6 / dashboard / pipeline runs
+- Date: June 2026
+- Rationale: Phase 6 Packages 3 and 4 are complete — the `pipeline_runs` data layer
+  and local-first runner are both in place. Package 5 delivers the dashboard screen
+  that makes run history visible to the operator, completing Phase 5 Package 9c
+  (Pipeline Runs dashboard screen) as originally deferred. Per the standing governance
+  rule, no implementation may begin before this definition entry is accepted.
+
+  **PM directive — runtime validation precondition:**
+  Before any Package 5 implementation begins, `jsa run` must be exercised against
+  real data and `pipeline_runs` records verified in SQLite. The purpose is to confirm
+  the runner produces correct records in a real environment before a dashboard screen
+  is built on top of them. This validation is operator-confirmed; it does not require
+  a formal governance entry, but Package 5 implementation must not begin until it is
+  done. This precondition reflects the "runtime/data readiness stabilization before
+  further feature expansion" directive from the Package 4 handoff.
+
+  **Package objective:**
+
+  Add a read-only Pipeline Runs screen to the existing dashboard that surfaces
+  `pipeline_runs` records via `PipelineService`, giving the operator visibility into
+  run history, status, and counters without leaving the dashboard.
+
+  **Authorized scope for Package 5:**
+
+  1. **Pipeline Runs dashboard route.** Add `GET /dashboard/pipeline-runs` (or an
+     equivalent path consistent with the existing dashboard navigation convention).
+     The route must read exclusively through `PipelineService.list_recent_runs()`.
+     No alternate read path, no direct SQL in the route, no `get_db()` import in
+     the route module.
+
+  2. **Pipeline Runs template.** A read-only Jinja2 template displaying the run list:
+     run ID, run type, trigger, status, started/completed timestamps, counters
+     (`jobs_seen`, `jobs_created`, `jobs_updated`, `jobs_presented`, `errors_count`),
+     and error detail when present. Loading, empty, and error states required.
+
+  3. **Navigation integration.** Add a Pipeline Runs link to the existing dashboard
+     navigation shell, consistent with how other screens are linked. No navigation
+     architecture changes beyond adding the entry.
+
+  4. **Tests.** Route tests must confirm: list renders correctly; empty state renders
+     when no runs exist; error detail renders when `notes`/`metadata` is populated;
+     route uses no direct SQL (source-inspection test pattern from prior packages).
+
+  **Authorized data path:**
+  - `PipelineService.list_recent_runs()` is the sole authorized data path for the
+    Pipeline Runs screen. The route must not gain new `Depends()` service arguments
+    beyond a single `PipelineService` injection.
+  - No `get_db()`, no `sqlite3`, no `SELECT` in the route module source.
+    Enforced by a source-inspection test.
+
+  **Out of scope / prohibited for Package 5:**
+
+  - Runner behavior changes (`job_search/pipeline/` is closed)
+  - Schema or table changes
+  - New service modules
+  - Pipeline execution controls from the dashboard (read-only; no POST routes on
+    `/dashboard/pipeline-runs`)
+  - ATLAS Desktop changes
+  - Analytics screen changes (Metrics, Source Health)
+  - Ask Atlas or Recommendation behavior changes
+  - Phase 6 Package 5 is limited to the dashboard (Jinja2 server-rendered) layer;
+    no ATLAS frontend (React/Vite) changes are authorized
+
+  **Phase 5 Package 9 sub-package completion status (updated):**
+  - Package 9a — `pipeline_runs` table and `PipelineService` = Phase 6 Package 3 ✓ complete
+  - Package 9b — Local-first background runner = Phase 6 Package 4 ✓ complete
+  - Package 9c — Pipeline Runs dashboard screen = **this package (Phase 6 Package 5)**
+
+  **Acceptance criteria:**
+
+  1. `pytest -q` passes with no regressions from Package 4 baseline (985 passed,
+     1 skipped, 6 warnings).
+  2. `GET /dashboard/pipeline-runs` returns 200; renders run list, empty state, and
+     error detail correctly.
+  3. Route source-inspection test passes: `get_db`, `sqlite3`, `SELECT` absent from
+     the route module.
+  4. Route has exactly one `Depends()` argument — `get_pipeline_service` or
+     equivalent.
+  5. No POST, PUT, PATCH, or DELETE routes on `/dashboard/pipeline-runs`.
+  6. Navigation shell links to the new screen.
+  7. `job_search/pipeline/runner.py` is not modified.
+  8. No schema or table changes.
+  9. Runtime validation precondition confirmed by operator before implementation begins.
+  10. Leah audit: ACCEPT FOR COMMIT.
+
+  As of definition acceptance: 985 tests pass, 1 skipped, 6 warnings. Package 5
+  implementation is authorized, subject to the runtime validation precondition above.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Follow-up work: After Package 5 ships, Phase 6 is complete. The active Phase 6
+  backlog items then reduce to Phase 6 Package 5 completion. Phase 7 (Future
+  Enhancements) and portfolio/launch readiness work follow.
+
 ### Phase 6 Package 4 — Local-First Background Runner Definition Accepted
 
 - Status: accepted

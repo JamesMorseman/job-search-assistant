@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete / Package 4 definition accepted; Desktop Packages 1-11 complete; Desktop Package 12 not yet authorized
+Version: June 2026 - Phase 6 Packages 1-4 complete / Package 5 definition accepted; Desktop Packages 1-11 complete
 
 ## Purpose
 
@@ -27,10 +27,11 @@ Build an automated engineering job-search platform for James Morseman that:
 ## Current Objectives
 
 Phases 1â€”5 MVP and ATLAS Desktop Packages 1â€”11 are complete. Phase 6
-(Analytics & Pipeline Runs) is active. Phase 6 Packages 1, 2, and 3 are
-complete. Phase 6 Package 4 (local-first background runner) definition is
-accepted; implementation is now authorized. Desktop Package 12+ work is not
-yet authorized and requires a separate definition entry.
+(Analytics & Pipeline Runs) is active. Phase 6 Packages 1–4 are complete. Phase 6 Package 5
+(dashboard integration: Pipeline Runs screen) definition is accepted;
+implementation authorized pending runtime validation precondition.
+Desktop Package 12+ work is not yet authorized and requires a separate
+definition entry.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
@@ -64,12 +65,21 @@ Current objectives:
   `pipeline_runs` table, `PipelineService`, `PipelineRun` read model, 28 unit
   tests. `PipelineService` is sole authorized write path for `pipeline_runs`.
   See `DECISION_LOG.md`, "Phase 6 Package 3 Ã¢â‚¬â€ Pipeline Infrastructure Complete."
-- Phase 6 Package 4 (Local-first background runner) Ã¢â‚¬â€ **definition accepted;
-  implementation authorized.** Runner wraps existing pipeline steps (ingest,
-  grade, report, generate, follow-up scan); persists run records through
-  `PipelineService` sole write path; `jsa run` CLI entry point; no dashboard
-  UI, no new tables, no external scheduler. See `DECISION_LOG.md` for full
-  scope and acceptance criteria.
+- Phase 6 Package 4 (Local-first background runner) Ã¢â‚¬â€ **complete** (commit
+  `31a560d`; 985 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT).
+  Delivered `job_search/pipeline/runner.py` (`PipelineRunner` orchestrator;
+  ingest → grade → report → generate → followup); `jsa run` CLI with
+  `--dry-run` and `--run-type`; `PipelineService` sole write path enforced by two
+  source-inspection tests; recoverable and exception failure paths both close
+  the run as `failed` with error detail persisted. No UI, schema, scheduler,
+  or scope changes.
+- Phase 6 Package 5 (Dashboard integration: Pipeline Runs screen) Ã¢â‚¬â€ **definition
+  accepted; implementation authorized** pending operator runtime validation
+  precondition (run `jsa run` against real data and verify `pipeline_runs`
+  records before implementation begins). Scope: `GET /dashboard/pipeline-runs`
+  read-only screen via `PipelineService.list_recent_runs()`; template with run
+  list, counters, error detail, empty state; navigation link. Completes Phase 5
+  Package 9c. See `DECISION_LOG.md` for full scope and acceptance criteria.
 - ATLAS Desktop Package 1 - Desktop Shell Ã¢â‚¬â€ **complete** (commit `d6bdde7`;
   808 passed, 1 skipped, 6 warnings). Delivered `frontend/` Vite React
   TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace
@@ -264,7 +274,7 @@ Implemented:
 Architecture complete, implementation pending:
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
 - dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 4+5)
-- local-first background runner (Phase 6 Package 4): definition accepted; implementation authorized (see `DECISION_LOG.md`)
+- local-first background runner (Phase 6 Package 4): complete (commit `31a560d`); `jsa run` CLI and `PipelineRunner` delivered
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 
