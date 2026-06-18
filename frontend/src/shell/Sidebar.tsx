@@ -37,8 +37,8 @@ export default function Sidebar() {
       </nav>
 
       <div className="atlas-sidebar-footer">
-        <span>Desktop Shell</span>
-        <strong>Package 1</strong>
+        <span>ATLAS Local</span>
+        <strong>Runtime Demo Ready</strong>
       </div>
     </aside>
   );

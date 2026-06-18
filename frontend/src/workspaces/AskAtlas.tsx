@@ -18,7 +18,7 @@ import type { AskAtlasInvestigation, AtlasPipelineRun, AtlasSummary } from "../a
 import "./askAtlas.css";
 
 const DEFAULT_INVESTIGATION_PROMPT =
-  "What should I inspect first based on the current opportunity and pipeline context?";
+  "Based on the fictional demo opportunities, which opportunity should I inspect first and why?";
 
 export default function AskAtlas() {
   const [summaryState, setSummaryState] = useState<DataState<AtlasSummary>>(idleState());

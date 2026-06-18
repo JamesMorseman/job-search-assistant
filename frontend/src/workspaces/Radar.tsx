@@ -129,6 +129,14 @@ export default function Radar() {
           <p className="atlas-radar-eyebrow">Radar</p>
           <h2 id="radar-title">Opportunity Discovery</h2>
         </div>
+        <div className="atlas-radar-scope" aria-hidden="true">
+          <span className="atlas-radar-ring atlas-radar-ring-outer" />
+          <span className="atlas-radar-ring atlas-radar-ring-inner" />
+          <span className="atlas-radar-sweep" />
+          <span className="atlas-radar-dot atlas-radar-dot-a" />
+          <span className="atlas-radar-dot atlas-radar-dot-b" />
+          <span className="atlas-radar-dot atlas-radar-dot-c" />
+        </div>
         <div className="atlas-radar-controls">
           <input
             type="search"
