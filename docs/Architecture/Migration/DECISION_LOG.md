@@ -2607,3 +2607,247 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   entry overriding this classification.
 - Date: June 2026
 - State reference: `PROJECT_STATE.md`
+
+### ATLAS Desktop Package 4 - Radar Workspace MVP Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Radar workspace
+- Date: June 2026
+- Rationale: Records Project Master acceptance of commit `2195cd8`. Desktop
+  Package 4 — Radar Workspace MVP is accepted as complete. All 17 acceptance
+  criteria from the Package 4 definition entry are verified. Implementation is
+  closed.
+
+  **Commit:** `2195cd8` (`feat(atlas): implement Desktop Package 4 Radar Workspace MVP`)
+
+  **Test result:** 847 passed, 1 skipped, 6 warnings (baseline: 828 passed, 1
+  skipped). 19 tests added by Package 4. No regressions.
+
+  **Leah audit verdict:** ACCEPT FOR COMMIT. Blockers: none.
+
+  **Files created:** `frontend/src/shell/ContextPanelContext.tsx`,
+  `frontend/src/workspaces/radar.css`,
+  `tests/test_desktop_radar_workspace.py`
+
+  **Files modified:** `frontend/src/workspaces/Radar.tsx`,
+  `frontend/src/shell/AppShell.tsx`, `frontend/src/shell/ContextPanel.tsx`,
+  `frontend/src/shell/shell.css`
+
+  **Scope delivered:**
+
+  1. Radar workspace route at `/atlas/radar` replacing Package 1 placeholder.
+  2. Opportunity Signal Card grid consuming `getOpportunities()` from the Package
+     2 frontend API client (`frontend/src/api/client.ts`); no direct fetch bypass
+     (Leah verified).
+  3. Client-side search by position title and company.
+  4. Client-side source filter. Signal strength tier and tracked/untracked
+     filters not delivered — not exposed by the Package 2 `OpportunitySummary`
+     DTO at MVP; deferred per "if available from DTO" qualifier in the Package 4
+     definition.
+  5. Selected Signal Card state: `is-selected` CSS class applied; `setPreview()`
+     called with compact opportunity preview (title, company, source, location,
+     signal label, stage, status).
+  6. Context Panel updated via `ContextPanelContext` — new shell-level context
+     introduced in `AppShell.tsx` (Leah verified: narrowly scoped, acceptable);
+     preview clears on Radar unmount.
+  7. "Open Opportunity Detail" navigation from Signal Card and Context Panel
+     preview to `/atlas/opportunities/:jobId` (Package 3 route). `BrowserRouter
+     basename="/atlas"` confirmed in `frontend/src/main.tsx`; absolute path
+     `/opportunities/:jobId` resolves correctly to `/atlas/opportunities/:jobId`.
+  8. Loading, error, true-empty, and filtered-empty states implemented.
+  9. `ContextPanelProvider` wraps `AppShell` — shell-level context is available
+     to all future workspace packages via `useContextPanel()`.
+
+  **Acceptance criteria verification (all 17 pass):**
+
+  - Build PASS; pytest 847 passed, 0 regressions; `/dashboard/*` unaffected ✓
+  - Package 2 API boundary not bypassed (no direct `fetch()` outside
+    `frontend/src/api/client.ts`; Leah verified) ✓
+  - Radar renders within shell with sidebar nav and Context Panel frame ✓
+  - Signal Cards render from `GET /atlas/api/opportunities` data ✓
+  - Client-side search and source filter functional ✓
+  - Selected card state visually distinguished ✓
+  - Context Panel preview updated on card selection ✓
+  - Context Panel clears on Radar unmount / route change ✓
+  - "Open Opportunity Detail" navigates to correct Package 3 route ✓
+  - Loading / error / empty states render without crashing ✓
+  - No recommendation cards, Focus objects, Ask Atlas, mutations, or prohibited
+    scope (Leah verified) ✓
+  - No database / schema changes (diff: frontend/* and tests/* only) ✓
+  - Signal Card layout matches `Opportunity Signal Card v1.png` at structural
+    level; pixel perfection not required at MVP ✓
+  - Package 3 `OpportunityDetailSurface.tsx` not modified ✓
+
+  **Minor notes (non-blocking):**
+
+  Signal strength tier and tracked/untracked filters not delivered. Acceptable:
+  the Package 4 definition required these "if available from the Package 2 DTO,"
+  and they are not currently exposed. Deferred to a future DTO extension if
+  required.
+
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
+- Follow-up work: Desktop Package 5 — Pipeline Workspace MVP definition
+  accepted; implementation authorized (see entry below).
+
+### ATLAS Desktop Package 5 - Pipeline Workspace MVP Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Pipeline workspace
+- Date: June 2026
+- Rationale: Records the formal package definition for ATLAS Desktop Package 5
+  — Pipeline Workspace MVP. Per the standing governance rule, no implementation
+  may begin before this entry is accepted by Project Master. This entry
+  constitutes that acceptance. Implementation is now authorized within the
+  scope defined below.
+
+  **Authority:** `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`
+  §7 Step 5 ("Build Pipeline next. Pipeline proves ATLAS monitors. The user
+  needs to see what the system is doing."); `docs/Brand/ATLAS Pipeline Workspace
+  Specification v1.0.md`; `docs/Brand/Workspaces/Pipeline/ATLAS Pipeline
+  Workspace Architecture Study v2.md`;
+  `docs/Brand/Workspaces/Pipeline/Pipeline_Workspace_v5_Reference.md`
+
+  **Package objective:**
+
+  Implement the Pipeline Workspace as ATLAS's monitoring surface — the interface
+  through which the user sees what the pipeline has done. Pipeline proves the
+  "ATLAS monitors" part of the core loop. It consumes the Phase 6 Package 3
+  `PipelineService.list_recent_runs()` backend service via a new read-only
+  `/atlas/api/pipeline/runs` endpoint, and displays recent pipeline activity
+  without providing pipeline execution controls.
+
+  **Workspace ownership (per accepted surface spec):**
+
+  Pipeline owns: pipeline run display, lifecycle status, ingestion and processing
+  visibility, run counters and timing.
+
+  Pipeline does not own: opportunity discovery (Radar), opportunity investigation
+  (Opportunity Detail / Ask Atlas), recommendations (Package 7+), career strategy
+  (Command Center).
+
+  **Data dependency note:**
+
+  `pipeline_runs` table and `PipelineService` are complete (Phase 6 Package 3,
+  commit `f882405`). Phase 6 Package 4 (local-first background runner) is not
+  yet built — the Pipeline Workspace MVP will show an empty state until the
+  background runner generates run data. This is acceptable for MVP: the surface
+  is correctly implemented regardless of run volume. Phase 6 Package 4 is the
+  data producer; Package 5 is the data consumer. No implementation dependency
+  on the background runner is required.
+
+  **Scope — authorized for Package 5 implementation:**
+
+  1. **Pipeline workspace route and page component.** Replace the Package 1
+     placeholder at `/pipeline` with a real Pipeline workspace component that
+     renders within the existing ATLAS shell (sidebar nav, Context Panel frame).
+
+  2. **One new backend read endpoint.** Add `GET /atlas/api/pipeline/runs` to
+     the ATLAS FastAPI router, consuming `PipelineService.list_recent_runs()`
+     (already implemented in Phase 6 Package 3). This is the sole authorized
+     new backend endpoint for Package 5. No new database queries, no new tables,
+     no new `PipelineService` methods.
+
+  3. **Recent pipeline runs list.** Display the most recent pipeline runs. Each
+     run entry shows: run status (running / completed / failed / unknown), run
+     counters (fetched, new, graded, scored, errors — as available from the
+     `PipelineRun` read model), and timestamps (started_at; completed_at or
+     in-progress indicator).
+
+  4. **Run status indicators.** Visual distinction between running, completed,
+     and failed states at minimum.
+
+  5. **Frontend API client extension.** Add `getPipelineRuns()` to
+     `frontend/src/api/client.ts` and the corresponding response type to
+     `frontend/src/api/types.ts`, following the Package 2 pattern for read-only
+     API client methods. Use the same `DataState<T>` pattern from
+     `frontend/src/api/state.ts`.
+
+  6. **Loading, error, and empty states.** The workspace handles: loading (while
+     `getPipelineRuns()` is in flight), error (if the API call fails), and empty
+     (if no pipeline runs exist yet — expected until Phase 6 Package 4 runs).
+
+  7. **Tests.** Tests covering: workspace renders within the ATLAS shell;
+     endpoint returns correct data shape; runs render from API data; run status
+     variants displayed correctly; empty state renders without crashing; error
+     state renders without crashing; Package 2 API boundary not modified;
+     Package 4 Radar surface not modified; Package 3 Opportunity Detail surface
+     not modified.
+
+  **Authorized data paths:**
+
+  - Package 5 must access pipeline run data exclusively through the new
+    `GET /atlas/api/pipeline/runs` endpoint, consumed via the frontend API
+    client (`frontend/src/api/client.ts`).
+  - `PipelineService.list_recent_runs()` is the sole authorized backend read
+    path for pipeline run data.
+  - Package 5 must not query `pipeline_runs` directly from the frontend, bypass
+    the API, or extend `PipelineService` with new methods.
+  - The Package 2 opportunity endpoints (`GET /atlas/api/opportunities`,
+    `GET /atlas/api/opportunities/{job_id}`, `GET /atlas/api/summary`) must not
+    be modified.
+  - Package 5 remains read-only and local-first.
+
+  **Out of scope / prohibited for Desktop Package 5:**
+
+  - Pipeline execution controls (start, stop, cancel, schedule, trigger)
+  - Recommendation cards or generated recommendations
+  - Atlas Focus objects
+  - Ask Atlas behavior or LLM calls
+  - New scoring, ingestion, or grading logic
+  - Any write mutations
+  - Opportunity Detail content changes (Package 3 surface is closed)
+  - Radar content changes (Package 4 surface is closed)
+  - Command Center content
+  - Background runner / scheduler logic (belongs to JSA Phase 6 Package 4)
+  - New `pipeline_runs` schema changes or additional tables
+  - New `PipelineService` methods beyond `list_recent_runs()`
+  - Cloud sync or Tauri packaging
+  - Pipeline run filtering, search, or pagination at MVP
+  - Per-job pipeline step traces or detailed error logs at MVP
+
+  **Package boundaries:**
+
+  - Package 5 is Pipeline Workspace MVP — run list, status indicators, counters,
+    and timestamps are the complete scope.
+  - Context Panel: Package 5 must not set or clear `ContextPanelContext` state.
+    The Context Panel's opportunity preview (Package 4) persists across workspace
+    navigation. Package 5 does not own the Context Panel.
+  - Existing dashboard routes (`/dashboard/*`) must remain unaffected.
+  - Package 4 `Radar.tsx` must not be modified by Package 5.
+  - Package 3 `OpportunityDetailSurface.tsx` must not be modified by Package 5.
+  - Package 2 `GET /atlas/api/opportunities` boundary must not be modified by
+    Package 5.
+
+  **Acceptance criteria:**
+
+  1. Frontend build passes (`npm run build`).
+  2. `pytest` passes with no regressions (baseline: 847 passed, 1 skipped).
+  3. Existing `/dashboard/*` routes remain unaffected.
+  4. `/atlas` routing remains isolated.
+  5. `GET /atlas/api/pipeline/runs` endpoint returns a correct response body
+     with run status, counters, and timestamps.
+  6. Pipeline workspace renders within the ATLAS shell (sidebar nav and Context
+     Panel frame present).
+  7. Recent pipeline runs render from `GET /atlas/api/pipeline/runs` data.
+  8. Run status (running / completed / failed) is visually distinguished.
+  9. Run counters and timestamps are displayed per run entry.
+  10. Loading, error, and empty states all render without crashing.
+  11. No pipeline execution controls, recommendations, Ask Atlas behavior,
+      mutations, or prohibited scope items are present.
+  12. No database / schema files are modified.
+  13. Package 4 `Radar.tsx` not modified.
+  14. Package 3 `OpportunityDetailSurface.tsx` not modified.
+
+  As of this entry: 847 tests pass, 1 skipped (Package 4 baseline). Package 5
+  implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md` §7
+  Step 5, `docs/Brand/ATLAS Pipeline Workspace Specification v1.0.md`,
+  `docs/Brand/Workspaces/Pipeline/Pipeline_Workspace_v5_Reference.md`
+- Follow-up work: After Package 5 ships and acceptance criteria are verified,
+  write and accept ATLAS Desktop Package 6 — Command Center MVP definition
+  entry before issuing the Package 6 implementation task.

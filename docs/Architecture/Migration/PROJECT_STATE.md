@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-3 complete; Desktop Package 4 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-4 complete; Desktop Package 5 definition accepted
 
 ## Purpose
 
@@ -32,9 +32,10 @@ complete. Package 4 (local-first background runner) definition entry is
 required before its implementation begins.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
-by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), and 3 (Opportunity
-Detail Surface MVP) are accepted and complete. Desktop Package 4 — Radar
-Workspace MVP definition is accepted; implementation is now authorized.
+by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity
+Detail Surface MVP), and 4 (Radar Workspace MVP) are accepted and complete.
+Desktop Package 5 — Pipeline Workspace MVP definition is accepted; implementation
+is now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -81,12 +82,22 @@ Current objectives:
   Package 2 `getOpportunity()` boundary, opportunity-first display hierarchy,
   loading/error/not-found states, and route behavior tests. No mutations,
   recommendations, Ask Atlas behavior, or schema changes.
-- ATLAS Desktop Package 4 - Radar Workspace MVP — **definition accepted;
-  implementation authorized.** Scope: Opportunity Signal Card grid (via
-  Package 2 API), client-side search and filter, selected card state, Context
-  Panel opportunity preview, "Open Opportunity Detail" navigation link,
-  loading/error/empty states, and tests. See `DECISION_LOG.md` "ATLAS Desktop
-  Package 4 - Radar Workspace MVP Definition Accepted."
+- ATLAS Desktop Package 4 - Radar Workspace MVP — **complete** (commit
+  `2195cd8`; 847 passed, 1 skipped; Leah ACCEPT FOR COMMIT). Delivered
+  `/atlas/radar` route replacing Package 1 placeholder; Opportunity Signal
+  Card grid via Package 2 `getOpportunities()` API; client-side search and
+  source filter; selected card state; `ContextPanelContext` shell-level context
+  with opportunity preview; "Open Opportunity Detail" navigation to Package 3
+  route; loading/error/empty states; 19 tests. No mutations, no schema changes,
+  Package 3 surface untouched.
+- ATLAS Desktop Package 5 - Pipeline Workspace MVP — **definition accepted;
+  implementation authorized.** Scope: replace `/pipeline` placeholder; new
+  `GET /atlas/api/pipeline/runs` read endpoint (consuming Phase 6 Package 3
+  `PipelineService.list_recent_runs()`); recent runs list with status indicators,
+  counters, and timestamps; frontend API client extension; loading/error/empty
+  states; tests. See `DECISION_LOG.md` "ATLAS Desktop Package 5 - Pipeline
+  Workspace MVP Definition Accepted." Empty state expected until Phase 6
+  Package 4 (background runner) generates data.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation

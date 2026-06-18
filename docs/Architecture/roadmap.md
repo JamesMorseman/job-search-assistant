@@ -410,16 +410,17 @@ architecture decision is now closed (local-first accepted).
 ### Package Structure
 
 ATLAS Desktop v1 is a product layer parallel to the JSA engineering roadmap.
-Desktop Packages 1, 2, and 3 are accepted and complete. Desktop Package 4 —
-Radar Workspace MVP definition is accepted; implementation is now authorized.
+Desktop Packages 1, 2, 3, and 4 are accepted and complete. Desktop Package 5
+— Pipeline Workspace MVP definition is accepted; implementation is now authorized.
 
 | Package | Scope | Status |
 |---|---|---|
 | 1 | Desktop Shell — `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI `/atlas` SPA serving | **Accepted / Complete** — commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings |
 | 2 | Core Data Layer — read-only `/atlas/api` endpoints, opportunity summary/detail DTOs, summary counts, API-local JSON 404 fallback, Pydantic response models, `AtlasDataService`, frontend API client/types/state boundary, API contract/route-isolation tests | **Accepted / Complete** — commit `42fff28`; 817 passed, 1 skipped, 6 warnings |
 | 3 | Opportunity Detail Surface MVP — read-only `/atlas/opportunities/:jobId` route; consumes Package 2 `getOpportunity()` boundary; opportunity-first hierarchy; loading/error/not-found states; route behavior tests | **Accepted / Complete** — commit `5b19d5e`; 828 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
-| 4 | Radar Workspace MVP — Opportunity Signal Card grid via Package 2 API; client-side search and filter; selected card state; Context Panel opportunity preview; "Open Opportunity Detail" navigation; loading/error/empty states; tests | **Definition accepted — implementation authorized**; see `DECISION_LOG.md` |
-| 5+ | Pipeline Workspace, Command Center, Recommendations, Ask Atlas, and other product surfaces | Not yet authorized; require separate definition entries |
+| 4 | Radar Workspace MVP — Opportunity Signal Card grid via Package 2 API; client-side search and source filter; selected card state; `ContextPanelContext` shell-level context; Context Panel opportunity preview; "Open Opportunity Detail" navigation; loading/error/empty states; tests | **Accepted / Complete** — commit `2195cd8`; 847 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
+| 5 | Pipeline Workspace MVP — `GET /atlas/api/pipeline/runs` read endpoint; recent pipeline runs list with status indicators, counters, and timestamps; frontend API client extension; loading/error/empty states; tests | **Definition accepted — implementation authorized**; see `DECISION_LOG.md` |
+| 6+ | Command Center, Recommendations, Ask Atlas, and other product surfaces | Not yet authorized; require separate definition entries |
 
 ### Package 1 Boundaries
 
@@ -487,6 +488,31 @@ Package 4 must not modify the Package 3 Opportunity Detail surface unless a
 blocking integration bug requires it; if modification is required, the commit
 message must document the reason.
 
+Package 4 is complete and accepted (commit `2195cd8`). `ContextPanelContext`
+is now a shell-level context wrapping `AppShell` and available to all future
+workspace packages.
+
+### Package 5 Boundaries
+
+Desktop Package 5 is Pipeline Workspace MVP. It must access pipeline run data
+exclusively through the new `GET /atlas/api/pipeline/runs` endpoint, consuming
+`PipelineService.list_recent_runs()` (Phase 6 Package 3). It must not query
+`pipeline_runs` directly from the frontend, bypass the API, or extend
+`PipelineService` with new methods. It must remain read-only and local-first.
+
+Package 5 must not implement pipeline execution controls, recommendation cards,
+Atlas Focus objects, Ask Atlas behavior, LLM calls, new scoring or ingestion
+logic, write mutations, Radar content changes (Package 4 is closed), Opportunity
+Detail content changes (Package 3 is closed), Command Center content, background
+runner or scheduler logic, new `pipeline_runs` schema changes, new tables, new
+`PipelineService` methods beyond `list_recent_runs()`, cloud sync, or Tauri
+packaging.
+
+Package 5 must not set or clear `ContextPanelContext` state — it does not own
+the Context Panel. Package 5 must not modify Package 4 `Radar.tsx` or Package 3
+`OpportunityDetailSurface.tsx`. The Package 2 opportunity API boundary must not
+be modified.
+
 ## Phase 7 - Future Enhancements
 
 ### Objectives
@@ -546,9 +572,9 @@ message must document the reason.
    Package 3 (pipeline infrastructure) complete — 806 passing; commit `f882405`.
    Phase 6 Package 4 (background runner) requires definition entry before
    implementation begins.
-7. ✓ ATLAS Desktop Packages 1 (Shell), 2 (Core Data Layer), and 3 (Opportunity
-   Detail Surface MVP) complete. Desktop Package 4 — Radar Workspace MVP
-   definition accepted; implementation authorized. Pipeline Workspace, Command
-   Center, Recommendations, Ask Atlas, and Package 5+ work remain unauthorized
-   pending separate definition entries.
+7. ✓ ATLAS Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity
+   Detail Surface MVP), and 4 (Radar Workspace MVP) complete. Desktop Package 5
+   — Pipeline Workspace MVP definition accepted; implementation authorized.
+   Command Center, Recommendations, Ask Atlas, and Package 6+ work remain
+   unauthorized pending separate definition entries.
 8. Treat Phase 7 as optional, human-reviewed extensions.
