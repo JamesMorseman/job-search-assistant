@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-10 complete; Desktop Package 11 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete / Package 4 definition accepted; Desktop Packages 1-11 complete; Desktop Package 12 not yet authorized
 
 ## Purpose
 
@@ -26,19 +26,19 @@ Build an automated engineering job-search platform for James Morseman that:
 
 ## Current Objectives
 
-Phases 1â€”5 MVP and ATLAS Desktop Packages 1â€”10 are complete. Phase 6
+Phases 1â€”5 MVP and ATLAS Desktop Packages 1â€”11 are complete. Phase 6
 (Analytics & Pipeline Runs) is active. Phase 6 Packages 1, 2, and 3 are
-complete. Package 4 (local-first background runner) definition entry is
-required before its implementation begins. ATLAS Desktop Package 11 -
-Desktop v1 Hardening Pass is defined and may now be prompted.
+complete. Phase 6 Package 4 (local-first background runner) definition is
+accepted; implementation is now authorized. Desktop Package 12+ work is not
+yet authorized and requires a separate definition entry.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
 MVP), 4 (Radar Workspace MVP), 5 (Pipeline Workspace MVP), 6 (Command
 Center MVP), 7 (Recommendations MVP), 8 (Ask Atlas Investigation Surface
-MVP), 9 (Atlas Focus MVP), and 10 (Atlas Focus Resolution & Archive MVP) are
-accepted and complete. Desktop Package 11 - Desktop v1 Hardening Pass
-definition is accepted; implementation is now authorized.
+MVP), 9 (Atlas Focus MVP), 10 (Atlas Focus Resolution & Archive MVP), and
+11 (Desktop v1 Hardening Pass) are accepted and complete. Desktop Package 12+
+work is not yet authorized; requires a separate definition entry.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -64,9 +64,12 @@ Current objectives:
   `pipeline_runs` table, `PipelineService`, `PipelineRun` read model, 28 unit
   tests. `PipelineService` is sole authorized write path for `pipeline_runs`.
   See `DECISION_LOG.md`, "Phase 6 Package 3 Ã¢â‚¬â€ Pipeline Infrastructure Complete."
-- Phase 6 Package 4 (Local-first background runner) Ã¢â‚¬â€ **definition entry
-  required before implementation begins.** Authorized; not yet defined.
-  Depends on Package 3 (now complete).
+- Phase 6 Package 4 (Local-first background runner) Ã¢â‚¬â€ **definition accepted;
+  implementation authorized.** Runner wraps existing pipeline steps (ingest,
+  grade, report, generate, follow-up scan); persists run records through
+  `PipelineService` sole write path; `jsa run` CLI entry point; no dashboard
+  UI, no new tables, no external scheduler. See `DECISION_LOG.md` for full
+  scope and acceptance criteria.
 - ATLAS Desktop Package 1 - Desktop Shell Ã¢â‚¬â€ **complete** (commit `d6bdde7`;
   808 passed, 1 skipped, 6 warnings). Delivered `frontend/` Vite React
   TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace
@@ -157,13 +160,16 @@ Current objectives:
   Pipeline/Opportunity Detail changes, no scoring/ingestion changes, no
   background runner/scheduler/pipeline execution, no cloud sync, no Tauri
   packaging.
-- ATLAS Desktop Package 11 - Desktop v1 Hardening Pass - definition accepted;
-  implementation authorized. Scope: accessibility audit and remediation across
-  all five frozen surfaces and Focus Archive panel; error boundary and state
-  hardening; edge-case test coverage for existing API boundaries; minor CSS
-  consistency fixes. No new workspaces, routes, API endpoints, database tables,
-  or service modules. See `DECISION_LOG.md` for full definition and prohibited
-  scope.
+- ATLAS Desktop Package 11 - Desktop v1 Hardening Pass - **complete** (commit
+  `230bfe4`; 975 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT).
+  Delivered Safari/VoiceOver list semantics (`role="list"` / `role="listitem"`)
+  across Command Center (3 lists), Pipeline, and Ask Atlas followups; Opportunity
+  Detail apply link `aria-label` for new-tab context; Ask Atlas prompt textarea
+  `aria-invalid` / `aria-describedby` wired to error state; Ask Atlas stale-
+  response guard via `investigationRequestIdRef` `useRef` counter; 14-test
+  hardening suite covering backend edge-cases, frontend source inspection, ARIA
+  wiring, and a scope-freeze test asserting exact service module set. No new
+  routes, endpoints, tables, service modules, or product features introduced.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -258,7 +264,7 @@ Implemented:
 Architecture complete, implementation pending:
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
 - dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 4+5)
-- local-first background runner (Phase 6 Package 4): definition entry required before implementation
+- local-first background runner (Phase 6 Package 4): definition accepted; implementation authorized (see `DECISION_LOG.md`)
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 
@@ -714,11 +720,9 @@ database/schema changes.
 Desktop Packages 3 through 10 are accepted and complete: Opportunity Detail
 Surface MVP, Radar Workspace MVP, Pipeline Workspace MVP, Command Center MVP,
 Recommendations MVP, Ask Atlas Investigation Surface MVP, Atlas Focus MVP, and
-Atlas Focus Resolution & Archive MVP. Desktop Package 11 - Desktop v1
-Hardening Pass is defined and may now be prompted. Package 11 is hardening
-only: no new workspaces, routes, endpoints, tables, or services. See
-`DECISION_LOG.md` "ATLAS Desktop Package 11" for full definition and
-prohibited scope.
+Atlas Focus Resolution & Archive MVP, and Desktop v1 Hardening Pass.
+Desktop Package 12+ work is not yet authorized and requires a separate
+definition entry.
 
 ## Cross-System Dependencies
 

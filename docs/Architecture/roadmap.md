@@ -336,7 +336,7 @@ Per `DECISION_LOG.md`'s "Phase 6 Authorization and Package Structure Accepted":
 | 1 | Analytics expansion (MVP) — funnel conversion rates, LLM grade distribution, stretch category conversion rates, source effectiveness confidence signals (`n=`), contextual navigation links (Tracker / Review Queue / Source Health); Source Breakdown table removed; expose via `MetricsService.get_funnel_stats()` | **Complete** — 755 passing, 1 skipped; no new routes/services/screens; Metrics route read-only; no mutation paths. Scope corrected from over-broad 11-item definition — see `DECISION_LOG.md`. |
 | 2 | Analytics depth — Score Distribution (Q1/Median/Q3), stretch category response rates, Unified Source Comparison (replaces Source Effectiveness), operator velocity pairs (presented→selected, selected→applied); conditional: LLM grade correlation (≥ 5 terminal-resolved per grade); employer-stage velocity pairs deferred to Package 3 | **Complete** — 778 passing, 1 skipped; commit `6af126b`; no new routes/services/screens; Metrics route read-only; no mutation paths |
 | 3 | Pipeline infrastructure — `pipeline_runs` table schema, `services/pipeline.py` read/write service, run-record persistence | **Complete** — 806 passing, 1 skipped; commit `f882405`; Leah audit PASS WITH MINOR NOTES; `PipelineService` is sole authorized write path for `pipeline_runs`; see `DECISION_LOG.md` "Phase 6 Package 3 — Pipeline Infrastructure Complete" |
-| 4 | Local-first background runner — wrap ingest/grade/generate/follow-up pipeline steps in a durable local execution layer; persist run stats/errors to `pipeline_runs` | Authorized; **definition entry required before implementation**; depends on Package 3 (complete) |
+| 4 | Local-first background runner — wrap ingest/grade/generate/follow-up pipeline steps in a durable local execution layer; persist run stats/errors to `pipeline_runs`; `jsa run` CLI entry point; no dashboard UI, no new tables | **Definition accepted; implementation authorized** — depends on Package 3 (complete); see `DECISION_LOG.md` |
 | 5 | Dashboard integration — Pipeline Runs screen (Phase 5 Package 9c), run-history display, Pipeline Trends screen (historical analytics) | Authorized; definition entry required before implementation; depends on Packages 3+4 |
 
 Architecture decision: local-first background runner accepted — no external
@@ -425,7 +425,7 @@ v1 Hardening Pass definition is accepted; implementation is now authorized.
 | 8 | Ask Atlas Investigation Surface MVP — investigation-oriented `/atlas/ask-atlas` workspace; attached context; structured observation/explanation/suggested-action/follow-up response via existing LLM provider abstraction; loading/error/empty/context-missing states; tests; stateless at MVP | **Accepted / Complete** — commit `da6aed3`; 921 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
 | 9 | Atlas Focus MVP — Focus read model/DTO; local-first Focus service deriving active prioritized awareness objects from accepted read sources; optional read-only `/atlas/api/focuses`; frontend client/types; Command Center Focus list; loading/error/empty states; tests; read-only at MVP | **Accepted / Complete** — commit `e985918`; 940 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
 | 10 | Atlas Focus Resolution & Archive MVP — bounded Focus lifecycle mutations; archive/history support; Command Center resolution and archive presentation; frontend client/types; loading/error/empty states; tests; Focus-domain only | **Accepted / Complete** — commit `bf1655d`; 961 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
-| 11 | Desktop v1 Hardening Pass — accessibility audit and remediation across all five frozen surfaces and Focus Archive; error boundary and state hardening; edge-case test coverage for existing API boundaries; CSS consistency fixes; no new routes/endpoints/tables/services | **Definition accepted** — implementation authorized; see `DECISION_LOG.md` |
+| 11 | Desktop v1 Hardening Pass — accessibility audit and remediation across all five frozen surfaces and Focus Archive; error boundary and state hardening; edge-case test coverage for existing API boundaries; CSS consistency fixes; no new routes/endpoints/tables/services | **Accepted / Complete** — commit `230bfe4`; 975 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
 | 12+ | Later product surfaces and enhancements | Not yet authorized; require separate definition entries |
 
 ### Package 1 Boundaries
@@ -703,8 +703,8 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
    Package 3 (pipeline infrastructure) complete — 806 passing; commit `f882405`.
    Phase 6 Package 4 (background runner) requires definition entry before
    implementation begins.
-7. ✓ ATLAS Desktop Packages 1–10 complete (Shell through Atlas Focus Resolution
-   & Archive MVP). Desktop Package 11 - Desktop v1 Hardening Pass definition
-   accepted; implementation authorized. Package 12+ work remains unauthorized
-   pending separate definition entries.
+7. ✓ ATLAS Desktop Packages 1–11 complete (Shell through Desktop v1 Hardening
+   Pass). Package 12+ work remains unauthorized pending separate definition
+   entries. Phase 6 Package 4 (local-first background runner) definition
+   accepted; implementation now authorized.
 8. Treat Phase 7 as optional, human-reviewed extensions.

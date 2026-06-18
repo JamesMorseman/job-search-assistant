@@ -3791,6 +3791,178 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   is now authorized. Phase 6 Package 4 (local-first background runner) definition entry
   also remains required before its implementation begins.
 
+### ATLAS Desktop Package 11 — Desktop v1 Hardening Pass Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / hardening
+- Date: June 2026
+- Commit: `230bfe4` — `feat(atlas): implement Desktop Package 11 Desktop v1 Hardening Pass`
+- Rationale: Records Project Master acceptance of Desktop Package 11 — Desktop v1
+  Hardening Pass as implemented and complete.
+
+  **Package accepted:**
+  - ATLAS Desktop Package 11 — Desktop v1 Hardening Pass — **Accepted / Complete**
+
+  **Files created:**
+  - `tests/test_desktop_hardening_package11.py` — 14 test functions covering backend
+    edge-cases (empty collections, null optional fields, no-pipeline-run service
+    context), frontend source-inspection for list semantics and ARIA wiring, stale-
+    response guard verification, and a scope-freeze test asserting no new routes or
+    service modules were introduced
+
+  **Files modified:**
+  - `frontend/src/workspaces/AskAtlas.tsx` — stale-response guard via
+    `investigationRequestIdRef` (`useRef` counter; both `.then()` and `.catch()`
+    paths check `investigationRequestIdRef.current !== requestId` before setting
+    state); `aria-invalid` and `aria-describedby` on the prompt textarea wired to
+    the error `<p id="ask-atlas-prompt-error">`; `role="list"` / `role="listitem"`
+    on the suggested followups list
+  - `frontend/src/workspaces/CommandCenter.tsx` — `role="list"` / `role="listitem"`
+    on the Focus list, Focus Archive list, and Recommendations list
+  - `frontend/src/workspaces/OpportunityDetailSurface.tsx` —
+    `aria-label="View original posting (opens in a new tab)"` on the external
+    apply link (correct pattern for `target="_blank"` links)
+  - `frontend/src/workspaces/Pipeline.tsx` — `role="list"` / `role="listitem"` on
+    the pipeline runs list
+
+  **Implemented scope (all items from the Package 11 definition entry):**
+  1. Accessibility audit and remediation — Safari/VoiceOver list-style:none gap
+     resolved across Command Center (3 lists), Pipeline, and Ask Atlas followups;
+     Opportunity Detail apply link labeled for new-tab context; Ask Atlas prompt
+     textarea wired to error message via ARIA validation attributes
+  2. Ask Atlas stale-response hardening — `useRef` request-counter pattern guards
+     against slow in-flight responses resolving after a subsequent submission has
+     already set new state; cleaner than the `cancelled` boolean in `useEffect` hooks
+  3. Edge-case and resilience test coverage — empty collections, null optional
+     fields on opportunity detail, omitted `note` on focus resolution, stateless
+     service paths with no pipeline run and empty context
+  4. Scope-freeze enforcement test — `test_package11_introduces_no_new_surface`
+     asserts exact service module set and the absence of PUT/PATCH/DELETE routes,
+     making future unauthorized additions fail the test suite
+
+  **Scope boundary verified — none of the following were introduced:**
+  New backend routes, API endpoints, service modules, database tables, schema
+  changes, product features, mutation paths, background runner/scheduler behavior,
+  Tauri/cloud sync, Ask Atlas memory, recommendation persistence, or
+  task/reminder/notification/calendar behavior.
+
+  **Validation:**
+  - `npm run build`: PASS
+  - `pytest -q`: 975 passed, 1 skipped, 6 warnings (net +14 tests over Package 11
+    baseline of 961)
+  - Leah audit: ACCEPT FOR COMMIT
+
+  As of this entry: 975 tests pass, 1 skipped, 6 warnings.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
+- Definition reference: `DECISION_LOG.md` "ATLAS Desktop Package 11 — Desktop v1
+  Hardening Pass Definition Accepted"
+- Follow-up work: Phase 6 Package 4 (local-first background runner) definition is
+  recorded below. Desktop Package 12+ requires a separate definition entry before
+  any implementation begins.
+
+### Phase 6 Package 4 — Local-First Background Runner Definition Accepted
+
+- Status: accepted
+- Area: Phase 6 / pipeline infrastructure / background runner
+- Date: June 2026
+- Rationale: Phase 6 Package 3 (pipeline infrastructure) is complete. Per the
+  standing governance rule, Package 4 may not begin implementation until its
+  definition is recorded and accepted. Package 4 is the durable local execution
+  layer that wraps the existing pipeline steps and persists run records through
+  `PipelineService` to the `pipeline_runs` table. It is the last prerequisite
+  before Phase 5 Package 9b/9c (Pipeline Runs dashboard screen) can be scoped.
+
+  Architecture decision basis: "Phase 6 Local-First Background Runner Architecture
+  Accepted" (see DECISION_LOG above). The runner executes in-process or as a local
+  subprocess with no external scheduler, task queue, or remote worker.
+
+  **Package objective:**
+
+  Wrap the existing pipeline steps in a durable local execution layer. Every
+  pipeline execution must produce a `pipeline_runs` record so runs become
+  observable and auditable without UI changes.
+
+  **Authorized scope for Package 4:**
+
+  1. **Pipeline runner module.** Add `job_search/pipeline/runner.py` (or equivalent
+     path within the project module structure) that orchestrates a full pipeline
+     execution: ingest → grade → daily report → generate → follow-up scan. Each
+     step is wrapped; partial failures must not silently swallow errors.
+
+  2. **`pipeline_runs` write path via `PipelineService`.** The runner must call
+     `PipelineService.create_run()`, update counters via
+     `PipelineService.update_counters()`, and call `PipelineService.complete_run()`
+     or `PipelineService.fail_run()` to close the record. No other code path may
+     write to `pipeline_runs` directly — `PipelineService` is already established
+     as the sole authorized write path.
+
+  3. **CLI entry point.** Add a `jsa run` command (or equivalent) that invokes the
+     runner in-process. The CLI command must support at minimum: a full pipeline
+     run, a dry-run mode (no DB writes), and a `--run-type` parameter consistent
+     with the `run_type` values accepted by `PipelineService.create_run()`.
+
+  4. **Error and stats persistence.** Run counters (`jobs_seen`, `jobs_created`,
+     `jobs_updated`, `jobs_presented`, `errors_count`) must be populated from the
+     return values of the wrapped steps. Step-level error detail must be persisted
+     to `notes_json` or `metadata_json` per the `pipeline_runs` schema from
+     Package 3. A run that encounters a recoverable per-step error must still close
+     as `failed` with error detail preserved, not silently complete.
+
+  5. **Tests.** Unit tests must cover: run record creation; counter updates; clean
+     completion; failure path with error detail preserved; dry-run path. Integration
+     tests may use an isolated tmp-path SQLite database consistent with the existing
+     test fixture pattern.
+
+  **Authorized data paths:**
+
+  - `PipelineService` (from Package 3) is the sole authorized write path for
+    `pipeline_runs`. The runner must not bypass it.
+  - The runner may call existing pipeline step classes directly:
+    `Ingestor`, `FitGrader`, `DailyReporter`, `SelectionProcessor`,
+    `FollowUpEngine`. It must not reimplement their logic.
+  - `get_db()` may be used by the runner only through the existing service layer
+    boundaries, not via raw SQL in the runner module.
+
+  **Out of scope / prohibited for Package 4:**
+
+  - Dashboard UI changes (no new routes, templates, or frontend files)
+  - New database tables or schema changes (Package 3 schema is complete)
+  - New service modules beyond the runner itself
+  - External scheduler, task queue, remote worker, or daemon
+  - ATLAS Desktop changes
+  - Ask Atlas or Recommendation behavior changes
+  - Scoring or ingestion logic changes
+  - Cloud sync or Tauri packaging
+
+  **Acceptance criteria:**
+
+  1. `pytest -q` passes with no regressions from Package 11 baseline (975 passed,
+     1 skipped, 6 warnings).
+  2. `jsa run` (or equivalent) executes a full pipeline and produces a
+     `pipeline_runs` record with status `completed` or `failed`.
+  3. `PipelineService` is the only code path writing to `pipeline_runs` — enforced
+     by a source-inspection test confirming no other module calls `INSERT INTO
+     pipeline_runs` directly.
+  4. A run that encounters a step-level error closes as `failed` with error detail
+     in `notes_json` or `metadata_json`; it does not silently complete.
+  5. Dry-run mode executes without writing any database records.
+  6. No new dashboard routes, templates, or frontend files introduced.
+  7. No new database tables or schema changes.
+  8. Leah audit: ACCEPT FOR COMMIT.
+
+  As of definition acceptance: 975 tests pass, 1 skipped, 6 warnings. Package 4
+  implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Architecture decision basis: "Phase 6 Local-First Background Runner Architecture
+  Accepted" (this log)
+- Follow-up work: After Package 4 ships, Phase 6 Package 5 (dashboard integration —
+  Pipeline Runs screen, Phase 5 Package 9c) definition entry must be written and
+  accepted before its implementation begins.
+
 ### ATLAS Desktop Package 11 — Desktop v1 Hardening Pass Definition Accepted
 
 - Status: accepted
