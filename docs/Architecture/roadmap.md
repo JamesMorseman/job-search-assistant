@@ -410,16 +410,16 @@ architecture decision is now closed (local-first accepted).
 ### Package Structure
 
 ATLAS Desktop v1 is a product layer parallel to the JSA engineering roadmap.
-Desktop Packages 1 and 2 are accepted and complete. Desktop Package 3 -
-Opportunity Detail Surface MVP is defined and may be prompted for
-implementation.
+Desktop Packages 1, 2, and 3 are accepted and complete. Desktop Package 4 —
+Radar Workspace MVP definition is accepted; implementation is now authorized.
 
 | Package | Scope | Status |
 |---|---|---|
-| 1 | Desktop Shell - `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI `/atlas` SPA serving | **Accepted / Complete** - commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings |
-| 2 | Core Data Layer - read-only `/atlas/api` endpoints, opportunity summary/detail DTOs, summary counts, API-local JSON 404 fallback, Pydantic response models, `AtlasDataService`, frontend API client/types/state boundary, API contract/route-isolation tests | **Accepted / Complete** - commit `42fff28`; 817 passed, 1 skipped, 6 warnings |
-| 3 | Opportunity Detail Surface MVP - first read-only data-consuming ATLAS surface; consumes Package 2 opportunity detail DTO; renders one selected opportunity with opportunity-first hierarchy, loading/error/not-found states, and tests for route behavior/data consumption | **Definition accepted**; implementation may now be prompted |
-| 4+ | Recommendations, Ask Atlas behavior, Pipeline Workspace, Command Center, Radar, and other product surfaces | Not authorized by Package 3; require separate definition entries |
+| 1 | Desktop Shell — `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI `/atlas` SPA serving | **Accepted / Complete** — commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings |
+| 2 | Core Data Layer — read-only `/atlas/api` endpoints, opportunity summary/detail DTOs, summary counts, API-local JSON 404 fallback, Pydantic response models, `AtlasDataService`, frontend API client/types/state boundary, API contract/route-isolation tests | **Accepted / Complete** — commit `42fff28`; 817 passed, 1 skipped, 6 warnings |
+| 3 | Opportunity Detail Surface MVP — read-only `/atlas/opportunities/:jobId` route; consumes Package 2 `getOpportunity()` boundary; opportunity-first hierarchy; loading/error/not-found states; route behavior tests | **Accepted / Complete** — commit `5b19d5e`; 828 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
+| 4 | Radar Workspace MVP — Opportunity Signal Card grid via Package 2 API; client-side search and filter; selected card state; Context Panel opportunity preview; "Open Opportunity Detail" navigation; loading/error/empty states; tests | **Definition accepted — implementation authorized**; see `DECISION_LOG.md` |
+| 5+ | Pipeline Workspace, Command Center, Recommendations, Ask Atlas, and other product surfaces | Not yet authorized; require separate definition entries |
 
 ### Package 1 Boundaries
 
@@ -469,6 +469,23 @@ mutations, select/reject/apply actions, mark applied actions, document
 regeneration, Pipeline workspace content, Command Center content, Radar content,
 background runner behavior, scheduler behavior, pipeline execution controls,
 database/schema changes, new tables, cloud sync, or Tauri packaging.
+
+### Package 4 Boundaries
+
+Desktop Package 4 is Radar Workspace MVP. It must consume `GET /atlas/api/opportunities`
+through the Package 2 frontend API client for all opportunity data. It must not
+bypass the Package 2 boundary by querying SQLite or existing dashboard services
+directly. It must remain read-only and local-first.
+
+Package 4 must not implement recommendation cards, Atlas Focus objects, Ask Atlas
+behavior, LLM calls, new scoring or ingestion logic, write mutations (select,
+reject, apply, stage-transition, document-generation), Pipeline workspace content,
+Command Center content, background runner or scheduler behavior, pipeline execution
+controls, database/schema changes, new tables, cloud sync, or Tauri packaging.
+
+Package 4 must not modify the Package 3 Opportunity Detail surface unless a
+blocking integration bug requires it; if modification is required, the commit
+message must document the reason.
 
 ## Phase 7 - Future Enhancements
 
@@ -524,15 +541,14 @@ database/schema changes, new tables, cloud sync, or Tauri packaging.
    Package 7 (Firm Review Queue) requires the draft-to-SQLite sync to be
    built first. Package 9a/9b/9c (Pipeline Runs) gated on Phase 6 Packages
    3+4.
-6. Phase 6 active. Package 1 (analytics expansion) complete — 755 passing.
-   Package 2 (analytics depth) complete — 778 passing, 1 skipped; commit
-   `6af126b`. Package 3 (pipeline infrastructure) definition accepted —
-   implementation authorized; issue Anna implementation task. Packages 4–5
-   require individual definition entries before their implementation begins.
-7. ATLAS Desktop Packages 1 and 2 complete. Desktop Package 3 - Opportunity
-   Detail Surface MVP definition accepted; implementation may now be prompted
-   and is limited to a read-only, local-first surface consuming the Package 2
-   opportunity detail DTO. Recommendations, Ask Atlas behavior, Pipeline
-   Workspace, Command Center, Radar, actions, and Package 4+ work remain
-   unauthorized.
+6. ✓ Phase 6 active. Package 1 (analytics expansion) complete — 755 passing.
+   Package 2 (analytics depth) complete — 778 passing; commit `6af126b`.
+   Package 3 (pipeline infrastructure) complete — 806 passing; commit `f882405`.
+   Phase 6 Package 4 (background runner) requires definition entry before
+   implementation begins.
+7. ✓ ATLAS Desktop Packages 1 (Shell), 2 (Core Data Layer), and 3 (Opportunity
+   Detail Surface MVP) complete. Desktop Package 4 — Radar Workspace MVP
+   definition accepted; implementation authorized. Pipeline Workspace, Command
+   Center, Recommendations, Ask Atlas, and Package 5+ work remain unauthorized
+   pending separate definition entries.
 8. Treat Phase 7 as optional, human-reviewed extensions.

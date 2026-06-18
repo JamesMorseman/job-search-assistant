@@ -1,7 +1,7 @@
 # Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Package 2
-complete; Desktop Package 3 definition accepted; Package 4 definition required
+**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-3
+complete; Desktop Package 4 Radar Workspace MVP definition accepted
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -45,11 +45,11 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Desktop Package 2
-  acceptance and Desktop Package 3 definition
-- **Implementation files:** Desktop Package 1 committed in `d6bdde7`;
-  Desktop Package 2 committed in `42fff28`
-- **Test suite:** 817 passing, 1 skipped, 6 warnings (as of Desktop Package 2)
+- **Governance files:** Current governance commit records Desktop Package 3
+  acceptance and Desktop Package 4 definition
+- **Implementation files:** Desktop Packages 1-3 committed in `d6bdde7`,
+  `42fff28`, `5b19d5e`
+- **Test suite:** 828 passing, 1 skipped (as of Desktop Package 3)
 
 **Confirm at session start:**
 
@@ -111,8 +111,9 @@ explicit PM authorization):**
 |---|---|---|
 | 1 - Desktop Shell | `frontend/` Vite React TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace routing placeholders, Context Panel stub, ATLAS design-token CSS variables, FastAPI `/atlas` SPA serving | **Accepted / Complete** - commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings |
 | 2 - Core Data Layer | Read-only `/atlas/api` endpoints, opportunity summary/detail DTOs, summary counts, API-local JSON 404 fallback, Pydantic response models, `AtlasDataService`, frontend API client/types/state boundary, API contract/route-isolation tests | **Accepted / Complete** - commit `42fff28`; 817 passed, 1 skipped, 6 warnings |
-| 3 - Opportunity Detail Surface MVP | First read-only data-consuming ATLAS surface; consumes Package 2 opportunity detail DTO; renders one selected opportunity with opportunity-first hierarchy, loading/error/not-found states, and tests for route behavior/data consumption | **Definition accepted**; implementation may now be prompted |
-| 4+ | Recommendations, Ask Atlas behavior, Pipeline Workspace, Command Center, Radar, and other product surfaces | Not authorized; require separate definition entries |
+| 3 - Opportunity Detail Surface MVP | Read-only `/atlas/opportunities/:jobId` route; consumes Package 2 `getOpportunity()` boundary; opportunity-first hierarchy; loading/error/not-found states; route behavior tests | **Accepted / Complete** — commit `5b19d5e`; 828 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
+| 4 - Radar Workspace MVP | Opportunity Signal Card grid via Package 2 API; client-side search and filter; selected card state; Context Panel opportunity preview; "Open Opportunity Detail" navigation; loading/error/empty states; tests | **Definition accepted — implementation authorized** |
+| 5+ | Pipeline Workspace, Command Center, Recommendations, Ask Atlas, and other product surfaces | Not yet authorized; require separate definition entries |
 
 ---
 
@@ -120,25 +121,29 @@ explicit PM authorization):**
 
 ```text
 (current governance commit)
-         docs(governance): accept Desktop Package 2 and define Package 3
-         DECISION_LOG.md: Desktop Package 2 acceptance and Desktop Package 3
-           Opportunity Detail Surface MVP definition
-         PROJECT_STATE.md: Desktop Package 2 complete, Package 3 next
-         roadmap.md: Desktop Package 2 complete, Package 3 defined
+         docs(governance): accept Desktop Package 3 and define Package 4
+         DECISION_LOG.md: Desktop Package 3 accepted/complete; Package 4
+           Radar Workspace MVP definition accepted
+         PROJECT_STATE.md: Desktop Package 3 complete, Package 4 authorized
+         roadmap.md: Desktop Package 3 complete, Package 4 defined
          ASH_INIT_NEXT.md: synchronized to current state
+
+5b19d5e  feat(atlas): implement Desktop Package 3 Opportunity Detail Surface MVP
+         OpportunityDetailSurface.tsx, opportunityDetailSurface.css,
+         test_desktop_opportunity_detail.py; /atlas/opportunities/:jobId route;
+         consumes Package 2 getOpportunity() boundary
+         (828 passed, 1 skipped)
+
+50cf8b7  docs(governance): accept Desktop Package 2 and define Package 3
 
 42fff28  feat(atlas): implement Desktop Package 2 data API boundary
          read-only /atlas/api endpoints, AtlasDataService, Pydantic response
          DTOs, frontend/src/api client/types/state boundary, API route tests
          (817 passed, 1 skipped, 6 warnings)
 
+66f5165  docs(governance): accept Desktop Package 1 and define Package 2
 d6bdde7  feat(atlas): implement Desktop Package 1 shell
-         frontend/ Vite React TypeScript scaffold, ATLAS shell layout,
-         sidebar navigation, workspace routing placeholders, Context Panel
-         stub, design-token CSS variables, FastAPI /atlas SPA serving
-
 3edd347  docs(governance): define ATLAS Desktop Package 1 shell
-         Desktop Package 1 definition accepted
 
 f882405  feat(pipeline): Phase 6 Package 3 pipeline_runs table and PipelineService
          job_search/db/schema.sql: pipeline_runs table added
@@ -486,41 +491,31 @@ references.
 
 After that entry is accepted, issue an Anna implementation task referencing it.
 
-### Step 3 - Prompt ATLAS Desktop Package 3 implementation (Desktop track)
+### Step 3 - Prompt ATLAS Desktop Package 4 implementation (Desktop track)
 
-**Desktop v1 tech stack is accepted** (React 18 + TypeScript + Vite + Tailwind
-+ FastAPI catch-all; see DECISION_LOG.md "ATLAS Desktop v1 — Frontend Technology
-Stack Decision"). Desktop Package 1 - Desktop Shell is complete and accepted
-(commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings). Desktop Package 2 -
-Core Data Layer is complete and accepted (commit `42fff28`; 817 passed, 1
-skipped, 6 warnings). Desktop Package 3 - Opportunity Detail Surface MVP
-definition is now accepted; see DECISION_LOG.md "ATLAS Desktop Package 3 -
-Opportunity Detail Surface MVP Definition Accepted."
+**Desktop Packages 1, 2, and 3 are complete and accepted.** Desktop Package 4
+— Radar Workspace MVP definition is accepted; implementation is now authorized.
+See `DECISION_LOG.md` "ATLAS Desktop Package 4 - Radar Workspace MVP Definition
+Accepted."
 
-Package 3 implementation may now be prompted. Authorized scope is limited to a
-read-only, local-first Opportunity Detail Surface MVP: Opportunity Detail
-route/page implementation, read-only consumption of the Package 2 opportunity
-detail DTO, title/company/source/location metadata, stage/status/current state,
-fit context, score/grade/rationale, knockout/risk fields if already available,
-benefit/trajectory fields if already available, apply URL as an external link
-only, loading/error/not-found states, and tests for route behavior and data
-consumption.
+Package 4 implementation may now be prompted. Authorized scope: Opportunity
+Signal Card grid (consuming `GET /atlas/api/opportunities` via the Package 2
+frontend API client); client-side search (by title and company) and filter (by
+source at minimum); selected Signal Card state with Context Panel opportunity
+preview; "Open Opportunity Detail" navigation to `/atlas/opportunities/:jobId`;
+loading, error, and empty states; tests. Package 4 remains read-only and
+local-first.
 
-Package 3 must preserve the hierarchy: opportunity first, Atlas advisory
-context second, metrics supporting, context panel subordinate. It must consume
-the Package 2 API boundary rather than bypassing it.
+Package 4 must not implement recommendation cards, Atlas Focus objects, Ask
+Atlas behavior, LLM calls, new scoring or ingestion logic, write mutations
+(select, reject, apply, stage-transition, document-generation), Pipeline
+workspace content, Command Center content, background runner or scheduler
+behavior, pipeline execution controls, database/schema changes, new tables,
+cloud sync, or Tauri packaging.
 
-Package 3 must not implement recommendation cards, generated recommendations,
-Atlas Focus objects, Ask Atlas behavior, LLM calls, new scoring logic, state
-mutations, select/reject/apply actions, mark applied actions, document
-regeneration, Pipeline workspace content, Command Center content, Radar
-content, background runner behavior, scheduler behavior, pipeline execution
-controls, database/schema changes, new tables, cloud sync, or Tauri packaging.
-
-This track is parallel to the JSA Phase 6 work. Desktop Package 3 may touch
-frontend workspace files and tests, so it must preserve existing dashboard
-routes, keep `/atlas` routing isolated, and avoid backend/database changes
-unless explicitly authorized by a later governance entry.
+Package 4 must not modify the Package 3 Opportunity Detail surface unless a
+blocking integration bug requires it; if modification is required, the commit
+message must document the reason.
 
 **Sequencing constraint:** Do not split Desktop v1 implementation into
 parallel agents before file ownership across surfaces is clearly separated.
@@ -558,14 +553,13 @@ A new Ash must not:
   state** — those are historical reference only
 - **Expand Desktop v1 scope** to include Intelligence Workspace, Professional
   Graph, Career Memory, Forecasting, or enterprise features
-- **Treat Desktop Package 3 as the full Opportunity Workspace** - it is a
-  read-only Opportunity Detail Surface MVP only: no recommendation cards,
-  generated recommendations, Atlas Focus objects, Ask Atlas behavior, LLM
-  calls, new scoring logic, state mutations, select/reject/apply actions, mark
-  applied actions, document regeneration, Pipeline workspace content, Command
-  Center content, Radar content, background runner behavior, scheduler
-  behavior, pipeline execution controls, database/schema changes, new tables,
-  cloud sync, or Tauri packaging
+- **Treat Desktop Package 4 as authorizing Pipeline, Command Center, or
+  Recommendations** — Package 4 is Radar Workspace MVP only: Signal Card grid,
+  client-side search/filter, selected card state, Context Panel preview, and
+  Opportunity Detail navigation. No recommendation cards, Atlas Focus objects,
+  Ask Atlas behavior, LLM calls, write mutations, Pipeline workspace content,
+  Command Center content, background runner, database/schema changes, or
+  Tauri packaging
 - **Issue parallel implementation tasks** without first confirming disjoint
   file ownership across agents
 

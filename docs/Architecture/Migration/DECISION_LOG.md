@@ -2304,6 +2304,246 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   The implementation prompt must reference this entry and preserve all
   prohibited-scope boundaries above.
 
+### ATLAS Desktop Package 3 - Opportunity Detail Surface MVP Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / opportunity detail surface
+- Date: June 2026
+- Commit: `5b19d5e` — `feat(atlas): implement Desktop Package 3 Opportunity
+  Detail Surface MVP`
+- Test suite: 828 passed, 1 skipped, 0 failed (Leah independent verification:
+  828 passed, 1 skipped, 6 warnings)
+- Audit: Leah — ACCEPT FOR COMMIT; blockers: none
+
+  **Package accepted:**
+  - ATLAS Desktop Package 3 — Opportunity Detail Surface MVP —
+    **Accepted / Complete**
+
+  **Files changed (6 files, 587 insertions / 4 deletions):**
+
+  *Created:*
+  - `frontend/src/workspaces/OpportunityDetailSurface.tsx` — read-only
+    Opportunity Detail surface component
+  - `frontend/src/workspaces/opportunityDetailSurface.css` — surface styles
+  - `tests/test_desktop_opportunity_detail.py` — route behavior and data
+    consumption tests
+
+  *Modified:*
+  - `frontend/src/App.tsx` — wired `/atlas/opportunities/:jobId` route
+  - `frontend/src/api/state.ts` — extended API state for selected opportunity
+  - `frontend/src/workspaces/OpportunityDetail.tsx` — preserved as neutral
+    no-selection placeholder; `/opportunity-detail` route unchanged
+
+  **Implemented scope (all items from the definition entry):**
+
+  - `/atlas/opportunities/:jobId` route — Opportunity Detail Surface
+  - Consumes `getOpportunity()` Package 2 API boundary (not bypassed)
+  - Renders one selected opportunity with opportunity-first visual hierarchy
+  - Displays: opportunity title, company, source, location; current stage /
+    status context; application context; persisted LLM rationale when
+    available; persisted fit / scoring context; benefit and trajectory context;
+    known requirements / knockout fields; external posting URL as passive
+    link only
+  - Loading, error, and not-found states handled
+  - ATLAS shell preserved across detail surface
+  - Existing `/opportunity-detail` placeholder preserved as neutral
+    no-selection state
+
+  **Leah audit — verified:**
+  - Route behavior: PASS
+  - Package 2 API boundary preserved (no direct fetch outside API client): PASS
+  - No backend / schema changes: PASS
+  - No mutation behavior: PASS
+  - No recommendations, Ask Atlas behavior, Pipeline / Command Center / Radar
+    scope: PASS
+  - Excluded files untouched: PASS
+  - Visual / product hierarchy opportunity-first: PASS
+
+  **Not implemented (confirmed absent, per definition):**
+  - Recommendation cards / generated recommendations
+  - Atlas Focus objects
+  - Ask Atlas behavior / LLM calls
+  - New scoring logic
+  - State mutations / select / reject / apply / mark-applied actions
+  - Document regeneration
+  - Pipeline, Command Center, Radar workspace content
+  - Background runner / scheduler / pipeline execution controls
+  - Database / schema changes / new tables
+  - Cloud sync / Tauri packaging
+
+  As of this entry: 828 tests pass, 1 skipped (Leah: 6 warnings, no failures).
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `ASH_INIT_NEXT.md` (Desktop track)
+- Definition reference: `DECISION_LOG.md` "ATLAS Desktop Package 3 -
+  Opportunity Detail Surface MVP Definition Accepted"
+- Audit reference: Leah Package 3 post-implementation audit
+- Follow-up work: ATLAS Desktop Package 4 — Radar Workspace MVP is defined
+  below. Package 4 implementation may be prompted only within that definition's
+  bounded scope.
+
+### ATLAS Desktop Package 4 - Radar Workspace MVP Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Radar workspace
+- Date: June 2026
+- Rationale: Records the formal package definition for ATLAS Desktop Package 4
+  — Radar Workspace MVP. Per the standing governance rule, no implementation
+  may begin before this entry is accepted by Project Master. This entry
+  constitutes that acceptance. Implementation is now authorized within the
+  scope defined below.
+
+  **Authority:** `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`
+  §7 Step 3 ("Build discovery next. Radar proves ATLAS scans. This is the
+  product's core differentiator."); `docs/Brand/ATLAS Radar Workspace Specification
+  v1.0.md`; `docs/Brand/Workspaces/Radar/Radar_Workspace_Reference_v3.md`;
+  `artifacts/png/workspaces/Radar Workspace Reference v1.png`
+
+  **Package objective:**
+
+  Implement the Radar Workspace as ATLAS's discovery surface — the interface
+  through which the user sees what the pipeline has found. Radar proves the
+  "ATLAS scans" part of the core loop. It consumes the Package 2
+  `getOpportunities()` API boundary and opens Package 3's Opportunity Detail
+  surface for selected opportunities.
+
+  **Workspace ownership (per accepted surface spec):**
+
+  Radar owns: opportunity discovery, signal intake, opportunity awareness,
+  Opportunity Signal Card display.
+
+  Radar does not own: opportunity progression (Pipeline), recommendations
+  (Package 6+), investigation (Ask Atlas), strategy (Command Center).
+
+  **Scope — authorized for Package 4 implementation:**
+
+  1. **Radar workspace route and page component.** Replace the Package 1
+     placeholder at `/radar` with a real Radar workspace component that renders
+     within the existing ATLAS shell (sidebar nav, Context Panel frame).
+
+  2. **Opportunity Signal Card grid.** Render a grid of Opportunity Signal
+     Cards sourced from `GET /atlas/api/opportunities` (Package 2 API boundary).
+     Each card displays: position title, company, source, location, signal
+     strength (from existing persisted data), and tracked/watchlist status if
+     available from the Package 2 DTO. Card layout references the frozen visual
+     spec at `artifacts/png/objects/Opportunity Signal Card v1.png`.
+
+  3. **Search.** Client-side text search filtering the rendered card set by
+     position title and company. Search operates on the already-fetched
+     opportunity list — no new backend search endpoint is required.
+
+  4. **Filters.** Client-side filtering by at least: source, tracked/untracked
+     status, and signal strength tier (if available from the Package 2 DTO).
+     Filters operate on the already-fetched list. No new backend filter
+     endpoint is required.
+
+  5. **Selected Signal Card state.** Clicking a card enters a selected state:
+     the card is visually distinguished, and the Context Panel opens (or
+     updates) to display a compact opportunity preview — position title,
+     company, source, location, and signal strength. Context Panel behavior
+     from Package 1 (open/close/persist across navigation) is preserved.
+
+  6. **"Open Opportunity Detail" action.** From a selected Signal Card or its
+     Context Panel preview, the user can navigate to the Package 3 Opportunity
+     Detail Surface at `/atlas/opportunities/:jobId`. This is a client-side
+     React Router navigation — no new backend route or API call.
+
+  7. **Loading, error, and empty states.** The workspace handles: loading
+     (while `getOpportunities()` is in flight), error (if the API call fails),
+     and empty (if no opportunities exist in the database).
+
+  8. **Tests.** Tests covering: workspace renders within the ATLAS shell;
+     cards render from API data; search filter narrows the displayed set;
+     selected card state activates Context Panel preview; Opportunity Detail
+     navigation link is correct; loading, error, and empty states render
+     without crashing; Package 2 API boundary is consumed rather than
+     bypassed.
+
+  **Authorized data paths:**
+
+  - Package 4 must consume `GET /atlas/api/opportunities` through the Package 2
+    frontend API client (`frontend/src/api/`) for all opportunity data.
+  - Package 4 must not bypass Package 2 by querying SQLite, existing dashboard
+    services, or new backend endpoints directly from the frontend.
+  - Package 4 may request one additional backend read endpoint if the Package 2
+    `OpportunitySummary` DTO lacks a required Radar field — but only with an
+    explicit note in the implementation that identifies the field gap and the
+    new endpoint added. No silent API expansion is authorized.
+  - Package 4 remains read-only and local-first.
+
+  **Out of scope / prohibited for Desktop Package 4:**
+
+  - Recommendation cards or generated recommendations
+  - Atlas Focus objects
+  - Ask Atlas behavior or LLM calls
+  - New scoring, ingestion, or grading logic
+  - Any write mutations (no select, reject, apply, stage-transition, or
+    document-generation actions)
+  - Pipeline workspace content
+  - Command Center content
+  - Opportunity Detail content changes (Package 3 surface is closed)
+  - Background runner / scheduler / pipeline execution controls
+  - Database / schema changes or new tables
+  - Cloud sync or Tauri packaging
+  - Aggregate Signal Map, Company watchlist groupings, Saved views, Advanced
+    source filters (deferred per Translation Study "Optional" and "Can Wait")
+  - Week-over-week source trend visualization (belongs to Pipeline Trends,
+    Phase 6 Package 5)
+
+  **Package boundaries:**
+
+  - Package 4 is Radar Workspace MVP, not the full Radar product vision.
+    Discovery, filtering, selection, and hand-off to Opportunity Detail are
+    the complete scope.
+  - Context Panel is used for opportunity preview only — no Ask Atlas
+    investigation, no recommendation display, no Pipeline management.
+  - Existing dashboard routes (`/dashboard/*`) must remain unaffected.
+  - `/atlas` routing remains isolated from `/dashboard/` routing.
+  - Package 3 (`OpportunityDetailSurface.tsx`) must not be modified by
+    Package 4 unless a blocking integration bug is found; if modification is
+    required, document the reason in the implementation commit message.
+
+  **Acceptance criteria:**
+
+  1. Frontend build passes (`npm run build`).
+  2. `pytest` passes with no regressions (baseline: 828 passed, 1 skipped).
+  3. Existing `/dashboard/*` routes remain unaffected.
+  4. `/atlas` routing remains isolated.
+  5. Package 2 API boundary consumed rather than bypassed.
+  6. Radar workspace renders within the ATLAS shell (sidebar nav and Context
+     Panel frame are present).
+  7. Opportunity Signal Cards render from `GET /atlas/api/opportunities` data.
+  8. Client-side search narrows the displayed card set by title and company.
+  9. Client-side filter by source (at minimum) narrows the displayed set.
+  10. Selecting a card produces a visually distinguished selected state.
+  11. Selecting a card opens or updates the Context Panel with a compact
+      opportunity preview.
+  12. Context Panel open/closed state persists when navigating away from Radar
+      and back (Package 1 behavior unchanged).
+  13. "Open Opportunity Detail" navigates to `/atlas/opportunities/:jobId`
+      without error.
+  14. Loading, error, and empty states all render without crashing.
+  15. No recommendation cards, Focus objects, Ask Atlas behavior, mutations,
+      or prohibited scope items are present.
+  16. No database / schema files are modified.
+  17. Signal Cards reference the frozen visual spec at a structural level
+      (card layout matches `Opportunity Signal Card v1.png` at component
+      hierarchy level; pixel perfection is not required at MVP).
+
+  As of this entry: 828 tests pass, 1 skipped (Package 3 baseline). Package 4
+  implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md` §7
+  Step 3, `docs/Brand/Workspaces/Radar/Radar_Workspace_Reference_v3.md`,
+  `artifacts/png/workspaces/Radar Workspace Reference v1.png`,
+  `artifacts/png/objects/Opportunity Signal Card v1.png`
+- Follow-up work: After Package 4 ships and acceptance criteria are verified,
+  write and accept ATLAS Desktop Package 5 — Pipeline Workspace MVP definition
+  entry before issuing the Package 5 implementation task.
+
 ### ATLAS Recovery — Deferred Overlap-Risk File Review Completed
 
 - Status: accepted

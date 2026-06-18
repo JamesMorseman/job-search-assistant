@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Package 2 complete; Desktop Package 3 defined
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-3 complete; Desktop Package 4 definition accepted
 
 ## Purpose
 
@@ -32,11 +32,9 @@ complete. Package 4 (local-first background runner) definition entry is
 required before its implementation begins.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
-by FastAPI. Desktop Package 1 - Desktop Shell is accepted and complete
-(commit `d6bdde7`; 808 passed, 1 skipped, 6 warnings). Desktop Package 2 -
-Core Data Layer is accepted and complete (commit `42fff28`; 817 passed, 1
-skipped, 6 warnings). Desktop Package 3 - Opportunity Detail Surface MVP is
-defined and may now be prompted.
+by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), and 3 (Opportunity
+Detail Surface MVP) are accepted and complete. Desktop Package 4 — Radar
+Workspace MVP definition is accepted; implementation is now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -77,12 +75,18 @@ Current objectives:
   and targeted API route tests. No workspace content, recommendations, Ask
   Atlas behavior, LLM calls, background runner, scheduler, pipeline execution,
   document generation, scoring changes, or database/schema changes.
-- ATLAS Desktop Package 3 - Opportunity Detail Surface MVP — **definition
-  accepted**; implementation may now be prompted. Future implementation is
-  limited to a read-only, local-first Opportunity Detail surface that consumes
-  the Package 2 opportunity detail DTO and preserves the hierarchy:
-  opportunity first, Atlas advisory context second, metrics supporting, context
-  panel subordinate.
+- ATLAS Desktop Package 3 - Opportunity Detail Surface MVP — **complete**
+  (commit `5b19d5e`; 828 passed, 1 skipped; Leah audit ACCEPT FOR COMMIT).
+  Delivered `/atlas/opportunities/:jobId` route, read-only consumption of
+  Package 2 `getOpportunity()` boundary, opportunity-first display hierarchy,
+  loading/error/not-found states, and route behavior tests. No mutations,
+  recommendations, Ask Atlas behavior, or schema changes.
+- ATLAS Desktop Package 4 - Radar Workspace MVP — **definition accepted;
+  implementation authorized.** Scope: Opportunity Signal Card grid (via
+  Package 2 API), client-side search and filter, selected card state, Context
+  Panel opportunity preview, "Open Opportunity Detail" navigation link,
+  loading/error/empty states, and tests. See `DECISION_LOG.md` "ATLAS Desktop
+  Package 4 - Radar Workspace MVP Definition Accepted."
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
