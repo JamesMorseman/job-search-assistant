@@ -18,6 +18,7 @@ from job_search.services.ask_atlas import AskAtlasService
 from job_search.services.atlas import AtlasDataService
 from job_search.services.documents import DocumentsService
 from job_search.services.firms import FirmsService
+from job_search.services.focus import FocusService
 from job_search.services.jobs import JobsService
 from job_search.services.metrics import MetricsService
 from job_search.services.pipeline import PipelineService
@@ -32,6 +33,10 @@ def get_jobs_service() -> JobsService:
 
 def get_documents_service() -> DocumentsService:
     return DocumentsService()
+
+
+def get_focus_service() -> FocusService:
+    return FocusService()
 
 
 def get_atlas_data_service() -> AtlasDataService:

@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from job_search.dashboard.deps import (
     get_atlas_data_service,
     get_ask_atlas_service,
+    get_focus_service,
     get_pipeline_service,
     get_recommendation_service,
 )
@@ -20,6 +21,7 @@ from job_search.services.atlas import (
     AtlasOpportunityList,
     AtlasSummary,
 )
+from job_search.services.focus import AtlasFocus, FocusService
 from job_search.services.pipeline import PipelineRun, PipelineService
 from job_search.services.recommendations import Recommendation, RecommendationService
 
@@ -38,6 +40,11 @@ class RecommendationList(BaseModel):
 
 class AskAtlasInvestigationResponse(BaseModel):
     investigation: AskAtlasInvestigation
+    generated_at: str
+
+
+class FocusList(BaseModel):
+    focuses: list[AtlasFocus]
     generated_at: str
 
 
@@ -88,6 +95,25 @@ def get_recommendations(
     return RecommendationList(
         recommendations=recommendation_service.generate(
             summary=summary,
+            most_recent_run=most_recent_run,
+        ),
+        generated_at=_now_iso(),
+    )
+
+
+@router.get("/focuses", response_model=FocusList)
+def list_focuses(
+    atlas_service: AtlasDataService = Depends(get_atlas_data_service),
+    pipeline_service: PipelineService = Depends(get_pipeline_service),
+    focus_service: FocusService = Depends(get_focus_service),
+) -> FocusList:
+    summary = atlas_service.get_summary()
+    opportunities = atlas_service.list_opportunities(limit=3)
+    most_recent_run = next(iter(pipeline_service.list_recent_runs(limit=1)), None)
+    return FocusList(
+        focuses=focus_service.list_active_focuses(
+            summary=summary,
+            opportunities=opportunities,
             most_recent_run=most_recent_run,
         ),
         generated_at=_now_iso(),

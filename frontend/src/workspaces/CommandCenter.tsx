@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { AtlasApiError, getPipelineRuns, getRecommendations, getSummary } from "../api/client";
+import {
+  AtlasApiError,
+  getFocuses,
+  getPipelineRuns,
+  getRecommendations,
+  getSummary,
+} from "../api/client";
 import {
   type DataState,
   errorState,
@@ -9,7 +15,12 @@ import {
   loadingState,
   successState,
 } from "../api/state";
-import type { AtlasPipelineRun, AtlasRecommendation, AtlasSummary } from "../api/types";
+import type {
+  AtlasFocus,
+  AtlasPipelineRun,
+  AtlasRecommendation,
+  AtlasSummary,
+} from "../api/types";
 import "./commandCenter.css";
 
 type RunStatusLabel = "Running" | "Completed" | "Failed" | "Unknown";
@@ -60,6 +71,7 @@ export default function CommandCenter() {
   const [recommendationState, setRecommendationState] = useState<
     DataState<AtlasRecommendation[]>
   >(idleState());
+  const [focusState, setFocusState] = useState<DataState<AtlasFocus[]>>(idleState());
 
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +151,32 @@ export default function CommandCenter() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    setFocusState(loadingState());
+
+    getFocuses()
+      .then((response) => {
+        if (!cancelled) {
+          setFocusState(successState(response.focuses));
+        }
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        const message =
+          error instanceof AtlasApiError
+            ? `Unable to load Atlas Focus: ${error.message}`
+            : "Unable to load Atlas Focus.";
+        setFocusState(errorState(message));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const mostRecentRun = pipelineState.data?.[0] ?? null;
 
   return (
@@ -149,6 +187,57 @@ export default function CommandCenter() {
       </header>
 
       <div className="atlas-cc-grid">
+        <article className="atlas-cc-panel atlas-cc-focus-panel" aria-labelledby="cc-focus-title">
+          <h3 id="cc-focus-title">Atlas Focus</h3>
+
+          {focusState.status === "loading" && (
+            <div className="atlas-cc-status" role="status">
+              <p>Loading Atlas Focus...</p>
+            </div>
+          )}
+
+          {focusState.status === "error" && (
+            <div className="atlas-cc-status atlas-cc-status-error" role="alert">
+              <p>Unable to load Atlas Focus.</p>
+              <p className="atlas-cc-status-detail">{focusState.error}</p>
+            </div>
+          )}
+
+          {focusState.status === "success" && focusState.data?.length === 0 && (
+            <div className="atlas-cc-status">
+              <p>No active Focus objects right now.</p>
+            </div>
+          )}
+
+          {focusState.status === "success" && focusState.data && focusState.data.length > 0 && (
+            <ul className="atlas-cc-focus-list">
+              {focusState.data.map((focus) => (
+                <li className="atlas-cc-focus-card" key={focus.source_object}>
+                  <div className="atlas-cc-focus-header">
+                    <p>{focus.focus_statement}</p>
+                    <span>{focus.resolution_state}</span>
+                  </div>
+                  <p className="atlas-cc-focus-reason">{focus.reason}</p>
+                  <dl className="atlas-cc-focus-meta">
+                    <div>
+                      <dt>Source</dt>
+                      <dd>{focus.source_object}</dd>
+                    </div>
+                    <div>
+                      <dt>Horizon</dt>
+                      <dd>{focus.attention_horizon}</dd>
+                    </div>
+                    <div>
+                      <dt>Next Action</dt>
+                      <dd>{focus.next_action}</dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+          )}
+        </article>
+
         <article className="atlas-cc-panel" aria-labelledby="cc-signals-title">
           <h3 id="cc-signals-title">Recent Signals</h3>
 

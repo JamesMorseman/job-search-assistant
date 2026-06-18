@@ -98,3 +98,17 @@ export type AskAtlasInvestigationResponse = {
   investigation: AskAtlasInvestigation;
   generated_at: string;
 };
+
+export type AtlasFocus = {
+  focus_statement: string;
+  reason: string;
+  source_object: string;
+  attention_horizon: string;
+  next_action: string;
+  resolution_state: "active" | "monitoring";
+};
+
+export type AtlasFocusListResponse = {
+  focuses: AtlasFocus[];
+  generated_at: string;
+};

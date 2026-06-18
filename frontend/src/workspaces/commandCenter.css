@@ -38,6 +38,11 @@
   font-size: 15px;
 }
 
+.atlas-cc-focus-panel {
+  border-color: rgba(56, 211, 196, 0.28);
+  background: rgba(13, 18, 27, 0.88);
+}
+
 .atlas-cc-status {
   color: var(--atlas-muted);
   font-size: 13px;
@@ -224,6 +229,78 @@
 
 .atlas-cc-recommendation-surface {
   color: var(--atlas-muted);
+}
+
+.atlas-cc-focus-list {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.atlas-cc-focus-card {
+  padding: 14px;
+  border: 1px solid rgba(56, 211, 196, 0.22);
+  border-radius: var(--atlas-radius);
+  background: rgba(56, 211, 196, 0.05);
+}
+
+.atlas-cc-focus-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.atlas-cc-focus-header p {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.atlas-cc-focus-header span {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border: 1px solid rgba(56, 211, 196, 0.32);
+  border-radius: 999px;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.08);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-cc-focus-reason {
+  margin: 10px 0 0;
+  color: var(--atlas-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.atlas-cc-focus-meta {
+  display: grid;
+  gap: 9px;
+  margin: 14px 0 0;
+}
+
+.atlas-cc-focus-meta dt {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-cc-focus-meta dd {
+  margin: 2px 0 0;
+  color: var(--atlas-text);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .atlas-cc-shortcuts {

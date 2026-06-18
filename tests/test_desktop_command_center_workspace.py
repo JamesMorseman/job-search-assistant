@@ -79,6 +79,10 @@ def test_command_center_uses_get_recommendations():
     assert "getRecommendations" in COMMAND_CENTER_TSX
 
 
+def test_command_center_uses_get_focuses():
+    assert "getFocuses" in COMMAND_CENTER_TSX
+
+
 def test_command_center_does_not_call_fetch_directly():
     assert "fetch(" not in COMMAND_CENTER_TSX
 
@@ -116,6 +120,12 @@ def test_frontend_types_define_recommendation_shape():
     assert "action_surface" in TYPES_TS
 
 
+def test_frontend_client_and_types_define_focus_shape():
+    assert "export function getFocuses" in CLIENT_TS
+    assert "AtlasFocus" in TYPES_TS
+    assert "AtlasFocusListResponse" in TYPES_TS
+
+
 # ── Panel content ──────────────────────────────────────────────────────────
 
 
@@ -140,6 +150,16 @@ def test_recommendations_section_renders_from_api_data():
     assert "recommendation.action_surface" in COMMAND_CENTER_TSX
 
 
+def test_focus_section_renders_from_api_data():
+    assert "Atlas Focus" in COMMAND_CENTER_TSX
+    assert "focus.focus_statement" in COMMAND_CENTER_TSX
+    assert "focus.reason" in COMMAND_CENTER_TSX
+    assert "focus.source_object" in COMMAND_CENTER_TSX
+    assert "focus.attention_horizon" in COMMAND_CENTER_TSX
+    assert "focus.next_action" in COMMAND_CENTER_TSX
+    assert "focus.resolution_state" in COMMAND_CENTER_TSX
+
+
 def test_navigation_shortcuts_present():
     assert 'to="/radar"' in COMMAND_CENTER_TSX
     assert 'to="/pipeline"' in COMMAND_CENTER_TSX
@@ -152,6 +172,7 @@ def test_loading_states_exist():
     assert "Loading opportunity signals" in COMMAND_CENTER_TSX
     assert "Loading pipeline snapshot" in COMMAND_CENTER_TSX
     assert "Loading recommendations" in COMMAND_CENTER_TSX
+    assert "Loading Atlas Focus" in COMMAND_CENTER_TSX
 
 
 def test_error_states_exist():
@@ -159,12 +180,14 @@ def test_error_states_exist():
     assert "Unable to load opportunity signals" in COMMAND_CENTER_TSX
     assert "Unable to load pipeline snapshot" in COMMAND_CENTER_TSX
     assert "Unable to load recommendations" in COMMAND_CENTER_TSX
+    assert "Unable to load Atlas Focus" in COMMAND_CENTER_TSX
 
 
 def test_empty_states_exist():
     assert "No opportunities tracked yet" in COMMAND_CENTER_TSX
     assert "No pipeline runs recorded yet" in COMMAND_CENTER_TSX
     assert "No recommendations available yet" in COMMAND_CENTER_TSX
+    assert "No active Focus objects right now" in COMMAND_CENTER_TSX
 
 
 # ── Boundary / scope enforcement ─────────────────────────────────────────
@@ -192,6 +215,8 @@ def test_command_center_does_not_implement_prohibited_behavior():
         "reject_job",
         "mark_applied",
         "regenerate",
+        "<button",
+        "<form",
     ]
     for term in prohibited_terms:
         assert term not in COMMAND_CENTER_TSX, f"prohibited term found: {term}"

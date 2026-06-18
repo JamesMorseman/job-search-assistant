@@ -1,5 +1,6 @@
 import type {
   AskAtlasInvestigationResponse,
+  AtlasFocusListResponse,
   AtlasOpportunityDetail,
   AtlasOpportunityListResponse,
   AtlasPipelineRunsResponse,
@@ -67,4 +68,8 @@ export function getAskAtlasInvestigation(prompt: string): Promise<AskAtlasInvest
   return fetchJson<AskAtlasInvestigationResponse>(
     `/ask-atlas/investigation?${search.toString()}`,
   );
+}
+
+export function getFocuses(): Promise<AtlasFocusListResponse> {
+  return fetchJson<AtlasFocusListResponse>("/focuses");
 }
