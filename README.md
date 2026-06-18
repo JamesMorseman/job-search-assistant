@@ -1,103 +1,128 @@
-# Job Search Assistant
+# ATLAS Career Intelligence System
 
 [![CI](https://github.com/JamesMorseman/job-search-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesMorseman/job-search-assistant/actions/workflows/ci.yml)
 
-Automated civil-engineering job pipeline for James.
+ATLAS is a local-first Career Intelligence / Career Mission Control system.
+It helps an operator discover, evaluate, prioritize, investigate, and track
+career opportunities from a private SQLite-backed workspace.
 
-Finds, scores, and tailors applications for civil engineering roles daily.
-James reviews and submits applications manually. The system never submits an
-application on his behalf.
+The project began as a job-search automation tool and has grown into a
+portfolio-grade engineering system with ingestion, scoring, LLM-assisted
+evaluation, document generation, application tracking, analytics, a FastAPI
+dashboard, and the React/Vite ATLAS Desktop experience.
+
+This repository is not a public release package. It is prepared as a
+professional portfolio codebase and documentation workspace, with private
+runtime data intentionally excluded.
+
+## What ATLAS Does
+
+- Ingests opportunities from multiple sources.
+- Deduplicates and persists opportunity records in SQLite.
+- Scores opportunities across discipline, location, benefits, and career
+  trajectory signals.
+- Uses an LLM provider abstraction for grading, recommendations, and Ask Atlas
+  investigation flows.
+- Generates tailored resume and cover-letter drafts for selected opportunities.
+- Uploads generated documents and mirrors operational review data to Google
+  Sheets.
+- Tracks application state, follow-ups, source health, funnel metrics, and
+  pipeline runs.
+- Provides local UI surfaces through a FastAPI dashboard and ATLAS Desktop.
+
+The system never submits an application on the operator's behalf. Human review
+and final submission remain outside the automation boundary.
+
+## Interfaces
+
+ATLAS currently exposes three local interaction layers:
+
+- `jsa` CLI workflow: operational commands including `jsa run` for local
+  pipeline execution and `jsa check` for credential/configuration diagnostics.
+- FastAPI dashboard: server-rendered local dashboard surfaces for review,
+  tracking, metrics, source health, documents, and pipeline runs.
+- ATLAS Desktop: React 18 + TypeScript + Vite single-page app served by
+  FastAPI under `/atlas`, backed by read-oriented `/atlas/api` endpoints.
 
 ## Architecture
 
-```
-Subsystem A (daily cron)                       Subsystem B (periodic)
-  USAJOBS · Adzuna · Greenhouse · Lever ──┐      ENR / ACEC seeds   ──┐
-  Ashby · SmartRecruiters · Workable     ──┤      ATS fingerprinting  ─┤
-  Recruitee · Workday · Gmail alerts     ──┘      Registry config-as-code ──┘
-        │
-        ▼
-  Dedup + repost · Score (discipline + location + benefit + trajectory)
-        │
-        ▼
-  Daily report → Google Sheet  (no LLM)
-        │
-        ▼
-  James reviews on phone/laptop, edits status column
-        │
-        ▼
-  Sync Sheet → DB · Generate docs (configured LLM provider) for jobs he flagged "apply"
-        │
-        ▼
-  Drive snapshots · Follow-up engine · Funnel stats
+```text
+Opportunity Sources
+  -> Ingestion
+  -> Deduplication
+  -> SQLite persistence
+  -> Scoring and LLM grading
+  -> Operator review
+  -> Resume and cover-letter generation
+  -> Drive upload and Sheets mirror
+  -> Application tracking and follow-up support
+  -> Metrics, source health, and pipeline run visibility
+  -> ATLAS Desktop command surfaces
 ```
 
-The active architecture and cost-aware "generate-on-selection" flow are
-documented in
-[docs/Architecture/system_architecture.md](docs/Architecture/system_architecture.md)
-and
-[docs/Architecture/resume_generation_architecture.md](docs/Architecture/resume_generation_architecture.md).
+SQLite is the operational source of truth. Google Sheets remains a secondary
+interaction surface. The FastAPI dashboard and ATLAS Desktop read from the
+local system through service boundaries rather than treating external tools as
+the primary backend.
 
-## Quick start
+## Quick Start
 
 ```bash
-# 1. Secrets — fill in API keys; never committed
+# 1. Secrets - fill in local values; never commit them
 cp .env.example .env
 
-# 2. Profile — fill in James's real data; never committed
+# 2. Profile - fill in private candidate facts; never commit the real file
 cp profile/james_profile.example.yaml profile/james_profile.yaml
 
-# 3. Run
+# 3. Initialize and inspect local configuration
 jsa init-db
-jsa ingest --dry-run    # verify sources work
-jsa ingest              # real run
-jsa report              # present today's top jobs; no document generation
-jsa stats               # funnel stats
+jsa check
+
+# 4. Run local workflows
+jsa ingest --dry-run
+jsa ingest
+jsa report
+jsa run --dry-run
+jsa run
+jsa stats
 ```
+
+See `SETUP.md` for the broader local setup checklist.
 
 ## Privacy
 
-This repo may be public, but **no real personal data is committed**:
-- `.env` (API keys) — gitignored
-- `profile/james_profile.yaml` (real PII) — gitignored
-- `credentials.json` / `token.json` (Google OAuth) — gitignored
+This repo is designed so private runtime data stays out of version control:
 
-The committed `*.example.yaml` files are templates with placeholders only.
+- `.env` - gitignored local secrets and credentials
+- `profile/james_profile.yaml` - gitignored private candidate profile
+- `credentials.json` / `token.json` - gitignored Google OAuth files
+- local database files and generated application documents - excluded from
+  committed source
 
-## Location scoring
+Committed example files are templates only. Before any public presentation,
+the repository must pass a separate privacy and redaction review.
 
-Every job posting's metro is evaluated against a 50-metro framework
-(5 dimensions × 5 weighting schemes — see
-[docs/Architecture/location_scoring.md](docs/Architecture/location_scoring.md)).
-Active scheme is set in `config/scoring.yaml`; underlying city data in
-`config/cities.yaml`. Inspect a single location interactively:
+## Documentation
 
-```bash
-jsa score-location "Arlington" --state VA
-jsa score-location "Cleveland" --state OH --scheme career_only
-```
+Public-facing draft documentation is staged under `docs/Public/`:
 
-## Build sequence (§18)
+- `ATLAS_OVERVIEW.md` - product overview for portfolio readers
+- `TECHNICAL_ARCHITECTURE.md` - architecture summary for technical reviewers
+- `RECRUITER_BRIEF.md` - non-technical project summary
+- `PRIVACY_AND_REDACTION.md` - pre-release privacy checklist
+- `FEATURE_SUMMARY.md` - accepted feature inventory
+- `SCREENSHOTS.md` - screenshot placeholder and approval rules
 
-- [x] 1. Master profile schema (`profile/james_profile.yaml`)
-- [x] 2. Canonical schema + SQLite + Greenhouse adapter (vertical slice)
-- [x] 3. USAJOBS + Adzuna adapters; dedup + repost detection
-- [x] 4. Document generation + keyword tiering; daily report (now selection-driven, not eager)
-- [x] 5. Google Sheets logging + Drive snapshots + follow-up engine
-- [x] 6. Employer discovery pipeline + registry; remaining Green adapters
-- [x] 7. Workday (Yellow) adapter with throttling; self-healing / circuit breaker
-- [x] 8a. Gmail email-alert parser (LinkedIn / Indeed / ZipRecruiter / generic)
-- [x] 8b. Remaining Green-tier adapters (Ashby / SmartRecruiters / Workable / Recruitee)
-- [x] 8c. Funnel-stats reporting + GitHub Actions CI
+Internal governance remains under `docs/Architecture/Migration/` and is the
+source of truth for accepted scope.
 
-## See also
+## See Also
 
-- `SETUP.md` — full pre-flight checklist for API keys + first run
-- `DEPLOY.md` — DigitalOcean setup + cron configuration
-- `docs/Architecture/system_architecture.md` — active system architecture
-- `docs/Architecture/resume_generation_architecture.md` — resume and cover-letter generation architecture
-- `docs/Architecture/location_scoring.md` — 50-metro location-scoring methodology
-- `profile/james_profile.example.yaml` — candidate fact base template
-- `config/firms.yaml` — employer registry (config-as-code)
-- `config/scoring.yaml` — scoring weight overrides
-- `config/cities.yaml` — location framework data
+- `SETUP.md` - local setup and pre-flight checklist
+- `DEPLOY.md` - historical deployment notes
+- `docs/Architecture/system_architecture.md` - active system architecture
+- `docs/Architecture/resume_generation_architecture.md` - document generation
+  architecture
+- `docs/Architecture/location_scoring.md` - location-scoring methodology
+- `docs/Public/TECHNICAL_ARCHITECTURE.md` - portfolio technical summary
+- `docs/Public/PRIVACY_AND_REDACTION.md` - publication gate checklist
