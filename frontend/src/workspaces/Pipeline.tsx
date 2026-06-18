@@ -108,11 +108,11 @@ export default function Pipeline() {
       )}
 
       {state.status === "success" && runs.length > 0 && (
-        <ul className="atlas-pipeline-list">
+        <ul className="atlas-pipeline-list" role="list">
           {runs.map((run) => {
             const label = statusLabel(run.status);
             return (
-              <li key={run.id} className="atlas-run-card">
+              <li key={run.id} className="atlas-run-card" role="listitem">
                 <div className="atlas-run-card-header">
                   <span className="atlas-run-id">Run #{run.id}</span>
                   <span className={`atlas-run-status ${statusClass(label)}`}>{label}</span>

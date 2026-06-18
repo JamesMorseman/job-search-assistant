@@ -124,7 +124,12 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
             <dt>Apply</dt>
             <dd>
               {opportunity.apply_url ? (
-                <a href={opportunity.apply_url} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={opportunity.apply_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View original posting (opens in a new tab)"
+                >
                   View original posting ↗
                 </a>
               ) : (

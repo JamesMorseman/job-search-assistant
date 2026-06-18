@@ -256,9 +256,9 @@ export default function CommandCenter() {
           )}
 
           {focusState.status === "success" && focusState.data && focusState.data.length > 0 && (
-            <ul className="atlas-cc-focus-list">
+            <ul className="atlas-cc-focus-list" role="list">
               {focusState.data.map((focus) => (
-                <li className="atlas-cc-focus-card" key={focus.source_object}>
+                <li className="atlas-cc-focus-card" role="listitem" key={focus.source_object}>
                   <div className="atlas-cc-focus-header">
                     <p>{focus.focus_statement}</p>
                     <span>{focus.resolution_state}</span>
@@ -312,9 +312,9 @@ export default function CommandCenter() {
           {focusArchiveState.status === "success" &&
             focusArchiveState.data &&
             focusArchiveState.data.length > 0 && (
-              <ul className="atlas-cc-focus-archive-list">
+              <ul className="atlas-cc-focus-archive-list" role="list">
                 {focusArchiveState.data.map((record) => (
-                  <li className="atlas-cc-focus-archive-card" key={record.id}>
+                  <li className="atlas-cc-focus-archive-card" role="listitem" key={record.id}>
                     <div className="atlas-cc-focus-archive-header">
                       <p>{record.focus_statement}</p>
                       <span>{resolutionLabel(record.resolution)}</span>
@@ -459,10 +459,11 @@ export default function CommandCenter() {
           {recommendationState.status === "success" &&
             recommendationState.data &&
             recommendationState.data.length > 0 && (
-              <ul className="atlas-cc-recommendations">
+              <ul className="atlas-cc-recommendations" role="list">
                 {recommendationState.data.map((recommendation, index) => (
                   <li
                     className="atlas-cc-recommendation-card"
+                    role="listitem"
                     key={`${recommendation.action_surface}-${index}`}
                   >
                     <div className="atlas-cc-recommendation-meta">

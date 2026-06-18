@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -29,6 +29,7 @@ export default function AskAtlas() {
   const [investigationState, setInvestigationState] = useState<
     DataState<AskAtlasInvestigation>
   >(idleState());
+  const investigationRequestIdRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,14 +111,21 @@ export default function AskAtlas() {
       return;
     }
 
+    const requestId = ++investigationRequestIdRef.current;
     setPrompt(cleanedPrompt);
     setInvestigationState(loadingState());
 
     getAskAtlasInvestigation(cleanedPrompt)
       .then((response) => {
+        if (investigationRequestIdRef.current !== requestId) {
+          return;
+        }
         setInvestigationState(successState(response.investigation));
       })
       .catch((error: unknown) => {
+        if (investigationRequestIdRef.current !== requestId) {
+          return;
+        }
         const message =
           error instanceof AtlasApiError
             ? `Unable to complete investigation: ${error.message}`
@@ -222,7 +230,9 @@ export default function AskAtlas() {
           {investigationState.status === "error" && (
             <div className="atlas-ask-status atlas-ask-status-error" role="alert">
               <p>Unable to generate investigation.</p>
-              <p className="atlas-ask-status-detail">{investigationState.error}</p>
+              <p className="atlas-ask-status-detail" id="ask-atlas-prompt-error">
+                {investigationState.error}
+              </p>
             </div>
           )}
 
@@ -249,9 +259,9 @@ export default function AskAtlas() {
 
           {investigationState.status === "success" &&
           investigationState.data?.suggested_followups.length ? (
-            <ul>
+            <ul role="list">
               {investigationState.data.suggested_followups.map((followup) => (
-                <li key={followup}>
+                <li key={followup} role="listitem">
                   <button type="button" onClick={() => runInvestigation(followup)}>
                     {followup}
                   </button>
@@ -280,6 +290,10 @@ export default function AskAtlas() {
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
             placeholder="Inspect opportunity, pipeline, or recommendation context"
+            aria-invalid={investigationState.status === "error"}
+            aria-describedby={
+              investigationState.status === "error" ? "ask-atlas-prompt-error" : undefined
+            }
           />
           <button type="submit" disabled={!contextReady || investigationState.status === "loading"}>
             Investigate
