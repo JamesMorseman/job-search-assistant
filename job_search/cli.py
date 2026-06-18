@@ -55,6 +55,22 @@ def preflight():
 
 
 @cli.command()
+def check():
+    """Validate required runtime credentials and configuration (read-only, no DB writes)."""
+    from job_search.diagnostics import run_all_checks
+
+    results = run_all_checks()
+    icon = {"pass": "[green]PASS[/green]", "warn": "[yellow]WARN[/yellow]", "fail": "[red]FAIL[/red]"}
+    for r in results:
+        console.print(f"  {icon[r.status]}  {r.name:20s}  {r.detail}")
+
+    if any(r.status == "fail" for r in results):
+        console.print("\n[red]One or more required checks failed. Fix the items above before running 'jsa run'.[/red]")
+        raise SystemExit(1)
+    console.print("\n[green]All required checks passed.[/green]")
+
+
+@cli.command()
 def init_db():
     """Initialize the SQLite database schema."""
     from job_search.db import init_db as _init
@@ -176,6 +192,16 @@ def followup():
 )
 def run_pipeline(dry_run: bool, run_type: str):
     """Run the local pipeline: ingest -> grade -> report -> generate -> follow-up."""
+    if not dry_run:
+        from job_search.diagnostics import run_all_checks
+
+        results = run_all_checks()
+        failed = [r.name for r in results if r.status == "fail"]
+        if failed:
+            console.print(f"[red]Missing required credentials/configuration: {', '.join(failed)}.[/red]")
+            console.print("[red]Run 'jsa check' for details.[/red]")
+            raise SystemExit(1)
+
     from job_search.pipeline import PipelineRunner
 
     result = PipelineRunner().run(run_type=run_type, dry_run=dry_run, trigger="cli")
