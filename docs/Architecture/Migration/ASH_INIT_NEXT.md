@@ -1,7 +1,7 @@
 # Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-4
-complete; Desktop Package 5 Pipeline Workspace MVP definition accepted
+**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-5
+complete; Desktop Package 6 Command Center MVP definition accepted
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -45,11 +45,11 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Desktop Package 4
-  acceptance and Desktop Package 5 definition
-- **Implementation files:** Desktop Packages 1-4 committed in `d6bdde7`,
-  `42fff28`, `5b19d5e`, `2195cd8`
-- **Test suite:** 847 passing, 1 skipped (as of Desktop Package 4)
+- **Governance files:** Current governance commit records Desktop Package 5
+  acceptance and Desktop Package 6 definition
+- **Implementation files:** Desktop Packages 1-5 committed in `d6bdde7`,
+  `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`
+- **Test suite:** 870 passing, 1 skipped (as of Desktop Package 5)
 
 **Confirm at session start:**
 
@@ -113,8 +113,9 @@ explicit PM authorization):**
 | 2 - Core Data Layer | Read-only `/atlas/api` endpoints, opportunity summary/detail DTOs, summary counts, API-local JSON 404 fallback, Pydantic response models, `AtlasDataService`, frontend API client/types/state boundary, API contract/route-isolation tests | **Accepted / Complete** - commit `42fff28`; 817 passed, 1 skipped, 6 warnings |
 | 3 - Opportunity Detail Surface MVP | Read-only `/atlas/opportunities/:jobId` route; consumes Package 2 `getOpportunity()` boundary; opportunity-first hierarchy; loading/error/not-found states; route behavior tests | **Accepted / Complete** — commit `5b19d5e`; 828 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
 | 4 - Radar Workspace MVP | Opportunity Signal Card grid via Package 2 API; client-side search and source filter; selected card state; `ContextPanelContext` shell-level context; Context Panel opportunity preview; "Open Opportunity Detail" navigation; loading/error/empty states; tests | **Accepted / Complete** — commit `2195cd8`; 847 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
-| 5 - Pipeline Workspace MVP | `GET /atlas/api/pipeline/runs` read endpoint (consuming Phase 6 Package 3 `PipelineService.list_recent_runs()`); recent pipeline runs list; status indicators; counters and timestamps; frontend API client extension; loading/error/empty states; tests | **Definition accepted — implementation authorized** |
-| 6+ | Command Center, Recommendations, Ask Atlas, and other product surfaces | Not yet authorized; require separate definition entries |
+| 5 - Pipeline Workspace MVP | `GET /atlas/api/pipeline/runs` read endpoint (consuming Phase 6 Package 3 `PipelineService.list_recent_runs()`); recent pipeline runs list; status indicators; counters and timestamps; frontend API client extension; loading/error/empty states; tests | **Accepted / Complete** — commit `c7562de`; 870 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
+| 6 - Command Center MVP | Opportunity Signal summary panel (Package 2 `getSummary()`); Pipeline Snapshot panel (Package 5 `getPipelineRuns()`); Recommendations deferred-state section; navigation shortcuts to Radar and Pipeline; loading/error/empty states per panel; tests | **Definition accepted — implementation authorized** |
+| 7+ | Recommendations integration, Ask Atlas, and other product surfaces | Not yet authorized; require separate definition entries |
 
 ---
 
@@ -122,14 +123,25 @@ explicit PM authorization):**
 
 ```text
 (current governance commit)
-         docs(governance): accept Desktop Package 4 and define Package 5
-         DECISION_LOG.md: Desktop Package 4 accepted/complete (2195cd8, 847
-           passing, Leah ACCEPT FOR COMMIT); Package 5 Pipeline Workspace MVP
-           definition accepted
-         PROJECT_STATE.md: Desktop Package 4 complete, Package 5 authorized
-         roadmap.md: Desktop Package 4 complete, Package 5 defined, Package 5
+         docs(governance): accept Desktop Package 5 and define Package 6
+         DECISION_LOG.md: Desktop Package 5 accepted/complete (c7562de, 870
+           passing, Leah ACCEPT FOR COMMIT); Package 6 Command Center MVP
+           definition accepted (15 criteria, Recommendations deferred-state,
+           no new backend endpoints required at MVP)
+         PROJECT_STATE.md: Desktop Package 5 complete, Package 6 authorized
+         roadmap.md: Package 5 complete, Package 6 row added, Package 6
            Boundaries section added, build order step 7 updated
          ASH_INIT_NEXT.md: synchronized to current state
+
+c7562de  feat(atlas): implement Desktop Package 5 Pipeline Workspace MVP
+         pipeline.css (new), test_desktop_pipeline_workspace.py (new);
+         Pipeline.tsx, client.ts, types.ts, atlas_api.py, deps.py modified;
+         /atlas/pipeline route; GET /atlas/api/pipeline/runs endpoint via
+         PipelineService.list_recent_runs(); getPipelineRuns() client method;
+         run list with status, counters, timestamps; loading/error/empty states
+         (870 passed, 1 skipped)
+
+9757fe5  docs(governance): accept Desktop Package 4 and define Package 5
 
 2195cd8  feat(atlas): implement Desktop Package 4 Radar Workspace MVP
          ContextPanelContext.tsx (new), radar.css (new),
@@ -504,35 +516,37 @@ references.
 
 After that entry is accepted, issue an Anna implementation task referencing it.
 
-### Step 3 - Prompt ATLAS Desktop Package 5 implementation (Desktop track)
+### Step 3 - Prompt ATLAS Desktop Package 6 implementation (Desktop track)
 
-**Desktop Packages 1, 2, 3, and 4 are complete and accepted.** Desktop Package
-5 — Pipeline Workspace MVP definition is accepted; implementation is now
-authorized. See `DECISION_LOG.md` "ATLAS Desktop Package 5 - Pipeline Workspace
-MVP Definition Accepted."
+**Desktop Packages 1, 2, 3, 4, and 5 are complete and accepted.** Desktop
+Package 6 — Command Center MVP definition is accepted; implementation is now
+authorized. See `DECISION_LOG.md` "ATLAS Desktop Package 6 - Command Center MVP
+Definition Accepted."
 
-Package 5 implementation may now be prompted. Authorized scope: replace
-`/pipeline` placeholder with a real Pipeline workspace; add one new backend
-read endpoint `GET /atlas/api/pipeline/runs` consuming
-`PipelineService.list_recent_runs()` (Phase 6 Package 3, commit `f882405`);
-recent pipeline runs list with run status indicators (running/completed/failed),
-counters (fetched, new, graded, scored, errors), and timestamps; frontend API
-client extension following Package 2 pattern (`getPipelineRuns()` in
-`frontend/src/api/client.ts`, type in `frontend/src/api/types.ts`); loading,
-error, and empty states (empty expected until Phase 6 Package 4 background
-runner generates data); tests. Package 5 remains read-only and local-first.
+Package 6 implementation may now be prompted. Authorized scope: replace
+`/command-center` placeholder with a real Command Center workspace; Opportunity
+Signal summary panel consuming `getSummary()` from the Package 2 frontend API
+client; Pipeline Snapshot panel consuming `getPipelineRuns()` from the Package 5
+frontend API client displaying the most recent run status/counters/timestamp;
+Recommendations deferred-state section (renders a "Recommendations engine not
+yet active" message — not silently absent); navigation shortcuts linking to
+`/radar` and `/pipeline`; loading/error/empty states per panel independently;
+tests. No new backend endpoints required at MVP (reuses Package 2 and Package 5
+boundaries); one optional aggregate endpoint `GET
+/atlas/api/command-center/status` conditionally authorized if existing DTOs are
+insufficient (commit message must document the gap). Package 6 remains read-only
+and local-first.
 
-Package 5 must not implement pipeline execution controls, recommendation cards,
-Atlas Focus objects, Ask Atlas behavior, LLM calls, new scoring or ingestion
-logic, write mutations, Radar content changes (Package 4 surface is closed),
-Opportunity Detail content changes (Package 3 surface is closed), Command
-Center content, background runner or scheduler logic, new `pipeline_runs` schema
-changes, new tables, new `PipelineService` methods, cloud sync, or Tauri
-packaging.
+Package 6 must not implement Atlas Recommendations generation, Focus objects,
+Ask Atlas behavior, LLM calls, new scoring or ingestion logic, write mutations,
+Pipeline workspace content changes (Package 5 is closed), Radar content changes
+(Package 4 is closed), Opportunity Detail content changes (Package 3 is closed),
+background runner or scheduler logic, new `pipeline_runs` schema changes, new
+`PipelineService` methods, cloud sync, or Tauri packaging.
 
-Package 5 must not set or clear `ContextPanelContext` state — it does not own
-the Context Panel. It must not modify Package 4 `Radar.tsx` or Package 3
-`OpportunityDetailSurface.tsx`. The Package 2 opportunity API boundary must not
+Package 6 must not set or clear `ContextPanelContext` state. It must not modify
+Package 5 `Pipeline.tsx`, Package 4 `Radar.tsx`, or Package 3
+`OpportunityDetailSurface.tsx`. Package 2 and Package 5 API boundaries must not
 be modified.
 
 **Sequencing constraint:** Do not split Desktop v1 implementation into
@@ -571,15 +585,16 @@ A new Ash must not:
   state** — those are historical reference only
 - **Expand Desktop v1 scope** to include Intelligence Workspace, Professional
   Graph, Career Memory, Forecasting, or enterprise features
-- **Treat Desktop Package 5 as authorizing Command Center, Recommendations,
-  or Ask Atlas** — Package 5 is Pipeline Workspace MVP only: `GET
-  /atlas/api/pipeline/runs` read endpoint, recent runs list, status indicators,
-  counters and timestamps, frontend API client extension, loading/error/empty
-  states, and tests. No pipeline execution controls, recommendation cards, Atlas
-  Focus objects, Ask Atlas behavior, LLM calls, write mutations, Radar/Opportunity
-  Detail content changes, Command Center content, background runner logic,
-  new PipelineService methods, schema changes, or Tauri packaging. Package 5
-  must not set or clear ContextPanelContext state.
+- **Treat Desktop Package 6 as authorizing Recommendations generation, Ask
+  Atlas, or Focus objects** — Package 6 is Command Center MVP only: Opportunity
+  Signal summary panel (Package 2 `getSummary()`), Pipeline Snapshot panel
+  (Package 5 `getPipelineRuns()`), Recommendations deferred-state section,
+  navigation shortcuts, loading/error/empty states per panel, and tests. No
+  Recommendations generation, Focus objects, Ask Atlas behavior, LLM calls,
+  write mutations, Pipeline/Radar/Opportunity Detail content changes, background
+  runner logic, new PipelineService methods, schema changes, or Tauri packaging.
+  Package 6 must not set or clear ContextPanelContext state. The Recommendations
+  section must render a deferred-state message — not be silently absent.
 - **Issue parallel implementation tasks** without first confirming disjoint
   file ownership across agents
 

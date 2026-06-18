@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-4 complete; Desktop Package 5 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-5 complete; Desktop Package 6 definition accepted
 
 ## Purpose
 
@@ -32,10 +32,10 @@ complete. Package 4 (local-first background runner) definition entry is
 required before its implementation begins.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
-by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity
-Detail Surface MVP), and 4 (Radar Workspace MVP) are accepted and complete.
-Desktop Package 5 — Pipeline Workspace MVP definition is accepted; implementation
-is now authorized.
+by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
+MVP), 4 (Radar Workspace MVP), and 5 (Pipeline Workspace MVP) are accepted and
+complete. Desktop Package 6 — Command Center MVP definition is accepted;
+implementation is now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -90,14 +90,24 @@ Current objectives:
   with opportunity preview; "Open Opportunity Detail" navigation to Package 3
   route; loading/error/empty states; 19 tests. No mutations, no schema changes,
   Package 3 surface untouched.
-- ATLAS Desktop Package 5 - Pipeline Workspace MVP — **definition accepted;
-  implementation authorized.** Scope: replace `/pipeline` placeholder; new
-  `GET /atlas/api/pipeline/runs` read endpoint (consuming Phase 6 Package 3
-  `PipelineService.list_recent_runs()`); recent runs list with status indicators,
-  counters, and timestamps; frontend API client extension; loading/error/empty
-  states; tests. See `DECISION_LOG.md` "ATLAS Desktop Package 5 - Pipeline
-  Workspace MVP Definition Accepted." Empty state expected until Phase 6
-  Package 4 (background runner) generates data.
+- ATLAS Desktop Package 5 - Pipeline Workspace MVP — **complete** (commit
+  `c7562de`; 870 passed, 1 skipped; Leah ACCEPT FOR COMMIT). Delivered
+  `/atlas/pipeline` route replacing Package 1 placeholder; `GET
+  /atlas/api/pipeline/runs` read endpoint via `PipelineService.list_recent_runs()`;
+  `getPipelineRuns()` frontend client method; run list with status indicators
+  (running/completed/failed), counters (seen/created/updated/presented/errors),
+  and timestamps; loading/error/empty states; 23 tests. No mutations, no schema
+  changes, no ContextPanelContext ownership, Package 4 and Package 3 surfaces
+  untouched.
+- ATLAS Desktop Package 6 - Command Center MVP — **definition accepted;
+  implementation authorized.** Scope: replace `/command-center` placeholder;
+  Opportunity Signal summary panel (via `getSummary()` Package 2 boundary);
+  Pipeline Snapshot panel (via `getPipelineRuns()` Package 5 boundary);
+  Recommendations deferred-state section; navigation shortcuts to Radar and
+  Pipeline; loading/error/empty states per panel; tests. No new backend endpoints
+  required at MVP; one optional aggregate endpoint conditionally authorized.
+  See `DECISION_LOG.md` "ATLAS Desktop Package 6 - Command Center MVP Definition
+  Accepted."
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
