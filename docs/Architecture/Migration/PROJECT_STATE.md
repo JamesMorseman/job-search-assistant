@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-8 complete; Desktop Package 9 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-9 complete; Desktop Package 10 definition accepted
 
 ## Purpose
 
@@ -26,64 +26,66 @@ Build an automated engineering job-search platform for James Morseman that:
 
 ## Current Objectives
 
-Phases 1–5 MVP and Package 8 (Source Health) are complete. Phase 6
+Phases 1â€“5 MVP and ATLAS Desktop Packages 1â€“9 are complete. Phase 6
 (Analytics & Pipeline Runs) is active. Phase 6 Packages 1, 2, and 3 are
 complete. Package 4 (local-first background runner) definition entry is
-required before its implementation begins.
+required before its implementation begins. ATLAS Desktop Package 10 -
+Atlas Focus Resolution & Archive MVP is defined and may now be prompted.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
 MVP), 4 (Radar Workspace MVP), 5 (Pipeline Workspace MVP), and 6 (Command
-Center MVP), 7 (Recommendations MVP), and 8 (Ask Atlas Investigation Surface
-MVP) are accepted and complete. Desktop Package 9 - Atlas Focus MVP definition
-is accepted; implementation is now authorized.
+Center MVP), 7 (Recommendations MVP), 8 (Ask Atlas Investigation Surface
+MVP), and 9 (Atlas Focus MVP) are accepted and complete. Desktop Package 10 -
+Atlas Focus Resolution & Archive MVP definition is accepted; implementation is
+now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
   gated on sync implementation (not yet built).
 - Package 8 (Source Health): **complete**. `SourceHealthService.get_report()`
   is the sole authorized data path. Decision 2 (ATS quarantine mapping) is
-  formally closed — see `DECISION_LOG.md`.
-- Package 9 (9a/9b/9c — Pipeline Runs): deferred; gated on Phase 6
+  formally closed Ã¢â‚¬â€ see `DECISION_LOG.md`.
+- Package 9 (9a/9b/9c Ã¢â‚¬â€ Pipeline Runs): deferred; gated on Phase 6
   Packages 3+4 (pipeline infrastructure and background runner). Package 3 is
   now complete.
 
 Current objectives:
 
-- Phase 6 Package 1 (Analytics expansion) — **complete** (755 passing, 1
+- Phase 6 Package 1 (Analytics expansion) Ã¢â‚¬â€ **complete** (755 passing, 1
   skipped, 0 failed; Leah audit passed; no regressions)
-- Phase 6 Package 2 (Analytics depth) — **complete** (778 passing, 1
+- Phase 6 Package 2 (Analytics depth) Ã¢â‚¬â€ **complete** (778 passing, 1
   skipped, 0 failed; commit `6af126b`). Score Distribution, Stretch Response
   Rates, Unified Source Comparison, Pipeline Velocity operator pairs,
   LLM Grade Correlation (conditional). Employer-stage velocity pairs
   deferred to Package 3 planning.
-- Phase 6 Package 3 (Pipeline infrastructure) — **complete** (806 passing,
+- Phase 6 Package 3 (Pipeline infrastructure) Ã¢â‚¬â€ **complete** (806 passing,
   1 skipped, 5 warnings; commit `f882405`; Leah audit PASS WITH MINOR NOTES).
   `pipeline_runs` table, `PipelineService`, `PipelineRun` read model, 28 unit
   tests. `PipelineService` is sole authorized write path for `pipeline_runs`.
-  See `DECISION_LOG.md`, "Phase 6 Package 3 — Pipeline Infrastructure Complete."
-- Phase 6 Package 4 (Local-first background runner) — **definition entry
+  See `DECISION_LOG.md`, "Phase 6 Package 3 Ã¢â‚¬â€ Pipeline Infrastructure Complete."
+- Phase 6 Package 4 (Local-first background runner) Ã¢â‚¬â€ **definition entry
   required before implementation begins.** Authorized; not yet defined.
   Depends on Package 3 (now complete).
-- ATLAS Desktop Package 1 - Desktop Shell — **complete** (commit `d6bdde7`;
+- ATLAS Desktop Package 1 - Desktop Shell Ã¢â‚¬â€ **complete** (commit `d6bdde7`;
   808 passed, 1 skipped, 6 warnings). Delivered `frontend/` Vite React
   TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace
   routing placeholders, Context Panel stub, ATLAS design-token CSS variables,
   and FastAPI `/atlas` SPA serving.
-- ATLAS Desktop Package 2 - Core Data Layer — **complete** (commit `42fff28`;
+- ATLAS Desktop Package 2 - Core Data Layer Ã¢â‚¬â€ **complete** (commit `42fff28`;
   817 passed, 1 skipped, 6 warnings). Delivered read-only `/atlas/api`
   endpoints, opportunity summary/detail DTOs, summary counts, API-local JSON
   404 fallback, `AtlasDataService`, frontend API client/types/state boundary,
   and targeted API route tests. No workspace content, recommendations, Ask
   Atlas behavior, LLM calls, background runner, scheduler, pipeline execution,
   document generation, scoring changes, or database/schema changes.
-- ATLAS Desktop Package 3 - Opportunity Detail Surface MVP — **complete**
+- ATLAS Desktop Package 3 - Opportunity Detail Surface MVP Ã¢â‚¬â€ **complete**
   (commit `5b19d5e`; 828 passed, 1 skipped; Leah audit ACCEPT FOR COMMIT).
   Delivered `/atlas/opportunities/:jobId` route, read-only consumption of
   Package 2 `getOpportunity()` boundary, opportunity-first display hierarchy,
   loading/error/not-found states, and route behavior tests. No mutations,
   recommendations, Ask Atlas behavior, or schema changes.
-- ATLAS Desktop Package 4 - Radar Workspace MVP — **complete** (commit
+- ATLAS Desktop Package 4 - Radar Workspace MVP Ã¢â‚¬â€ **complete** (commit
   `2195cd8`; 847 passed, 1 skipped; Leah ACCEPT FOR COMMIT). Delivered
   `/atlas/radar` route replacing Package 1 placeholder; Opportunity Signal
   Card grid via Package 2 `getOpportunities()` API; client-side search and
@@ -91,7 +93,7 @@ Current objectives:
   with opportunity preview; "Open Opportunity Detail" navigation to Package 3
   route; loading/error/empty states; 19 tests. No mutations, no schema changes,
   Package 3 surface untouched.
-- ATLAS Desktop Package 5 - Pipeline Workspace MVP — **complete** (commit
+- ATLAS Desktop Package 5 - Pipeline Workspace MVP Ã¢â‚¬â€ **complete** (commit
   `c7562de`; 870 passed, 1 skipped; Leah ACCEPT FOR COMMIT). Delivered
   `/atlas/pipeline` route replacing Package 1 placeholder; `GET
   /atlas/api/pipeline/runs` read endpoint via `PipelineService.list_recent_runs()`;
@@ -100,7 +102,7 @@ Current objectives:
   and timestamps; loading/error/empty states; 23 tests. No mutations, no schema
   changes, no ContextPanelContext ownership, Package 4 and Package 3 surfaces
   untouched.
-- ATLAS Desktop Package 6 - Command Center MVP — **complete** (commit
+- ATLAS Desktop Package 6 - Command Center MVP Ã¢â‚¬â€ **complete** (commit
   `d9eec59`; 892 passed, 1 skipped; Leah ACCEPT FOR COMMIT). Delivered
   `/atlas/command-center` route replacing Package 1 placeholder; Opportunity
   Signal summary panel via `getSummary()` (Package 2); Pipeline Snapshot panel
@@ -130,18 +132,26 @@ Current objectives:
   states; service/workspace tests. No schema/database changes, persistent
   conversation history, Focus objects, mutation actions, hard-coded LLM
   provider/model, closed workspace changes, cloud sync, or Tauri packaging.
-- ATLAS Desktop Package 9 - Atlas Focus MVP - **definition accepted;
-  implementation authorized.** Scope: add an Atlas Focus read model/DTO and
-  local-first Focus service deriving active prioritized awareness objects from
-  existing accepted read sources; add read-only `/atlas/api/focuses` endpoint if
-  needed; add frontend client/types; render Focus objects in Command Center
-  with statement, reason, source object, attention horizon, next action, and
-  resolution state; loading/error/empty states; tests. Package 9 is read-only at
-  MVP: no focus resolution mutations, persistence/archive/history tables,
-  schema changes, generic task/reminder/notification system, calendar
-  integration, job/application mutations, recommendation generation changes, Ask
-  Atlas changes, closed workspace changes, scoring/ingestion changes,
-  background runner/scheduler/pipeline execution, cloud sync, or Tauri
+- ATLAS Desktop Package 9 - Atlas Focus MVP - **complete** (commit `e985918`;
+  940 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT). Delivered Focus
+  read model/DTO; local-first Focus service deriving active prioritized
+  awareness objects from existing accepted read sources; read-only
+  `/atlas/api/focuses` endpoint; frontend client/types; Command Center Focus
+  list; loading/error/empty states; tests. No focus resolution mutations,
+  persistence/archive/history tables, schema changes, generic task/reminder/
+  notification system, calendar integration, job/application mutations,
+  recommendation generation changes, Ask Atlas changes, closed workspace
+  changes, scoring/ingestion changes, background runner/scheduler/pipeline
+  execution, cloud sync, or Tauri packaging.
+- ATLAS Desktop Package 10 - Atlas Focus Resolution & Archive MVP - definition
+  accepted; implementation authorized. Scope: add bounded Focus lifecycle
+  mutations and archive/history support; preserve resolved Focuses locally; add
+  frontend client/types as needed; update Command Center to surface resolution
+  state and archive/history; loading/error/empty states; tests. Package 10 is
+  still Focus-domain only: no generic task/reminder/notification system,
+  no Ask Atlas changes, no recommendation generation changes, no Radar/
+  Pipeline/Opportunity Detail changes, no scoring/ingestion changes, no
+  background runner/scheduler/pipeline execution, no cloud sync, and no Tauri
   packaging.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
@@ -208,13 +218,13 @@ Implemented:
 - follow-up workflows
 - evidence selection system
 - deterministic resume renderer
-- benefit scoring — signal engine, reason persistence, report display (Phase 2)
-- trajectory scoring — signal engine, reason persistence, report display (Phase 2)
+- benefit scoring Ã¢â‚¬â€ signal engine, reason persistence, report display (Phase 2)
+- trajectory scoring Ã¢â‚¬â€ signal engine, reason persistence, report display (Phase 2)
 - document generation audit layer
-- firm repository — full lifecycle: discovery, draft, review, approve/reject, YAML sync, SQLite sync, firm-prior scoring integration (Phase 3)
-- dashboard service layer — job, document, tracker, metrics, and firm-intelligence read services; document regeneration and tracker state-transition/follow-up-resolution actions (Phase 4 Packages 1, 2a/2b, 3a/3b, 4, 6)
-- dashboard UI (Phase 5 Packages 1–6 / MVP complete, Package 8 complete): `job_search/dashboard/` — FastAPI app shell, navigation shell, Review Queue (display + select/reject actions), Job Detail, Documents (read + regeneration), Application Tracker (read + state-transition/follow-up-resolution actions), Metrics (read-only funnel stats), and Source Health (read-only, GET only). 124 dashboard tests passing. Authorized data/mutation paths: `TrackerService.transition_job()` for all `jobs.app_state` changes; `DocumentsService.regenerate_documents()` for document regeneration; `TrackerService.resolve_followup()` for follow-up resolution; `MetricsService.get_funnel_stats()` as sole metrics data source; `SourceHealthService.get_report()` as sole Source Health data path. Decision 2 (ATS quarantine mapping) formally closed — quarantine display driven by `firms.circuit_state`; `ats_tier` displayed as independent context.
-- Phase 6 Package 1 — Analytics expansion: **accepted and complete** at MVP
+- firm repository Ã¢â‚¬â€ full lifecycle: discovery, draft, review, approve/reject, YAML sync, SQLite sync, firm-prior scoring integration (Phase 3)
+- dashboard service layer Ã¢â‚¬â€ job, document, tracker, metrics, and firm-intelligence read services; document regeneration and tracker state-transition/follow-up-resolution actions (Phase 4 Packages 1, 2a/2b, 3a/3b, 4, 6)
+- dashboard UI (Phase 5 Packages 1Ã¢â‚¬â€œ6 / MVP complete, Package 8 complete): `job_search/dashboard/` Ã¢â‚¬â€ FastAPI app shell, navigation shell, Review Queue (display + select/reject actions), Job Detail, Documents (read + regeneration), Application Tracker (read + state-transition/follow-up-resolution actions), Metrics (read-only funnel stats), and Source Health (read-only, GET only). 124 dashboard tests passing. Authorized data/mutation paths: `TrackerService.transition_job()` for all `jobs.app_state` changes; `DocumentsService.regenerate_documents()` for document regeneration; `TrackerService.resolve_followup()` for follow-up resolution; `MetricsService.get_funnel_stats()` as sole metrics data source; `SourceHealthService.get_report()` as sole Source Health data path. Decision 2 (ATS quarantine mapping) formally closed Ã¢â‚¬â€ quarantine display driven by `firms.circuit_state`; `ats_tier` displayed as independent context.
+- Phase 6 Package 1 Ã¢â‚¬â€ Analytics expansion: **accepted and complete** at MVP
   scope (755 passing, 1 skipped, 0 failed). `FunnelReporter` / `FunnelStats`
   extended with: funnel conversion rates, LLM grade distribution, stretch
   category conversion rates, source effectiveness confidence signals (`n=`
@@ -223,12 +233,12 @@ Implemented:
   remains sole authorized data path; Metrics route gained no new `Depends()`
   arguments; no new services, routes, or screens; no mutation paths.
   Items deferred from the original over-broad 11-item definition: score
-  distribution percentiles and extended transition times → Package 2; LLM
-  grade correlation → Package 2 conditional; Pipeline Age → Package 3;
-  remote/hybrid breakdown and threshold sensitivity → future packages.
-  See `DECISION_LOG.md`, "Phase 6 Package 1 — Scope Correction."
+  distribution percentiles and extended transition times Ã¢â€ â€™ Package 2; LLM
+  grade correlation Ã¢â€ â€™ Package 2 conditional; Pipeline Age Ã¢â€ â€™ Package 3;
+  remote/hybrid breakdown and threshold sensitivity Ã¢â€ â€™ future packages.
+  See `DECISION_LOG.md`, "Phase 6 Package 1 Ã¢â‚¬â€ Scope Correction."
 
-- Phase 6 Package 3 — Pipeline infrastructure: **complete** (commit `f882405`,
+- Phase 6 Package 3 Ã¢â‚¬â€ Pipeline infrastructure: **complete** (commit `f882405`,
   806 passing). `pipeline_runs` table (schema migration path); `PipelineService`
   (`create_run`, `update_counters`, `complete_run`, `fail_run`,
   `list_recent_runs`, `get_run`); `PipelineRun` read model; 28 unit tests.
@@ -241,7 +251,7 @@ Architecture complete, implementation pending:
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 
-Deferred — post-Phase-1 resume optimization backlog:
+Deferred Ã¢â‚¬â€ post-Phase-1 resume optimization backlog:
 
 - resume density optimization
 - render-aware utilization measurement
@@ -303,17 +313,17 @@ Deferred implementation decisions:
 
 Current roadmap:
 
-1. Phase 1 - Resume and Cover Letter ✓ Complete
-2. Phase 2 - Benefit / Trajectory Scoring ✓ Complete
-3. Phase 3 - Firm Repository ✓ Complete
-4. Phase 4 - Dashboard Service Layer ✓ Complete (Pipeline Orchestration deferred to Phase 6 — see Technical Debt)
-5. Phase 5 - Dashboard UI — MVP Complete (Packages 1–6). Package 8 (Source Health) complete. Package 7 gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c) deferred on Phase 6 infrastructure.
-6. Phase 6 - Analytics & Pipeline Runs ← **Active**. Package 1 (Analytics expansion) complete. Package 2 (Analytics depth) complete (778 passing, 1 skipped; commit `6af126b`). Package 3 (Pipeline infrastructure) definition entry required before implementation begins. Packages 4–5 require individual definition entries before their implementation begins.
+1. Phase 1 - Resume and Cover Letter Ã¢Å“â€œ Complete
+2. Phase 2 - Benefit / Trajectory Scoring Ã¢Å“â€œ Complete
+3. Phase 3 - Firm Repository Ã¢Å“â€œ Complete
+4. Phase 4 - Dashboard Service Layer Ã¢Å“â€œ Complete (Pipeline Orchestration deferred to Phase 6 Ã¢â‚¬â€ see Technical Debt)
+5. Phase 5 - Dashboard UI Ã¢â‚¬â€ MVP Complete (Packages 1Ã¢â‚¬â€œ6). Package 8 (Source Health) complete. Package 7 gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c) deferred on Phase 6 infrastructure.
+6. Phase 6 - Analytics & Pipeline Runs Ã¢â€ Â **Active**. Package 1 (Analytics expansion) complete. Package 2 (Analytics depth) complete (778 passing, 1 skipped; commit `6af126b`). Package 3 (Pipeline infrastructure) definition entry required before implementation begins. Packages 4Ã¢â‚¬â€œ5 require individual definition entries before their implementation begins.
 7. Phase 7 - Future Enhancements
 
 Phase numbering is authoritative in `roadmap.md`; this list mirrors it. Portfolio
 Ecosystem, LinkedIn Generation, and Capstone Publication Review are not
-numbered roadmap phases — they are tracked as portfolio/LinkedIn/capstone
+numbered roadmap phases Ã¢â‚¬â€ they are tracked as portfolio/LinkedIn/capstone
 strategy (see Portfolio Strategy and LinkedIn Strategy sections below, and
 the Future list under Current Implementation Status) and remain candidate
 future enhancements rather than scheduled phases.
@@ -322,9 +332,9 @@ future enhancements rather than scheduled phases.
 
 Known technical debt:
 
-- dashboard UI MVP is complete (Phase 5 Packages 1–6); Package 8 (Source Health) complete; Package 7 gated on draft-to-SQLite sync implementation; Package 9 (9a/9b/9c) gated on Phase 6 infrastructure
+- dashboard UI MVP is complete (Phase 5 Packages 1Ã¢â‚¬â€œ6); Package 8 (Source Health) complete; Package 7 gated on draft-to-SQLite sync implementation; Package 9 (9a/9b/9c) gated on Phase 6 infrastructure
 - pipeline orchestration service (`services/pipeline.py`), `pipeline_runs`
-  table, and background-job runner do not exist yet — Phase 6 Packages 3+4;
+  table, and background-job runner do not exist yet Ã¢â‚¬â€ Phase 6 Packages 3+4;
   local-first background runner architecture accepted
   (`DECISION_LOG.md`, "Phase 6 Local-First Background Runner Architecture
   Accepted"). Phase 5 Package 9 (9a/9b/9c) is gated on these.
@@ -334,12 +344,12 @@ Known technical debt:
 - grading prompt firm-intelligence enrichment deferred to Phase 4+
 - firm profile diff in review command deferred to Phase 4+
 - ATS quarantine tier mapping (Decision 2, `phase_3_governance_addendum.md`)
-  formally closed at Package 8 acceptance — quarantine display driven by
+  formally closed at Package 8 acceptance Ã¢â‚¬â€ quarantine display driven by
   `firms.circuit_state`; `ats_tier` displayed as independent context; no
-  mapping required (see `DECISION_LOG.md`, "Phase 5 — Package 8 Source Health
+  mapping required (see `DECISION_LOG.md`, "Phase 5 Ã¢â‚¬â€ Package 8 Source Health
   Accepted; Decision 2 Closed")
 - draft-to-SQLite sync approved as a decision and authorized for
-  implementation; not yet built — only approved firm profiles sync to SQLite
+  implementation; not yet built Ã¢â‚¬â€ only approved firm profiles sync to SQLite
   today. Firm Review Queue (Package 7) is gated on this being built.
 - firm review queue in dashboard (Package 7) is unblocked by decision but
   still requires the draft-to-SQLite sync implementation before it can begin
@@ -491,23 +501,23 @@ Status:
 - service layer implemented (Phase 4): job, document, tracker, metrics,
   and firm-intelligence read services; document regeneration and tracker
   state-transition/follow-up-resolution actions
-- UI implementation: Phase 5 MVP (Packages 1–6) complete. Package 8 (Source
+- UI implementation: Phase 5 MVP (Packages 1Ã¢â‚¬â€œ6) complete. Package 8 (Source
   Health) complete. Package 7 (Firm Review Queue) unblocked by decision but
-  gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c —
+  gated on draft-to-SQLite sync implementation. Package 9 (9a/9b/9c Ã¢â‚¬â€
   Pipeline Runs) deferred on Phase 6 Packages 3+4.
 - Authorized data/mutation paths:
-  - `TrackerService.transition_job()` — sole authorized path for all
+  - `TrackerService.transition_job()` Ã¢â‚¬â€ sole authorized path for all
     `jobs.app_state` changes from any dashboard route
-  - `DocumentsService.regenerate_documents()` — sole authorized
+  - `DocumentsService.regenerate_documents()` Ã¢â‚¬â€ sole authorized
     document-regeneration path
-  - `TrackerService.resolve_followup()` — sole authorized follow-up
+  - `TrackerService.resolve_followup()` Ã¢â‚¬â€ sole authorized follow-up
     resolution path
-  - `MetricsService.get_funnel_stats()` — sole authorized metrics data
+  - `MetricsService.get_funnel_stats()` Ã¢â‚¬â€ sole authorized metrics data
     source; delegates to `FunnelReporter.compute()` (no duplicate
     computation path)
-  - `SourceHealthService.get_report()` — sole authorized Source Health
+  - `SourceHealthService.get_report()` Ã¢â‚¬â€ sole authorized Source Health
     data path; read-only, no mutations permitted from the dashboard route
-  - `FunnelReporter` / `FunnelStats` extension — sole authorized analytics
+  - `FunnelReporter` / `FunnelStats` extension Ã¢â‚¬â€ sole authorized analytics
     path for Package 1 (complete); `MetricsService.get_funnel_stats()` sole
     authorized route data path; Metrics route gained no new service dependencies
 - Analytics information architecture (accepted per Donut study, Package 1
@@ -515,8 +525,8 @@ Status:
   diagnostics; Pipeline Trends = historical/trend (future, Package 5). Each
   layer is a distinct screen. Trend and historical data must not be added to
   the Metrics screen.
-- Phase 6 Package 1 complete — 755 passing; no new routes, services, or screens
-- Phase 6 Package 2 complete — 778 passing (commit `6af126b`); Score
+- Phase 6 Package 1 complete Ã¢â‚¬â€ 755 passing; no new routes, services, or screens
+- Phase 6 Package 2 complete Ã¢â‚¬â€ 778 passing (commit `6af126b`); Score
   Distribution, Stretch Response Rates, Unified Source Comparison, Pipeline
   Velocity operator pairs, LLM Correlation conditional; no new routes,
   services, or screens; Metrics route read-only; employer-stage velocity
@@ -647,7 +657,7 @@ Visual freeze: `VISUAL FREEZE APPROVED` per
 `docs/Brand/ATLAS_Desktop_v1_Visual_Freeze_Recommendation.md`. All five
 required Desktop v1 workspace surfaces are frozen; implementation may be planned.
 
-**Desktop v1 product definition:** Career Mission Control — a user can
+**Desktop v1 product definition:** Career Mission Control Ã¢â‚¬â€ a user can
 discover, evaluate, track, prioritize, and investigate opportunities without
 external tracking systems.
 
@@ -669,10 +679,10 @@ Graph, Career Memory, Forecasting, multi-user / enterprise / collaboration.
 - Repository dissemination instructions under `docs/Architecture/Migration/`
 
 **Not committed (untracked; must not be committed without PM authorization):**
-- `docs/ATLAS_Recovery_Package_20260617.zip` — source material; permanent
-- `docs/Strategy/ATLAS Workspace Ecosystem Study.md` — advisory; unaccepted
-- Seven overlap-risk files — deferred for content comparison
-  (see `DECISION_LOG.md`, "ATLAS Recovery — Seven Overlap-Risk Files Deferred")
+- `docs/ATLAS_Recovery_Package_20260617.zip` Ã¢â‚¬â€ source material; permanent
+- `docs/Strategy/ATLAS Workspace Ecosystem Study.md` Ã¢â‚¬â€ advisory; unaccepted
+- Seven overlap-risk files Ã¢â‚¬â€ deferred for content comparison
+  (see `DECISION_LOG.md`, "ATLAS Recovery Ã¢â‚¬â€ Seven Overlap-Risk Files Deferred")
 
 Desktop v1 implementation authorization is a separate decision from Phase 6
 package sequencing. Desktop Package 1 - Desktop Shell is accepted and complete:
@@ -690,16 +700,16 @@ client/types/state boundary, and targeted API route tests. It did not include
 workspace content, recommendations, Ask Atlas behavior, LLM calls, background
 runner/scheduler/pipeline execution, document generation, scoring changes, or
 database/schema changes.
-
-Desktop Packages 3 through 8 are accepted and complete: Opportunity Detail
+Desktop Packages 3 through 9 are accepted and complete: Opportunity Detail
 Surface MVP, Radar Workspace MVP, Pipeline Workspace MVP, Command Center MVP,
-Recommendations MVP, and Ask Atlas Investigation Surface MVP. Desktop Package
-9 - Atlas Focus MVP is defined and may now be prompted. Package 9 must preserve
-the distinction between Recommendation and Focus, remain read-only at MVP, and
-must not introduce focus resolution mutations, persistence/archive/history
-tables, schema/database changes, generic task management, notifications,
-calendar integration, closed workspace changes, or background runner/scheduler
-behavior. See `ASH_INIT_NEXT.md` sections 7-9 for full Desktop v1 governance.
+Recommendations MVP, Ask Atlas Investigation Surface MVP, and Atlas Focus MVP.
+Desktop Package 10 - Atlas Focus Resolution & Archive MVP is defined and may
+now be prompted. Package 10 must preserve the distinction between
+Recommendation and Focus, remain Focus-domain only, and must not become a
+generic task/reminder/notification system. See `ASH_INIT_NEXT.md` sections 7-9
+for full Desktop v1 governance.
+
+## Cross-System Dependencies
 
 ## Cross-System Dependencies
 

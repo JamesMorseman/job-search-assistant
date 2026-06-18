@@ -3580,20 +3580,43 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
 - Definition reference: `DECISION_LOG.md` "ATLAS Desktop Package 8 - Ask Atlas
   Investigation Surface MVP Definition Accepted"
-- Follow-up work: Desktop Package 9 - Atlas Focus MVP is defined below.
-  Package 9 implementation may now be prompted only within that definition's
+- Follow-up work: Desktop Package 10 - Atlas Focus Resolution & Archive MVP is
+  defined below. Package 10 implementation may now be prompted only within that
   bounded scope.
 
-### ATLAS Desktop Package 9 - Atlas Focus MVP Definition Accepted
+### ATLAS Desktop Package 9 - Atlas Focus MVP Accepted / Complete
 
 - Status: accepted
 - Area: ATLAS Desktop v1 / Atlas Focus
 - Date: June 2026
-- Rationale: Defines the next ATLAS Desktop implementation package after
-  acceptance of Desktop Package 8. Package 9 authorizes a bounded Atlas Focus
-  MVP because the Desktop v1 translation study states that Atlas Focus is
-  required for Desktop v1 and that, without Focus, Command Center becomes a
-  dashboard. Package 9 is an object-layer package, not a new workspace.
+- Commit: `e985918` - `feat(atlas): implement Desktop Package 9 Atlas Focus MVP`
+- Test suite: 940 passed, 1 skipped, 6 warnings
+- Audit: Leah - ACCEPT FOR COMMIT. Blockers: none.
+- Rationale: Records Project Master acceptance of Desktop Package 9 - Atlas
+  Focus MVP. The implementation satisfies the accepted Package 9 definition and
+  closes Package 9.
+
+  **Package accepted:**
+  - ATLAS Desktop Package 9 - Atlas Focus MVP - **Accepted / Complete**
+
+  **Delivered scope:**
+  - Focus read model / DTO
+  - local-first Focus service deriving active prioritized awareness objects from
+    accepted read sources
+  - read-only `/atlas/api/focuses` endpoint
+  - frontend client/types boundary for Focus data
+  - Command Center Focus list with statement, reason, source object, attention
+    horizon, next action, and resolution state
+  - loading/error/empty states
+  - tests for focus derivation, endpoint shape, client boundary, and Command
+    Center rendering
+
+  **Acceptance basis:**
+  - Scope compliance: PASS
+  - FastAPI routing: PASS
+  - Frontend architecture: PASS
+  - Validation: 940 passed, 1 skipped, 6 warnings
+  - No required fixes
 
   **Authority:**
   - `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`
@@ -3685,6 +3708,76 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
   `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`,
   `docs/Brand/ATLAS_Focus_Object_v1_Visual_Reference.md`
-- Follow-up work: ATLAS Desktop Package 9 implementation may now be prompted.
-  The implementation prompt must reference this entry and preserve all
-  prohibited-scope boundaries above.
+- Follow-up work: ATLAS Desktop Package 10 is defined below. Package 10 may be
+  prompted only within its bounded scope.
+
+### ATLAS Desktop Package 10 - Atlas Focus Resolution & Archive MVP Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Atlas Focus
+- Date: June 2026
+- Rationale: Defines the next ATLAS Desktop implementation package after
+  Package 9. The Focus visual reference and Desktop v1 translation study both
+  treat resolved Focuses as lifecycle objects, not ephemeral notices, so the
+  next bounded step is to authorize Focus resolution and archival behavior
+  without expanding into generic task management or notification systems.
+
+  **Authority:**
+  - `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`
+    section 4, "How Focuses Are Resolved"
+  - `docs/Brand/ATLAS_Focus_Object_v1_Visual_Reference.md`
+
+  **Package objective:**
+
+  Introduce the first bounded Focus lifecycle package: let Command Center
+  resolve, defer, dismiss, supersede, or expire Focus objects and preserve the
+  resulting archival/history trail in a local-first way.
+
+  **Future implementation scope authorized by this definition:**
+
+  1. Add Focus resolution actions for the bounded Focus lifecycle states.
+  2. Add archive/history storage or equivalent local persistence for resolved
+     Focuses so completed items do not disappear.
+  3. Update Command Center to surface resolved/archived Focus state where
+     appropriate.
+  4. Add frontend client/types and tests for the Focus lifecycle boundary.
+
+  **Authorized data paths:**
+
+  - Package 10 may build on the Package 9 Focus read model and API boundary.
+  - Package 10 may add the minimal local persistence needed to preserve Focus
+    history and archived state.
+  - Package 10 may expose read/write `/atlas/api` endpoints for Focus lifecycle
+    operations.
+  - Frontend network access must remain centralized in
+    `frontend/src/api/client.ts`.
+
+  **Out of scope / prohibited for Desktop Package 10:**
+
+  - Generic task management, reminders, notification center, or calendar
+    system
+  - Ask Atlas behavior changes
+  - Recommendation generation changes
+  - Radar, Pipeline, or Opportunity Detail behavior changes
+  - New scoring or ingestion logic
+  - Background runner, scheduler, or pipeline execution
+  - Hard-coded LLM provider
+  - Cloud sync or Tauri packaging
+
+  **Package boundaries:**
+
+  - Package 10 may modify Command Center only to support Focus lifecycle and
+    archive presentation.
+  - Package 10 may add a Focus service/read model and the small persistence
+    layer it needs.
+  - Package 10 must preserve the distinction between Recommendation and Focus.
+  - Package 10 must not broaden into a generic productivity/task system.
+
+  **Acceptance criteria for the future implementation:**
+
+  1. Frontend build passes (`npm run build`).
+  2. `pytest` passes with no regressions.
+  3. Existing `/dashboard/*` routes remain unaffected.
+  4. `/atlas` routing remains isolated.
+  5. Focus resolution and archive behavior stay bounded to the Focus domain.
+  6. No unrelated surface changes are introduced.

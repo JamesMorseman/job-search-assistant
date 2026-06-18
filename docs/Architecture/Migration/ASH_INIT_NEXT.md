@@ -1,7 +1,7 @@
-# Ash Initialization Package — Project Master (NEXT)
+﻿# Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-8
-complete; Desktop Package 9 Atlas Focus definition accepted
+**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-9
+complete; Desktop Package 10 Atlas Focus Resolution & Archive definition accepted
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -45,11 +45,12 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Desktop Package 8
-  acceptance and Desktop Package 9 definition
-- **Implementation files:** Desktop Packages 1-8 committed in `d6bdde7`,
-  `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`, `913cd4a`, `da6aed3`
-- **Test suite:** 921 passing, 1 skipped, 6 warnings (as of Desktop Package 8)
+- **Governance files:** Current governance commit records Desktop Package 9
+  acceptance and Desktop Package 10 definition
+- **Implementation files:** Desktop Packages 1-9 committed in `d6bdde7`,
+  `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`, `913cd4a`, `da6aed3`,
+  `e985918`
+- **Test suite:** 940 passing, 1 skipped, 6 warnings (as of Desktop Package 9)
 
 **Confirm at session start:**
 
@@ -549,31 +550,26 @@ references.
 
 After that entry is accepted, issue an Anna implementation task referencing it.
 
-### Step 3 - Prompt ATLAS Desktop Package 9 implementation (Desktop track)
+### Step 3 - Prompt ATLAS Desktop Package 10 implementation (Desktop track)
 
-**Desktop Packages 1 through 8 are complete and accepted.** Desktop Package 9 -
-Atlas Focus MVP definition is accepted; implementation is now authorized. See
-`DECISION_LOG.md` "ATLAS Desktop Package 9 - Atlas Focus MVP Definition
-Accepted."
+**Desktop Packages 1 through 9 are complete and accepted.** Desktop Package 10 -
+Atlas Focus Resolution & Archive MVP definition is accepted; implementation is
+now authorized. See `DECISION_LOG.md` "ATLAS Desktop Package 10 - Atlas Focus
+Resolution & Archive MVP Definition Accepted."
 
-Package 9 implementation may now be prompted. Authorized scope: add an Atlas
-Focus read model/DTO; add a local-first Focus service deriving active
-prioritized awareness objects from accepted read sources; add a read-only
-`/atlas/api/focuses` endpoint if needed; add frontend client/types through the
-existing `client.ts` boundary; render Focus objects in Command Center with
-focus statement, reason, source object, attention horizon, next action, and
-resolution state; render loading/error/empty states; add tests.
+Package 10 implementation may now be prompted. Authorized scope: add bounded
+Focus resolution mutations, archive/history support, local persistence needed
+to preserve resolved Focus history, frontend client/types through the existing
+`client.ts` boundary, and Command Center resolution/archive presentation.
 
-Package 9 is read-only at MVP. It must not implement focus resolution mutations
-(`complete`, `defer`, `dismiss`, `supersede`, `expire`), focus persistence,
-archive/history tables, database/schema changes, generic task management,
-reminders, notification center, alert system, calendar integration,
-job/application mutations, recommendation generation changes, Ask Atlas behavior
-changes, Radar/Pipeline/Opportunity Detail behavior changes, scoring or
-ingestion changes, background runner/scheduler behavior, pipeline execution,
+Package 10 must remain Focus-domain only. It must not implement generic task
+management, reminders, notification center, alert system, calendar
+integration, Ask Atlas changes, recommendation generation changes,
+Radar/Pipeline/Opportunity Detail behavior changes, scoring or ingestion
+changes, background runner/scheduler behavior, pipeline execution,
 hard-coded LLM provider, cloud sync, or Tauri packaging.
 
-Package 9 must preserve the distinction between Recommendation and Focus: a
+Package 10 must preserve the distinction between Recommendation and Focus: a
 recommendation says what Atlas suggests; a Focus says what deserves attention.
 Resolution-state display is allowed, but state-changing controls are not
 authorized.
@@ -614,14 +610,13 @@ A new Ash must not:
   state** — those are historical reference only
 - **Expand Desktop v1 scope** to include Intelligence Workspace, Professional
   Graph, Career Memory, Forecasting, or enterprise features
-- **Treat Desktop Package 9 as authorizing task management or focus mutations**
-  - Package 9 is Atlas Focus MVP read/display only. No focus resolution
-  mutations, persistence/archive/history tables, schema/database changes,
-  generic task management, reminders, notification center, alert system,
-  calendar integration, job/application mutations, recommendation generation
-  changes, Ask Atlas behavior changes, closed workspace behavior changes,
-  background runner, scheduler, pipeline execution, cloud sync, or Tauri
-  packaging.
+- **Treat Desktop Package 10 as authorizing generic task management or focus
+  mutations**
+  - Package 10 is Atlas Focus Resolution & Archive MVP focus-lifecycle only.
+    No generic task management, reminders, notification center, alert system,
+    calendar integration, Ask Atlas behavior changes, recommendation generation
+    changes, closed workspace behavior changes, background runner, scheduler,
+    pipeline execution, cloud sync, or Tauri packaging.
 - **Issue parallel implementation tasks** without first confirming disjoint
   file ownership across agents
 

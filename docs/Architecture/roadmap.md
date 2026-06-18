@@ -410,8 +410,9 @@ architecture decision is now closed (local-first accepted).
 ### Package Structure
 
 ATLAS Desktop v1 is a product layer parallel to the JSA engineering roadmap.
-Desktop Packages 1-8 are accepted and complete. Desktop Package 9 - Atlas
-Focus MVP definition is accepted; implementation is now authorized.
+Desktop Packages 1-9 are accepted and complete. Desktop Package 10 - Atlas
+Focus Resolution & Archive MVP definition is accepted; implementation is now
+authorized.
 
 | Package | Scope | Status |
 |---|---|---|
@@ -423,8 +424,9 @@ Focus MVP definition is accepted; implementation is now authorized.
 | 6 | Command Center MVP — Opportunity Signal summary panel (`getSummary()`); Pipeline Snapshot panel (`getPipelineRuns()`); Recommendations deferred-state section; navigation shortcuts; independent loading/error/empty states per panel | **Accepted / Complete** — commit `d9eec59`; 892 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
 | 7 | Recommendations MVP — new `RecommendationService` (LLM provider abstraction); `GET /atlas/api/recommendations` read endpoint; `getRecommendations()` frontend client; Command Center Recommendations section populated; loading/error/empty states; tests; stateless at MVP | **Accepted / Complete** — commit `913cd4a`; 903 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
 | 8 | Ask Atlas Investigation Surface MVP — investigation-oriented `/atlas/ask-atlas` workspace; attached context; structured observation/explanation/suggested-action/follow-up response via existing LLM provider abstraction; loading/error/empty/context-missing states; tests; stateless at MVP | **Accepted / Complete** — commit `da6aed3`; 921 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
-| 9 | Atlas Focus MVP — Focus read model/DTO; local-first Focus service deriving active prioritized awareness objects from accepted read sources; optional read-only `/atlas/api/focuses`; frontend client/types; Command Center Focus list; loading/error/empty states; tests; read-only at MVP | **Definition accepted — implementation authorized**; see `DECISION_LOG.md` |
-| 10+ | Later product surfaces and enhancements | Not yet authorized; require separate definition entries |
+| 9 | Atlas Focus MVP — Focus read model/DTO; local-first Focus service deriving active prioritized awareness objects from accepted read sources; optional read-only `/atlas/api/focuses`; frontend client/types; Command Center Focus list; loading/error/empty states; tests; read-only at MVP | **Accepted / Complete** — commit `e985918`; 940 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
+| 10 | Atlas Focus Resolution & Archive MVP — bounded Focus lifecycle mutations; archive/history support; Command Center resolution and archive presentation; frontend client/types; loading/error/empty states; tests; Focus-domain only | **Definition accepted** — implementation authorized; see `DECISION_LOG.md` |
+| 11+ | Later product surfaces and enhancements | Not yet authorized; require separate definition entries |
 
 ### Package 1 Boundaries
 
@@ -616,6 +618,24 @@ behavior changes, Radar/Pipeline/Opportunity Detail behavior changes, scoring or
 ingestion changes, background runner/scheduler behavior, pipeline execution,
 hard-coded LLM provider, cloud sync, or Tauri packaging.
 
+### Package 10 Boundaries
+
+Desktop Package 10 is Atlas Focus Resolution & Archive MVP. It is the first
+bounded lifecycle package for Focus objects and may add resolution mutations and
+archive/history support, but it must remain Focus-domain only and must not turn
+into a generic task or notification system.
+
+Package 10 may introduce the minimal persistence needed to preserve resolved
+Focus history. It may expose read/write `/atlas/api` endpoints for Focus
+lifecycle operations and may update Command Center to show resolution and
+archive state.
+
+Package 10 must not implement generic task management, reminders, notification
+center, alert system, calendar integration, Ask Atlas behavior changes,
+recommendation generation changes, Radar/Pipeline/Opportunity Detail behavior
+changes, scoring or ingestion changes, background runner/scheduler behavior,
+pipeline execution, hard-coded LLM provider, cloud sync, or Tauri packaging.
+
 **Standing rule (carried from tech stack acceptance entry):** The original
 decision ("Ask Atlas (Desktop Package 7) must include an explicit
 prohibited-scope list enforcing 'Investigation Surface not Chat Surface'")
@@ -683,8 +703,8 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
    Package 3 (pipeline infrastructure) complete — 806 passing; commit `f882405`.
    Phase 6 Package 4 (background runner) requires definition entry before
    implementation begins.
-7. ✓ ATLAS Desktop Packages 1–8 complete (Shell through Ask Atlas
-   Investigation Surface MVP). Desktop Package 9 - Atlas Focus MVP definition
-   accepted; implementation authorized. Package 10+ work remains unauthorized
+7. ✓ ATLAS Desktop Packages 1–9 complete (Shell through Atlas Focus MVP).
+   Desktop Package 10 - Atlas Focus Resolution & Archive MVP definition
+   accepted; implementation authorized. Package 11+ work remains unauthorized
    pending separate definition entries.
 8. Treat Phase 7 as optional, human-reviewed extensions.
