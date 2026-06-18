@@ -4043,6 +4043,188 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
   defined below. Implementation is now authorized.
 
+### Phase 7 Package 4 — Demo Data, Screenshot, and Redaction Readiness Definition Accepted
+
+- Status: accepted
+- Area: Phase 7 / portfolio / demo readiness / screenshot governance
+- Date: June 2026
+- Rationale: Phase 7 Package 3 is complete. ATLAS is locally launchable
+  with one command. Phase 7 Package 2 created documentation skeletons
+  including `docs/Public/SCREENSHOTS.md` and
+  `docs/Public/PRIVACY_AND_REDACTION.md`, which are placeholder-level.
+  Package 4 completes these skeletons into actionable capture and
+  redaction guides, defines fictional demo data rules, and establishes
+  the approval gate for any future screenshot commit. Per the standing
+  governance rule, no implementation may begin before this entry is
+  accepted. This entry constitutes that acceptance.
+
+  **Package objective:**
+
+  Prepare ATLAS for safe portfolio demonstration by completing per-surface
+  safe-state requirements, fictional demo data specifications, screenshot
+  capture runbook, and redaction review runbook. No actual screenshots are
+  committed. No public release is authorized. All future screenshot commits
+  require Leah privacy/redaction audit and Project Master acceptance.
+
+  **Authorized scope for Phase 7 Package 4:**
+
+  1. `docs/Public/SCREENSHOTS.md` (update existing). Expand per-surface
+     safe-state requirements for P1-P3 priority surfaces: Command Center,
+     Radar, Ask Atlas, Opportunity Detail Surface, Pipeline Workspace,
+     Recommendations, CLI terminal output (Package 3), Dashboard Metrics,
+     Dashboard Pipeline Runs. Add prioritization grouping. Add per-surface
+     redaction notes. Reaffirm Package 4 does not authorize screenshot
+     files or public release.
+
+  2. `docs/Public/PRIVACY_AND_REDACTION.md` (update existing). Add
+     'Runtime Screenshot Rules' section: demo state required before
+     capture; per-surface redaction requirements; terminal path crop/mask
+     requirement (Windows username). Add 'Demo Data Policy' section:
+     fictional company naming convention; `source: demo` labeling;
+     cleanup instructions. Reaffirm Leah + PM approval gate.
+
+  3. `docs/Runbooks/DEMO_CAPTURE.md` (new). Operator capture runbook.
+     Must cover: prerequisites (Package 3 launcher working; demo data
+     loaded; no real records in scope; Windows username not visible);
+     pre-capture checklist; per-surface capture sequence (P1 first:
+     Command Center, Radar, Ask Atlas); per-surface redaction notes;
+     labeling rules (surface + runtime/reference + version); offline
+     storage until future PM authorization; eventual committed location
+     (`docs/Artifacts/Images/` for runtime captures); approval gate
+     (Leah review + PM acceptance before any commit). Must not recommend
+     fake or placeholder credential values.
+
+  4. `docs/Runbooks/DEMO_DATA.md` (new). Fictional demo data
+     specification. Must cover: fictional company naming convention
+     (clearly invented names, e.g. 'Atlas Demo Infrastructure Group',
+     'Northstar Demo Civil', 'Bluebridge Sample Engineering');
+     required fields for fictional job/firm/pipeline-run records with
+     inline labeled examples; `source: demo` labeling requirement;
+     manual sqlite3 insert and cleanup instructions; Ask Atlas fictional
+     investigation script; what must never appear in a demo record (real
+     job IDs, real apply URLs, real LLM rationale, real firm_id
+     references). Must not recommend fake or placeholder credential values.
+
+  **Authorized file types:**
+
+  - Markdown (.md) only
+  - No images, binaries, PDFs, or generated artifacts
+  - No Python, TypeScript, HTML, CSS, PowerShell, or configuration file
+    changes
+  - No new directories outside `docs/Public/` and `docs/Runbooks/`
+
+  **Out of scope / prohibited for Phase 7 Package 4:**
+
+  - Actual screenshots (.png, .jpg, .gif, .svg, or any image)
+  - `tests/fixtures/demo/` or any committed fixture JSON file
+  - `docs/Artifacts/` directory creation
+  - `docs/Public/SCREENSHOT_MANIFEST.md` or contact sheet
+  - Demo seeding code, demo mode flag, or runtime behavior changes
+  - New Python, TypeScript, HTML, CSS, PowerShell, or schema changes
+  - New dashboard routes, API routes, Desktop surfaces, or frontend code
+  - Real employer data, real application records, generated documents
+  - Gmail/email exports, Google Drive links, credential values
+  - Capstone source files
+  - Public release authorization
+  - Production-ready, installer-ready, external-user-ready, or
+    public-release-ready claims
+
+  **Acceptance criteria:**
+
+  1. `docs/Runbooks/DEMO_CAPTURE.md` exists.
+  2. `docs/Runbooks/DEMO_DATA.md` exists.
+  3. `docs/Public/SCREENSHOTS.md` updated with per-surface safe states and
+     screenshot priorities.
+  4. `docs/Public/PRIVACY_AND_REDACTION.md` updated with runtime screenshot
+     rules and demo data policy.
+  5. No screenshot or image files committed.
+  6. No fixture JSON files committed.
+  7. No Python, TypeScript, HTML, CSS, PowerShell, schema, dashboard, API,
+     Desktop, or config files modified.
+  8. No new directories outside `docs/Public/` and `docs/Runbooks/`.
+  9. No private data, credential values, Gmail/email content, Google links,
+     generated docs, database files, capstone source files, or real job
+     records committed.
+ 10. All demo examples clearly fictional and labeled as fictional/sample-only.
+ 11. No production/public-release/external-user/installer-ready claims.
+ 12. Package 4 explicitly does not authorize public release or screenshot
+     commit.
+ 13. Grep checks for prohibited claims and private-data markers clean or
+     warning-only.
+ 14. Leah documentation/redaction review: ACCEPT FOR COMMIT.
+ 15. Existing pytest suite passes (baseline: 1011 passed, 1 skipped,
+     6 warnings).
+
+  As of definition acceptance: 1011 tests pass, 1 skipped, 6 warnings.
+  Phase 7 Package 4 implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Follow-up work: After Package 4 ships, Phase 7 Package 5 may define
+  final screenshot capture authorization, public release gate, and
+  publication approval. Each Phase 7 package requires its own definition
+  entry before implementation begins.
+
+### Phase 7 Package 3 — Local Launch Experience Accepted / Complete
+
+- Status: accepted
+- Area: Phase 7 / local operator tooling / launch experience
+- Date: June 2026
+- Rationale: Phase 7 Package 3 has been implemented and audited by Leah
+  (ACCEPT FOR COMMIT). All 16 acceptance criteria met. Implementation
+  commit: `38314f2`.
+
+  **Implemented scope (commit `38314f2`):**
+
+  | File | Action |
+  |---|---|
+  | `scripts/start-atlas.ps1` | Created: PowerShell launcher; derives repo
+  root via `$PSScriptRoot`; guards on `.venv\Scripts\jsa.exe` and
+  `.venv\Scripts\python.exe`; runs `jsa check` before uvicorn; exits
+  non-zero if diagnostics fail; warns (no exit) if
+  `frontend\dist\index.html` missing; starts uvicorn with
+  `job_search.dashboard.app:create_app --factory --host 127.0.0.1
+  --port 8000`; prints `http://127.0.0.1:8000/atlas`; prints Ctrl+C
+  stop instruction |
+  | `docs/Runbooks/LOCAL_LAUNCH.md` | Created: operator runbook;
+  prerequisites, execution policy, invocation, diagnostics, failure
+  modes with remediation, URLs, shutdown |
+  | `README.md` | One-line addition: link to `docs/Runbooks/LOCAL_LAUNCH.md` |
+
+  **Scope boundary confirmation:**
+
+  - Only 3 files in commit: `scripts/start-atlas.ps1` (new),
+    `docs/Runbooks/LOCAL_LAUNCH.md` (new), `README.md` (1 line added);
+    confirmed (224 insertions, 0 deletions)
+  - No Python, TypeScript, HTML, CSS, schema, dashboard, API, Desktop,
+    frontend, PipelineRunner, PipelineService, diagnostics, or config
+    file changes: confirmed
+  - No images or binaries: confirmed
+  - No hardcoded credentials: confirmed
+  - No prohibited claims: confirmed
+  - `jsa check` pre-flight guard: confirmed (`$LASTEXITCODE` checked after
+    `& $JsaExe check`; exits before uvicorn if non-zero)
+  - Missing frontend: warn only (`Write-Warning`; no exit): confirmed
+  - No daemon/service/scheduler/background behavior: confirmed
+  - Manual validation: missing OPENAI_API_KEY causes exit code 1;
+    uvicorn does not start: confirmed
+
+  **Audit evidence:**
+
+  - Leah audit: ACCEPT FOR COMMIT
+  - Audit summary: Package 3 implements exactly the governed local launch
+    experience; launcher behavior matches runbook; no prohibited claims;
+    no credentials hardcoded; `$LASTEXITCODE` correctly checked after
+    `jsa check`; pytest baseline consistent (1011 passed, 1 skipped,
+    6 warnings)
+
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Follow-up work: Phase 7 Package 4 (Demo Data, Screenshot, and Redaction
+  Readiness) definition is accepted in this governance commit.
+  Implementation is now authorized.
+
 ### Phase 7 Package 3 — Local Launch Experience Definition Accepted
 
 - Status: accepted
