@@ -651,7 +651,8 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
 | Package | Status | Notes |
 |---|---|---|
 | 1 — Credential & Configuration Diagnostics | **Complete** — commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed | `jsa check` command + pre-flight guard in `jsa run`; read-only DB diagnostic; `PipelineRunner` not modified |
-| 2 — Portfolio Documentation Skeleton | **Definition accepted** — implementation authorized | README.md update + docs/Public/ skeleton (ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE, RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS); docs-only; no code; not a public release authorization |
+| 2 — Portfolio Documentation Skeleton | **Complete** — commit `65cf0a7`; Leah ACCEPT FOR COMMIT | README.md reframed; 6 `docs/Public/` files created (ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE, RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS); docs-only; not a public release authorization |
+| 3 — Local Launch Experience | **Definition accepted** — implementation authorized | `scripts/start-atlas.ps1` (PowerShell launcher; `jsa check` pre-flight; `$PSScriptRoot` root detection; uvicorn factory start) + `docs/Runbooks/LOCAL_LAUNCH.md` (operator runbook); scripts/docs-only; port 8000; no code changes |
 
 ### Objectives
 
@@ -715,6 +716,6 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
    entries. Phase 6 complete — all 5 packages, commits through `a69b36d`;
    Phase 5 Package 9 fully complete. Phase 7 active: Package 1 (Credential & Configuration Diagnostics)
    complete — commit `1d02117`; 1011 passed; user-local pytest passed.
-   Package 2 (Portfolio Documentation Skeleton) definition accepted;
-   implementation authorized.
+   Package 2 (Portfolio Documentation Skeleton) complete — commit `65cf0a7`; Leah ACCEPT FOR COMMIT.
+   Package 3 (Local Launch Experience) definition accepted; implementation authorized.
 8. Treat Phase 7 as optional, human-reviewed extensions.

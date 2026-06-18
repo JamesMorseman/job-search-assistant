@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Package 1 complete; Phase 7 Package 2 definition accepted; Desktop Packages 1-11 complete
+Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-2 complete; Phase 7 Package 3 definition accepted; Desktop Packages 1-11 complete
 
 ## Purpose
 
@@ -31,10 +31,11 @@ Phases 1â€”5 MVP and ATLAS Desktop Packages 1â€”11 are complete. Phase
 Phase 5 Package 9 (9a/9b/9c) is now fully complete. Phase 7 — Future
 Enhancements — is the active roadmap phase. Phase 7 Package 1 (Credential & Configuration Diagnostics) is
 complete (commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah
-ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). Phase 7
-Package 2 (Portfolio Documentation Skeleton) definition is accepted;
-implementation is now authorized. Desktop Package 12+ work is not yet
-authorized and requires a separate definition entry.
+ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). Phase 7 Package 2 (Portfolio Documentation Skeleton) is complete
+(commit `65cf0a7`; Leah ACCEPT FOR COMMIT). Phase 7 Package 3 (Local Launch
+Experience) definition is accepted; implementation is now authorized.
+Desktop Package 12+ work is not yet authorized and requires a separate
+definition entry.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
@@ -281,7 +282,8 @@ Architecture complete, implementation pending:
 - local-first background runner (Phase 6 Package 4): complete (commit `31a560d`); `jsa run` CLI and `PipelineRunner` delivered
 - Phase 6 Package 5 / Phase 5 Package 9c (Pipeline Runs dashboard screen): complete (commit `a69b36d`); Phase 6 formally closed
 - Phase 7 Package 1 (Credential & Configuration Diagnostics): **complete** (commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). `jsa check` command and `jsa run` pre-flight guard delivered; read-only DB diagnostic with no WAL/SHM artifacts; `PipelineRunner` not modified; no schema or dashboard changes
-- Phase 7 Package 2 (Portfolio Documentation Skeleton): definition accepted; implementation authorized. Authorized scope: README.md update + `docs/Public/` skeleton (ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE, RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS). Docs-only; no code changes; not a public release authorization
+- Phase 7 Package 2 (Portfolio Documentation Skeleton): **complete** (commit `65cf0a7`; Leah ACCEPT FOR COMMIT). Delivered README.md portfolio reframe + 6 new `docs/Public/` files (ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE, RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS). Docs-only; no code changes; not a public release authorization
+- Phase 7 Package 3 (Local Launch Experience): definition accepted; implementation authorized. Authorized scope: `scripts/start-atlas.ps1` (PowerShell launcher with `jsa check` pre-flight, ``-based root detection, uvicorn factory start) + `docs/Runbooks/LOCAL_LAUNCH.md` (operator runbook). Scripts/docs-only; no code changes; not a public release authorization
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 

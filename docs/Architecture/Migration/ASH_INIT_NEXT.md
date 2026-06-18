@@ -1,6 +1,6 @@
 ﻿# Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 complete; Phase 7 Package 1 complete; Phase 7 Package 2 definition accepted; Desktop Packages 1-11 complete
+**Version:** June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-2 complete; Phase 7 Package 3 definition accepted; Desktop Packages 1-11 complete
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -44,13 +44,14 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Phase 7 Package 1
-  acceptance and Phase 7 Package 2 definition pending
+- **Governance files:** Current governance commit records Phase 7 Packages 1-2
+  acceptance and Phase 7 Package 3 definition accepted
 - **Implementation files:** Phase 6 complete through `a69b36d`; Phase 7
-  Package 1 complete at `1d02117`; Desktop Packages 1-11 committed in
+  Package 1 complete at `1d02117`; Phase 7 Package 2 complete at `65cf0a7`;
+  Desktop Packages 1-11 committed in
   `d6bdde7`, `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`, `913cd4a`,
   `da6aed3`, `e985918`, `bf1655d`, `230bfe4`
-- **Test suite:** 1011 passing, 1 skipped, 6 warnings (as of Phase 7 Package 1)
+- **Test suite:** 1011 passing, 1 skipped, 6 warnings (as of Phase 7 Package 2; no code changes in Package 2)
 
 **Confirm at session start:**
 
@@ -84,7 +85,7 @@ explicit PM authorization):**
 | 4 — Dashboard Service Layer | Complete (June 2026; Package 5 reassigned to Phase 6) |
 | 5 — Dashboard UI | **MVP Complete** (Packages 1–6 + Package 8 done; 7 gated on sync implementation; 9a/9b/9c gated on Phase 6) |
 | 6 — Analytics & Pipeline Runs | **Active** — Packages 1+2+3 complete; Package 4 definition entry required |
-| 7 — Future Enhancements | Planned |
+| 7 — Future Enhancements | **Active** — Package 1 complete `1d02117`; Package 2 complete `65cf0a7`; Package 3 definition accepted; implementation authorized |
 
 ### Phase 6 Package Status (revised numbering — authoritative)
 
@@ -127,15 +128,34 @@ explicit PM authorization):**
 
 ```text
 (current governance commit)
-         docs(governance): accept Desktop Package 8 and define Package 9
-         DECISION_LOG.md: Desktop Package 8 accepted/complete (da6aed3, 921
-           passing, Leah ACCEPT FOR COMMIT); Package 9 Atlas Focus MVP
-           definition accepted
-         PROJECT_STATE.md: Desktop Package 8 complete, Package 9 authorized
-         roadmap.md: Package 8 complete, Package 9 row added, Package 9
-           Boundaries section added, build order step 7 updated
+         docs(governance): accept Phase 7 Package 2 and define Phase 7 Package 3
+         DECISION_LOG.md: Phase 7 Package 2 accepted/complete (commit `65cf0a7`;
+           Leah ACCEPT FOR COMMIT; 1011 passed, 1 skipped, 6 warnings);
+           Phase 7 Package 3 (Local Launch Experience) definition accepted
+         PROJECT_STATE.md: Phase 7 Packages 1-2 complete; Package 3 definition
+           accepted; implementation authorized
+         roadmap.md: Phase 7 table updated (Package 2 complete, Package 3 row
+           added); build order item 7 updated
          ASH_INIT_NEXT.md: synchronized to current state
 
+65cf0a7  feat(docs): Phase 7 Package 2 Portfolio Documentation Skeleton
+         README.md reframed to ATLAS Career Intelligence / Career Mission Control
+         docs/Public/ created: ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE,
+         RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS
+         (docs-only; 7 files; 584 insertions, 77 deletions; 1011 passed)
+
+523187b  docs(governance): accept Phase 7 Package 1 and define Phase 7 Package 2
+
+1d02117  feat(cli): implement Phase 7 Package 1 credential diagnostics
+         job_search/diagnostics.py (new); jsa check command; jsa run pre-flight
+         guard; read-only DB connectivity check; exits 0 if pass, 1 if fail
+         (1011 passed, 1 skipped, 6 warnings)
+
+b84f13f  docs(governance): accept Phase 6 Package 5 and define Phase 7 Package 1
+
+a69b36d  feat(dashboard): implement Phase 6 Package 5 Pipeline Runs screen
+
+(prior governance: Desktop Packages 1-11 and Phase 6)
 da6aed3  feat(atlas): implement Desktop Package 8 Ask Atlas Investigation MVP
          askAtlas.css (new), ask_atlas.py (new), test_ask_atlas_service.py
          (new), test_desktop_ask_atlas_workspace.py (new); AskAtlas.tsx,

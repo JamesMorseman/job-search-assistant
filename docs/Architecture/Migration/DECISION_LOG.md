@@ -4043,6 +4043,177 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
   defined below. Implementation is now authorized.
 
+### Phase 7 Package 3 — Local Launch Experience Definition Accepted
+
+- Status: accepted
+- Area: Phase 7 / local operator tooling / launch experience
+- Date: June 2026
+- Rationale: Phase 7 Package 2 is complete. The repository now has professional
+  public-facing documentation but no reliable local launch path beyond the raw
+  uvicorn command. Package 3 delivers a Windows PowerShell launcher that gates
+  on jsa check diagnostics (Phase 7 Package 1), starts the correct FastAPI app
+  factory, and prints the ATLAS URL -- completing the local operator loop from
+  credential check to launch to use. This package is scripts and docs only.
+  It is not an installer, daemon, or production deployment. Per the standing
+  governance rule, no implementation may begin before this entry is accepted.
+  This entry constitutes that acceptance.
+
+  **Package objective:**
+
+  Add a one-command local launch experience for ATLAS on Windows. The operator
+  runs scripts/start-atlas.ps1; diagnostics run via jsa check, failures stop
+  with clear remediation, the server starts, and the ATLAS URL is printed.
+
+  **Authorized scope for Phase 7 Package 3:**
+
+  1. scripts/start-atlas.ps1 (new). PowerShell launcher. Must: derive repo
+     root via $PSScriptRoot (Split-Path -Parent $PSScriptRoot); guard on
+     .venv\Scripts\jsa.exe existence (exit 1 with clear error if missing);
+     guard on .venv\Scripts\python.exe existence (exit 1 if missing); call
+     .venv\Scripts\jsa.exe check and hard-stop (exit 1) if it exits non-zero;
+     warn but do not stop if frontend\dist\index.html is missing; start
+     uvicorn with the correct factory: job_search.dashboard.app:create_app
+     --factory --host 127.0.0.1 --port 8000; print
+     http://127.0.0.1:8000/atlas; print Ctrl+C stop instructions. Must not
+     store, echo, or persist credential values. Must not recommend fake or
+     placeholder credentials.
+
+  2. docs/Runbooks/LOCAL_LAUNCH.md (new; creates docs/Runbooks/ directory).
+     Operator runbook. Must cover: prerequisites (venv, pip install -e .,
+     .env with valid credentials, jsa init-db, npm run build in frontend/);
+     execution policy setup (Set-ExecutionPolicy or -ExecutionPolicy Bypass);
+     invocation syntax; step-by-step description of what the script does;
+     failure modes with remediation for each (OpenAI key missing: configure
+     valid .env value; DB missing: run jsa init-db; frontend not built:
+     run npm run build; port in use: stop conflicting process); shutdown
+     (Ctrl+C); URLs (http://127.0.0.1:8000/atlas and
+     http://127.0.0.1:8000/dashboard/review-queue). Must not claim production,
+     installer, public-release, or external-user readiness. Must not recommend
+     fake or placeholder credential values.
+
+  3. README.md (optional). A one-line link to docs/Runbooks/LOCAL_LAUNCH.md
+     is permitted if it does not alter the existing README structure or
+     introduce prohibited claims.
+
+  **Authorized file types:**
+
+  - PowerShell (.ps1) for the launcher
+  - Markdown (.md) for the runbook
+  - README.md (optional one-line link only)
+  - No Python, TypeScript, HTML, CSS, or configuration file changes
+  - No images, PDFs, binaries, or generated artifacts
+
+  **Out of scope / prohibited for Phase 7 Package 3:**
+
+  - .cmd wrapper (deferred)
+  - Browser auto-open (deferred)
+  - -Port parameter or custom port support (deferred)
+  - Port conflict detection (deferred)
+  - Existing-server detection (deferred)
+  - Background daemon, Windows service, Task Scheduler entry
+  - Tauri packaging, Windows installer, system tray app
+  - Auto-updater, auto-restart, scheduler
+  - Cloud deployment of any kind
+  - Production-ready, installer-ready, external-user-ready, or public-release claims
+  - Public release authorization
+  - Credential storage, hardcoded credential values, or fake placeholder credentials
+  - New Python modules, database tables, or schema changes
+  - New dashboard routes, API routes, or templates
+  - ATLAS Desktop or frontend code changes
+  - PipelineRunner or PipelineService changes
+  - Changes to diagnostics.py or any other Python file
+  - New pipeline execution behavior
+
+  **Acceptance criteria:**
+
+  1. scripts/start-atlas.ps1 exists and is a valid PowerShell script.
+  2. docs/Runbooks/LOCAL_LAUNCH.md exists.
+  3. Launcher uses .venv\Scripts\jsa.exe (not system jsa) and
+     .venv\Scripts\python.exe (not system Python).
+  4. Launcher calls jsa check before invoking uvicorn.
+  5. Launcher exits non-zero and does not start uvicorn if jsa check fails.
+  6. Launcher starts uvicorn with: job_search.dashboard.app:create_app
+     --factory --host 127.0.0.1 --port 8000.
+  7. Launcher prints http://127.0.0.1:8000/atlas.
+  8. Launcher warns (but does not stop) if frontend\dist\index.html is missing.
+  9. Launcher does not store, echo, or persist credential values.
+ 10. Launcher does not create daemon, service, scheduler, or background behavior.
+ 11. Runbook covers prerequisites, execution policy, invocation, failure modes
+     with remediation, URLs, and shutdown. No prohibited claims.
+ 12. Runbook does not recommend fake or placeholder credential values.
+ 13. No Python, TypeScript, HTML, CSS, schema, dashboard, API, or Desktop files
+     modified (confirmed by git diff).
+ 14. No image or screenshot files committed.
+ 15. Existing pytest suite passes (baseline: 1011 passed, 1 skipped, 6 warnings).
+     Confirms no code was accidentally modified.
+ 16. Leah script and documentation review: launcher behavior matches runbook;
+     no prohibited claims; no credentials hardcoded; $LASTEXITCODE correctly
+     checked after jsa check call.
+
+  As of definition acceptance: 1011 tests pass, 1 skipped, 6 warnings.
+  Phase 7 Package 3 implementation is now authorized.
+- Date: June 2026
+- State reference: PROJECT_STATE.md
+- Architecture reference: roadmap.md (Phase 7 section)
+- Follow-up work: After Package 3 ships, Phase 7 Package 4 may define enhanced
+  launcher features (.cmd wrapper, browser auto-open, -Port parameter). Each
+  Phase 7 package requires its own definition entry before implementation begins.
+
+### Phase 7 Package 2 — Portfolio Documentation Skeleton Accepted / Complete
+
+- Status: accepted
+- Area: Phase 7 / portfolio / public-facing documentation
+- Date: June 2026
+- Rationale: Phase 7 Package 2 has been implemented and audited by Leah
+  (ACCEPT FOR COMMIT). All 12 acceptance criteria met. Implementation
+  commit: `65cf0a7`.
+
+  **Implemented scope (commit `65cf0a7`):**
+
+  | File | Action |
+  |---|---|
+  | `README.md` | Updated: personal framing removed; ATLAS Career Intelligence /
+  Career Mission Control identity; portfolio framing; privacy guidance preserved |
+  | `docs/Public/ATLAS_OVERVIEW.md` | Created: high-level product overview |
+  | `docs/Public/TECHNICAL_ARCHITECTURE.md` | Created: SQLite, FastAPI, React/Vite,
+  LLM abstraction, PipelineRunner, jsa CLI; implemented vs. deferred distinguished |
+  | `docs/Public/RECRUITER_BRIEF.md` | Created: non-technical recruiter summary |
+  | `docs/Public/PRIVACY_AND_REDACTION.md` | Created: pre-release checklist;
+  private data enumeration |
+  | `docs/Public/FEATURE_SUMMARY.md` | Created: accepted features only; deferred
+  items labelled |
+  | `docs/Public/SCREENSHOTS.md` | Created: placeholder rules only; no images |
+
+  **Scope boundary confirmation:**
+
+  - Only .md files in commit: confirmed (7 files, 584 insertions, 77 deletions)
+  - No code changes: confirmed (no .py, .ts, .html, .css modified)
+  - No images or binaries: confirmed
+  - No governance, architecture, or strategy docs modified: confirmed
+  - Prohibited-claim check: no production.ready, installer.ready, or
+    external.user.ready in additions; confirmed clean
+  - Private-data check: single match in PRIVACY_AND_REDACTION.md referencing
+    profile/james_profile.yaml as a gitignored file -- redaction warning
+    context, not exposed data; confirmed clean
+  - Personal framing removed: civil-engineering pipeline for James replaced
+    by ATLAS Career Intelligence / Career Mission Control; confirmed
+  - No screenshots committed: confirmed
+
+  **Audit evidence:**
+
+  - Leah audit: ACCEPT FOR COMMIT
+  - Audit summary: documentation-only; README.md and docs/Public/*.md only;
+    no code, schema, dashboard, Desktop, frontend, governance, image, binary,
+    generated document, database, ZIP, or screenshot changes; prohibited-claim
+    grep clean; private-data grep matches are redaction/setup warnings only;
+    pytest baseline consistent (1011 passed, 1 skipped, 6 warnings)
+
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Follow-up work: Phase 7 Package 3 (Local Launch Experience) definition is
+  accepted in this governance commit. Implementation is now authorized.
+
 ### Phase 7 Package 2 - Portfolio Documentation Skeleton Definition Accepted
 
 - Status: accepted
