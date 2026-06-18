@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-9 complete; Desktop Package 10 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-10 complete; Desktop Package 11 definition accepted
 
 ## Purpose
 
@@ -26,19 +26,19 @@ Build an automated engineering job-search platform for James Morseman that:
 
 ## Current Objectives
 
-Phases 1â€“5 MVP and ATLAS Desktop Packages 1â€“9 are complete. Phase 6
+Phases 1â€”5 MVP and ATLAS Desktop Packages 1â€”10 are complete. Phase 6
 (Analytics & Pipeline Runs) is active. Phase 6 Packages 1, 2, and 3 are
 complete. Package 4 (local-first background runner) definition entry is
-required before its implementation begins. ATLAS Desktop Package 10 -
-Atlas Focus Resolution & Archive MVP is defined and may now be prompted.
+required before its implementation begins. ATLAS Desktop Package 11 -
+Desktop v1 Hardening Pass is defined and may now be prompted.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
-MVP), 4 (Radar Workspace MVP), 5 (Pipeline Workspace MVP), and 6 (Command
+MVP), 4 (Radar Workspace MVP), 5 (Pipeline Workspace MVP), 6 (Command
 Center MVP), 7 (Recommendations MVP), 8 (Ask Atlas Investigation Surface
-MVP), and 9 (Atlas Focus MVP) are accepted and complete. Desktop Package 10 -
-Atlas Focus Resolution & Archive MVP definition is accepted; implementation is
-now authorized.
+MVP), 9 (Atlas Focus MVP), and 10 (Atlas Focus Resolution & Archive MVP) are
+accepted and complete. Desktop Package 11 - Desktop v1 Hardening Pass
+definition is accepted; implementation is now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -143,16 +143,27 @@ Current objectives:
   recommendation generation changes, Ask Atlas changes, closed workspace
   changes, scoring/ingestion changes, background runner/scheduler/pipeline
   execution, cloud sync, or Tauri packaging.
-- ATLAS Desktop Package 10 - Atlas Focus Resolution & Archive MVP - definition
-  accepted; implementation authorized. Scope: add bounded Focus lifecycle
-  mutations and archive/history support; preserve resolved Focuses locally; add
-  frontend client/types as needed; update Command Center to surface resolution
-  state and archive/history; loading/error/empty states; tests. Package 10 is
-  still Focus-domain only: no generic task/reminder/notification system,
+- ATLAS Desktop Package 10 - Atlas Focus Resolution & Archive MVP - **complete**
+  (commit `bf1655d`; 961 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR
+  COMMIT). Delivered `FocusResolutionService` (sole authorized write path for
+  `focus_resolutions`); `focus_resolutions` table and two indexes; `POST
+  /atlas/api/focuses/resolutions`; `GET /atlas/api/focuses/archive`; `GET
+  /atlas/api/focuses` now filters resolved source objects; `resolveFocus()` and
+  `getFocusArchive()` frontend client methods; `FocusResolutionRecord` /
+  `AtlasFocusArchiveResponse` types; Command Center read-only Focus History
+  panel; 14 service unit tests + 3 integration tests. Scope boundaries
+  preserved: Focus-domain only; no generic task/reminder/notification system,
   no Ask Atlas changes, no recommendation generation changes, no Radar/
   Pipeline/Opportunity Detail changes, no scoring/ingestion changes, no
-  background runner/scheduler/pipeline execution, no cloud sync, and no Tauri
+  background runner/scheduler/pipeline execution, no cloud sync, no Tauri
   packaging.
+- ATLAS Desktop Package 11 - Desktop v1 Hardening Pass - definition accepted;
+  implementation authorized. Scope: accessibility audit and remediation across
+  all five frozen surfaces and Focus Archive panel; error boundary and state
+  hardening; edge-case test coverage for existing API boundaries; minor CSS
+  consistency fixes. No new workspaces, routes, API endpoints, database tables,
+  or service modules. See `DECISION_LOG.md` for full definition and prohibited
+  scope.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -700,14 +711,14 @@ client/types/state boundary, and targeted API route tests. It did not include
 workspace content, recommendations, Ask Atlas behavior, LLM calls, background
 runner/scheduler/pipeline execution, document generation, scoring changes, or
 database/schema changes.
-Desktop Packages 3 through 9 are accepted and complete: Opportunity Detail
+Desktop Packages 3 through 10 are accepted and complete: Opportunity Detail
 Surface MVP, Radar Workspace MVP, Pipeline Workspace MVP, Command Center MVP,
-Recommendations MVP, Ask Atlas Investigation Surface MVP, and Atlas Focus MVP.
-Desktop Package 10 - Atlas Focus Resolution & Archive MVP is defined and may
-now be prompted. Package 10 must preserve the distinction between
-Recommendation and Focus, remain Focus-domain only, and must not become a
-generic task/reminder/notification system. See `ASH_INIT_NEXT.md` sections 7-9
-for full Desktop v1 governance.
+Recommendations MVP, Ask Atlas Investigation Surface MVP, Atlas Focus MVP, and
+Atlas Focus Resolution & Archive MVP. Desktop Package 11 - Desktop v1
+Hardening Pass is defined and may now be prompted. Package 11 is hardening
+only: no new workspaces, routes, endpoints, tables, or services. See
+`DECISION_LOG.md` "ATLAS Desktop Package 11" for full definition and
+prohibited scope.
 
 ## Cross-System Dependencies
 

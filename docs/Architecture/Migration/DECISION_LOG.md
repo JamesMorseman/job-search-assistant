@@ -3711,6 +3711,151 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: ATLAS Desktop Package 10 is defined below. Package 10 may be
   prompted only within its bounded scope.
 
+### ATLAS Desktop Package 10 - Atlas Focus Resolution & Archive MVP Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Atlas Focus
+- Date: June 2026
+- Commit: `bf1655d` — `feat(atlas): implement Desktop Package 10 Atlas Focus Resolution & Archive MVP`
+- Rationale: Records Project Master acceptance of Desktop Package 10 — Atlas Focus
+  Resolution & Archive MVP as implemented and complete.
+
+  **Package accepted:**
+  - ATLAS Desktop Package 10 — Atlas Focus Resolution & Archive MVP — **Accepted / Complete**
+
+  **Files created:**
+  - `job_search/services/focus_resolution.py` — `FocusResolutionService`, sole authorized
+    write path for `focus_resolutions`; `FocusResolutionRecord` read model;
+    `FocusResolutionAction` literal type (`completed | deferred | dismissed | superseded | expired`)
+  - `tests/test_focus_resolution_service.py` — 14 unit tests covering schema existence,
+    all five lifecycle actions, ordered reads, limit enforcement, and `resolved_source_objects`
+
+  **Files modified:**
+  - `job_search/db/schema.sql` — `focus_resolutions` table (`id`, `source_object`,
+    `focus_statement`, `resolution`, `note`, `resolved_at`); `idx_focus_resolutions_source`;
+    `idx_focus_resolutions_resolved_at`
+  - `job_search/dashboard/deps.py` — `get_focus_resolution_service()` factory
+  - `job_search/dashboard/routes/atlas_api.py` — `POST /atlas/api/focuses/resolutions`;
+    `GET /atlas/api/focuses/archive`; `GET /atlas/api/focuses` now filters resolved source
+    objects via `FocusResolutionService.resolved_source_objects()`
+  - `frontend/src/api/types.ts` — `FocusResolutionAction`, `FocusResolutionRequest`,
+    `FocusResolutionRecord`, `AtlasFocusArchiveResponse`
+  - `frontend/src/api/client.ts` — `resolveFocus()`, `getFocusArchive()` (both
+    centralized in client boundary per Package 2 governance)
+  - `frontend/src/workspaces/CommandCenter.tsx` — read-only "Focus History" panel;
+    `focusArchiveState` state; `getFocusArchive()` `useEffect`; `resolutionLabel()` helper;
+    no resolve/defer/dismiss/complete UI controls added
+  - `frontend/src/workspaces/commandCenter.css` — Focus archive panel, card, header,
+    meta, and note styles; uses existing design tokens
+  - `tests/test_desktop_focus.py` — 3 new integration tests: resolve persists and returns
+    archived record; resolved source object excluded from active focus list; archive lists
+    newest first
+  - `tests/test_desktop_ask_atlas_workspace.py`, `tests/test_desktop_pipeline_workspace.py`,
+    `tests/test_desktop_recommendations_api.py` — minor fixture updates to supply
+    `get_focus_resolution_service` override; no behavioral changes
+
+  **Implemented scope (all items from the Package 10 definition entry):**
+  1. Focus resolution persistence — `focus_resolutions` table; `FocusResolutionService.record_resolution()`
+     is the sole authorized write path
+  2. Focus archive/history support — `FocusResolutionService.list_recent_resolutions()`;
+     `GET /atlas/api/focuses/archive`
+  3. Scoped Focus resolution mutation — `POST /atlas/api/focuses/resolutions`; resolved
+     source objects filtered from active `GET /atlas/api/focuses` response
+  4. Read-only Focus archive display — Command Center "Focus History" panel; no
+     resolution action controls in the UI
+
+  **Authorized data path (recorded verbatim):**
+  `FocusResolutionService` is the sole authorized write path for `focus_resolutions`.
+  No dashboard route, template, or other service may write to `focus_resolutions` directly.
+  Enforced by the service module docstring and sole-write-path convention established
+  across all Package 3+, Phase 6, and Desktop Package governance entries.
+
+  **Scope boundary verified — none of the following were introduced:**
+  Generic task management, reminders, notifications, calendar integration, opportunity
+  lifecycle mutations, pipeline execution changes, Ask Atlas memory, recommendation
+  persistence, Radar/Pipeline/Opportunity Detail source changes, scoring or ingestion
+  changes, background runner/scheduler, or Tauri/cloud sync.
+
+  **Validation:**
+  - `npm run build`: PASS
+  - `pytest -q`: 961 passed, 1 skipped, 6 warnings (net +21 tests over Package 9 baseline of 940)
+  - Leah audit: ACCEPT FOR COMMIT
+
+  As of this entry: 961 tests pass, 1 skipped, 6 warnings.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
+- Definition reference: `DECISION_LOG.md` "ATLAS Desktop Package 10 — Atlas Focus
+  Resolution & Archive MVP Definition Accepted"
+- Follow-up work: ATLAS Desktop Package 11 is defined below. Package 11 implementation
+  is now authorized. Phase 6 Package 4 (local-first background runner) definition entry
+  also remains required before its implementation begins.
+
+### ATLAS Desktop Package 11 — Desktop v1 Hardening Pass Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / hardening
+- Date: June 2026
+- Rationale: Packages 1–10 have delivered all five frozen launch-blocking surfaces
+  plus the Atlas Focus lifecycle layer. Before any new feature expansion, Desktop v1
+  should undergo a bounded hardening pass: accessibility, error boundary coverage,
+  edge-case handling, and test depth across existing surfaces. This package introduces
+  no new surfaces, workspaces, or API endpoints. It is authorized as the next Desktop
+  implementation step.
+
+  **Package objective:**
+
+  Harden the existing Desktop v1 surfaces for reliability and correctness without
+  expanding the feature surface.
+
+  **Authorized scope for Package 11:**
+
+  1. **Accessibility audit and remediation.** Review all five frozen surfaces (Command
+     Center, Radar, Pipeline, Opportunity Detail, Ask Atlas) and the Focus Archive panel
+     for ARIA roles, keyboard navigation, focus management, and contrast compliance. Fix
+     blockers without visual redesign.
+
+  2. **Error boundary and state hardening.** Confirm all workspace panels have
+     appropriate error state handling. Add missing loading/error/empty states where gaps
+     are identified across existing surfaces.
+
+  3. **Edge-case and resilience test coverage.** Add tests for edge cases in existing API
+     boundaries: empty collections, null/missing optional fields, large result sets,
+     concurrent request cancellation via the existing `cancelled` pattern.
+
+  4. **CSS and layout consistency.** Minor CSS fixes for inconsistencies in existing
+     surfaces only. No design-token changes, no visual redesign.
+
+  **Out of scope / prohibited for Desktop Package 11:**
+
+  - New workspaces, routes, or screens
+  - New API endpoints
+  - New database tables or schema changes
+  - New service modules
+  - Focus resolution UI controls (deferred to Package 12+)
+  - Generic task management, reminders, notification center
+  - Ask Atlas behavior changes
+  - Recommendation generation changes
+  - Scoring or ingestion changes
+  - Background runner, scheduler, or pipeline execution
+  - Cloud sync or Tauri packaging
+
+  **Acceptance criteria:**
+
+  1. `npm run build` passes.
+  2. `pytest -q` passes with no regressions from Package 10 baseline (961 passed,
+     1 skipped, 6 warnings).
+  3. All existing surfaces have loading, error, and empty states present and tested.
+  4. No new frontend routes, API endpoints, or service modules introduced.
+  5. All identified ARIA/keyboard-navigation blockers resolved.
+  6. Leah audit: ACCEPT FOR COMMIT.
+
+  As of definition acceptance: 961 tests pass, 1 skipped, 6 warnings. Package 11
+  implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
+
 ### ATLAS Desktop Package 10 - Atlas Focus Resolution & Archive MVP Definition Accepted
 
 - Status: accepted
