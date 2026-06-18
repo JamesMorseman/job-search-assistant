@@ -4043,82 +4043,237 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
   defined below. Implementation is now authorized.
 
-### Phase 7 Package 5 — Demo Artifact Capture and Screenshot Review Definition Accepted
+### Phase 7 Governance Correction — Runtime Demo Hardening Before Screenshot Capture
 
 - Status: accepted
-- Area: Phase 7 / portfolio / demo artifact capture / screenshot review
+- Area: Phase 7 / portfolio / demo runtime readiness / screenshot governance
 - Date: June 2026
-- Rationale: Phase 7 Package 4 is complete (commit `2227265`). The
-  readiness documentation — per-surface safe-state requirements, fictional
-  demo data specification, capture runbook, and redaction runbook — is now
-  in place. Package 5 authorizes the first actual screenshot capture and
-  commit workflow. All future screenshot commits remain gated on Leah
-  redaction review and Project Master approval per surface. Per the standing
-  governance rule, no implementation may begin before this entry is accepted.
-  This entry constitutes that acceptance.
+- Rationale: Phase 7 Package 4 is complete (commit `2227265`) and the prior
+  Phase 7 Package 5 definition authorized screenshot capture and image commits.
+  Live private repo/runtime review now shows that ATLAS is demo-safe after a
+  fresh current-schema database and demo seeding, but it is not yet
+  implementation-ready for portfolio screenshots. Screenshot capture must be
+  deferred until the runtime can produce coherent, app-only, fictional demo
+  states without visible development-shell artifacts.
 
-  **Package objective:**
+  **Runtime findings requiring correction:**
 
-  Execute the Package 4 capture workflow to produce ATLAS runtime screenshots
-  using fictional demo data, submit each candidate to Leah redaction review,
-  and commit approved screenshots to `docs/Artifacts/Images/`. No public
-  release is authorized. No code changes are authorized.
+  - Command Center loads demo-safe data, but Pipeline Snapshot counters are
+    inconsistent with the six visible opportunities; Context Panel remains
+    stubbed; bottom-left still says `Desktop Shell / Package 1`.
+  - Radar shows safe demo opportunity cards and is the strongest current
+    screenshot candidate, but no radar graphic or visual metaphor is present.
+  - Pipeline no longer crashes, but demo counters are all zero and conflict
+    with visible opportunity volume.
+  - Opportunity Detail still shows `No opportunity selected` and a placeholder
+    surface when opened directly; Radar card -> detail selected-state must be
+    tested and fixed before capture.
+  - Ask Atlas attaches context successfully, but a visible fictional
+    investigation response has not yet been verified.
+  - Screenshots must be app-only runtime captures, not VS Code, browser chrome,
+    or development-environment screenshots.
+
+  **Decision:**
+
+  The prior Phase 7 Package 5 screenshot/artifact capture package is deferred
+  and renumbered. No screenshot commits are authorized by this correction.
+  No public release is authorized.
+
+  **New Phase 7 package sequence:**
+
+  - Phase 7 Package 5: Runtime Demo Hardening and Screenshot Readiness
+  - Phase 7 Package 6: Demo Artifact Capture and Screenshot Review
+  - Phase 7 Package 7: Final Portfolio/Public Release Gate
+
+  **Phase 7 Package 5 objective:**
+
+  Make the live ATLAS runtime screenshot-ready by adding repeatable demo-state
+  tooling, fixing or improving demo surface behavior, and removing visible
+  development-shell artifacts that would weaken portfolio screenshots. Package
+  5 makes screenshots possible later; it must not commit screenshots.
 
   **Authorized scope for Phase 7 Package 5:**
 
-  1. `docs/Artifacts/Images/` (new directory). Runtime screenshot home.
-     Create only if at least one screenshot is approved for commit.
+  Evaluate and modify only the compact implementation surface needed for
+  runtime demo readiness:
 
-  2. Screenshot files under `docs/Artifacts/Images/` for P1/P2/P3 surfaces.
-     Each file requires:
-     - Fictional demo data only (per `docs/Runbooks/DEMO_DATA.md`)
-     - Pre-capture checklist passed (per `docs/Runbooks/DEMO_CAPTURE.md`)
-     - Redaction checklist passed (per `docs/Runbooks/DEMO_CAPTURE.md`)
-     - Leah redaction review: ACCEPT FOR COMMIT
-     - Project Master approval before commit
-     - Naming: `atlas_<surface>_runtime_v1.png`
+  - `scripts/seed-demo-data.ps1`
+  - `scripts/seed_demo_data.py`
+  - `docs/Runbooks/DEMO_CAPTURE.md`
+  - `docs/Runbooks/DEMO_DATA.md`
+  - `frontend/src/*`
+  - `job_search/dashboard/routes/atlas_api.py`
+  - `job_search/services/*`
+  - `tests/test_desktop_demo_readiness.py`
+  - `tests/test_desktop_opportunity_detail.py`
+  - `tests/test_demo_seed.py`
 
-  **Authorized file types:**
+  Implementation must narrow this list based on live repo reality and avoid
+  unrelated files.
 
-  - PNG screenshots only (in `docs/Artifacts/Images/`)
-  - No Python, TypeScript, HTML, CSS, PowerShell, or configuration file changes
-  - No markdown changes unless a future package explicitly authorizes them
-  - No new directories outside `docs/Artifacts/Images/`
+  **Implementation priorities:**
 
-  **Out of scope / prohibited for Phase 7 Package 5:**
+  1. Repeatable demo seed command:
+     - Creates current-schema fictional demo records.
+     - Uses only fictional companies from `docs/Runbooks/DEMO_DATA.md`.
+     - Populates jobs and pipeline runs with UI-readable counters.
+     - Does not include secrets.
+     - Does not commit database files.
+     - Does not modify a real/recovered DB without backup.
+     - Prefer a path that can seed a fresh local `data/jobs.db`.
+  2. Pipeline counter alignment:
+     - Demo pipeline run should show plausible nonzero counters such as
+       `Seen 6`, `Created 6`, `Updated 0`, `Presented 3`, `Errors 0`, or
+       similar.
+     - Counts should match demo jobs shown in Radar and Command Center.
+  3. Opportunity Detail selected-state:
+     - Opening a demo card from Radar must render a selected fictional
+       opportunity.
+     - Direct sidebar route may remain empty.
+     - Selected detail must show title, company, location, source,
+       stage/status, match or signal label, fictional rationale/reasons if
+       available, and no placeholder surface.
+  4. Ask Atlas demo investigation:
+     - With demo context attached, a fictional prompt should produce a visible
+       investigation response.
+     - Response must not mention real employers, real job data, private profile
+       content, credentials, Gmail, or Drive content.
+     - If no live LLM call is desired for screenshot capture, a safe demo
+       fallback may be proposed only inside this package's explicit boundaries;
+       no API keys or fake credentials may be hard-coded.
+  5. Visual/screenshot polish:
+     - Remove or hide visible `Desktop Shell / Package 1` from screenshot
+       surfaces, or replace it with a neutral local label such as `ATLAS Local`.
+     - Context Panel stub must be improved, hidden in screenshot mode, or
+       explicitly accepted as deferred.
+     - Preserve accepted ATLAS v1 visual language; do not invent a new design
+       system or major redesign.
+     - A conservative radar graphic enhancement may be implemented only if it
+       fits the narrow scope and accepted visual references; otherwise defer it
+       explicitly.
+  6. Screenshot mode / clean capture support:
+     - A route/query flag or CSS class may hide internal debug labels that are
+       unrelated to product function.
+     - Do not hide product functionality.
+     - Do not create native desktop packaging; do not add Tauri or Electron.
 
-  - Any screenshot showing real job records, real employer names, or real
-    application data
-  - Any screenshot showing real Windows username, machine name, or private path
-  - Public release authorization
-  - Code changes of any kind
-  - Fixture JSON, seed scripts, demo mode flags, database files
-  - New markdown documents beyond what Package 4 already authorized
+  **Hard deny for Phase 7 Package 5:**
 
-  **Acceptance criteria:**
+  - Public release
+  - Making the repo public
+  - Screenshot commits
+  - Image files
+  - Contact sheets
+  - `docs/Artifacts/Images/*`
+  - Real job data
+  - Real generated resumes or cover letters
+  - Real Gmail or Drive content
+  - Credential values
+  - Database files committed
+  - Seeded data files committed
+  - Fixture JSON with real data
+  - Tauri/Electron packaging
+  - Installer work
+  - Native desktop claim
+  - Production-ready claim
+  - External-user-ready claim
+  - Public-release-ready claim
+  - Major redesign
+  - New visual concepts outside accepted ATLAS visual governance
 
-  1. `docs/Artifacts/Images/` directory exists (if any screenshot committed).
-  2. At least one screenshot committed under `docs/Artifacts/Images/`.
-  3. Every committed screenshot uses fictional demo data only.
-  4. Every committed screenshot passes the DEMO_CAPTURE.md redaction checklist.
-  5. Every committed screenshot has Leah redaction review: ACCEPT FOR COMMIT.
-  6. Every committed screenshot has Project Master approval.
-  7. File naming follows `atlas_<surface>_runtime_v1.png` convention.
-  8. No real employer, recruiter, application, or candidate data visible.
-  9. No real Windows username or private path visible in any screenshot.
- 10. No code changes of any kind.
- 11. No public release authorization.
- 12. Existing pytest suite passes (baseline: 1011 passed, 1 skipped, 6 warnings).
+  **Acceptance criteria for Phase 7 Package 5:**
 
-  As of definition acceptance: Phase 7 Package 4 complete (commit `2227265`).
-  Phase 7 Package 5 implementation is now authorized.
-- Date: June 2026
+  1. A repeatable local demo seed path exists.
+  2. Demo seed uses fictional-only data and no credential values.
+  3. Demo seed does not commit or require committing `data/jobs.db`.
+  4. Fresh current-schema DB can be seeded into demo state.
+  5. Radar shows 5-8 fictional demo opportunity cards.
+  6. Command Center shows demo opportunities, Focus, Pipeline Snapshot, and
+     Recommendations without API 500 errors.
+  7. Pipeline Snapshot counters are plausible and consistent with demo state.
+  8. Pipeline page shows demo pipeline runs with nonzero or intentionally
+     meaningful counters.
+  9. Radar card -> Opportunity Detail renders a selected fictional opportunity.
+ 10. Opportunity Detail no longer shows placeholder surface for selected demo
+     opportunities.
+ 11. Ask Atlas can produce or display a fictional investigation response using
+     demo context.
+ 12. No real employer, real job, real application record, credential,
+     Gmail/Drive link, generated document, or private profile content appears
+     in demo output.
+ 13. `Desktop Shell / Package 1` is removed, hidden, or replaced for
+     screenshot-ready surfaces.
+ 14. Context Panel stub is either improved, hidden, or explicitly accepted as
+     deferred.
+ 15. No screenshots/images are committed.
+ 16. No public release is authorized.
+ 17. Existing tests pass.
+ 18. New tests cover the demo seed and selected opportunity detail path if
+     files are changed.
+ 19. Leah audit accepts implementation.
+ 20. Sara or visual/design audit reviews runtime visual parity if visual changes
+     are made.
+
+  **Required implementation validation:**
+
+  - `git status --short --untracked-files=all`
+  - `git diff --stat`
+  - `git diff --name-only`
+  - `.\.venv\Scripts\python.exe -m pytest -q`
+
+  **Required manual runtime validation:**
+
+  - Fresh DB created.
+  - Demo seed applied.
+  - Launcher passes `jsa check`.
+  - `/atlas/command-center` loads with no 500s.
+  - `/atlas/radar` shows fictional demo cards.
+  - Radar card opens Opportunity Detail with selected fictional opportunity.
+  - `/atlas/pipeline` shows demo pipeline runs.
+  - `/atlas/ask-atlas` attaches demo context and can produce/display fictional
+    investigation response.
+  - No browser/dev environment is considered for final capture.
+
+  **Required private-data check:**
+
+  ```powershell
+  Select-String -Path docs/**/*.md,scripts/*,job_search/**/*.py,frontend/src/**/* -Pattern "sk-","OPENAI_API_KEY=","drive.google.com","docs.google.com","C:\Users\james","/Users/james","credentials.json","token.json" -CaseSensitive:$false
+  ```
+
+  Matches that are warning-only must be documented in the implementation
+  report.
+
+  As of this correction: Phase 7 Package 4 remains complete (commit
+  `2227265`). Phase 7 Package 5 (Runtime Demo Hardening and Screenshot
+  Readiness) implementation is now authorized. Phase 7 Package 6 screenshot
+  capture and Phase 7 Package 7 final release gate each require separate
+  future definition entries before implementation.
 - State reference: `PROJECT_STATE.md`
 - Architecture reference: `roadmap.md` (Phase 7 section)
-- Follow-up work: After Package 5 ships, Phase 7 Package 6 may define
-  public release gate, final portfolio publication, and repository sharing
-  decisions. Each Phase 7 package requires its own definition entry before
-  implementation begins.
+- Follow-up work: Prompt Anna for Phase 7 Package 5 implementation. After
+  Package 5 is accepted, Phase 7 Package 6 may define screenshot/artifact
+  capture. After Package 6 is accepted, Phase 7 Package 7 may define final
+  portfolio/public release gate decisions. Each Phase 7 package requires its
+  own definition entry before implementation begins.
+
+### Phase 7 Package 5 — Demo Artifact Capture and Screenshot Review Definition Deferred
+
+- Status: deferred / superseded
+- Area: Phase 7 / portfolio / demo artifact capture / screenshot review
+- Date: June 2026
+- Rationale: This prior screenshot-capture definition is retained only as
+  historical context and is superseded by the Phase 7 Governance Correction
+  above. It no longer authorizes Phase 7 Package 5 implementation, screenshot
+  capture, image commits, or `docs/Artifacts/Images/*` changes.
+- Superseded by: Phase 7 Governance Correction — Runtime Demo Hardening Before
+  Screenshot Capture
+- Renumbered as: Phase 7 Package 6 — Demo Artifact Capture and Screenshot
+  Review, requiring a future definition entry after Package 5 hardening is
+  accepted
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Follow-up work: Do not implement screenshot capture from this superseded
+  entry. Implement the corrected Package 5 hardening package first.
 
 ### Phase 7 Package 4 — Demo Data, Screenshot, and Redaction Readiness Accepted / Complete
 

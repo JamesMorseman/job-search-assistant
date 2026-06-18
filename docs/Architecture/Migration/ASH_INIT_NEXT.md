@@ -1,6 +1,6 @@
 ﻿# Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 definition accepted; Desktop Packages 1-11 complete
+**Version:** June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 runtime demo hardening definition accepted; Desktop Packages 1-11 complete
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -43,9 +43,12 @@ Documentation strategy and portfolio presentation go to Rin.
 
 ## 2. Current Branch and Repository State
 
-- **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Phase 7 Packages 1-4
-  acceptance and Phase 7 Package 5 definition accepted
+- **Branch:** `recovery/full-private-state-20260618`
+- **Governance files:** Current governance records Phase 7 Packages 1-4
+  acceptance, defers the prior screenshot-capture Package 5, defines Phase 7
+  Package 5 as Runtime Demo Hardening and Screenshot Readiness, renumbers
+  screenshot capture to Package 6, and renumbers final portfolio/public release
+  gate to Package 7
 - **Implementation files:** Phase 6 complete through `a69b36d`; Phase 7
   Package 1 complete at `1d02117`; Phase 7 Package 2 complete at `65cf0a7`; Phase 7 Package 3 complete at `38314f2`; Phase 7 Package 4 complete at `2227265`;
   Desktop Packages 1-11 committed in
@@ -85,7 +88,7 @@ explicit PM authorization):**
 | 4 — Dashboard Service Layer | Complete (June 2026; Package 5 reassigned to Phase 6) |
 | 5 — Dashboard UI | **MVP Complete** (Packages 1–6 + Package 8 done; 7 gated on sync implementation; 9a/9b/9c gated on Phase 6) |
 | 6 — Analytics & Pipeline Runs | **Active** — Packages 1+2+3 complete; Package 4 definition entry required |
-| 7 — Future Enhancements | **Active** — Package 1 complete `1d02117`; Package 2 complete `65cf0a7`; Package 3 complete `38314f2`; Package 4 complete `2227265`; Package 5 definition accepted; implementation authorized |
+| 7 — Future Enhancements | **Active** — Package 1 complete `1d02117`; Package 2 complete `65cf0a7`; Package 3 complete `38314f2`; Package 4 complete `2227265`; Package 5 Runtime Demo Hardening and Screenshot Readiness definition accepted; implementation authorized; Package 6 screenshot capture and Package 7 final release gate deferred |
 
 ### Phase 6 Package Status (revised numbering — authoritative)
 
@@ -128,14 +131,16 @@ explicit PM authorization):**
 
 ```text
 (current governance commit)
-         docs(governance): accept Phase 7 Package 4 and define Phase 7 Package 5
-         DECISION_LOG.md: Phase 7 Package 4 accepted/complete (impl `2227265`;
-           Leah ACCEPT WITH MINOR NOTES); Phase 7 Package 5 (Demo Artifact
-           Capture and Screenshot Review) definition accepted
-         PROJECT_STATE.md: Phase 7 Packages 1-4 complete; Package 5 definition
-           accepted; implementation authorized
-         roadmap.md: Phase 7 table updated (Package 4 complete, Package 5 row
-           added); build order items 7-8 updated
+         docs(governance): defer screenshot capture and define runtime demo hardening
+         DECISION_LOG.md: prior Phase 7 Package 5 screenshot capture definition
+           deferred/superseded; Phase 7 Package 5 Runtime Demo Hardening and
+           Screenshot Readiness definition accepted; Package 6 screenshot
+           capture and Package 7 final release gate deferred
+         PROJECT_STATE.md: Phase 7 Packages 1-4 complete; Package 5 hardening
+           definition accepted; no screenshots/images or public release
+           authorized
+         roadmap.md: Phase 7 table updated with Package 5 hardening, Package 6
+           screenshot capture deferred, Package 7 final release gate deferred
          ASH_INIT_NEXT.md: synchronized to current state
 
 38314f2  tools(launch): add Phase 7 Package 3 local ATLAS launcher
@@ -565,51 +570,44 @@ Run `git status --short --untracked-files=all` and `git log --oneline -8`.
 Confirm repo state matches §2 and §4. Identify any contradictions or
 ambiguities before proceeding.
 
-### Step 2 — Write Phase 6 Package 4 definition entry (JSA track)
+### Step 2 — Prompt Phase 7 Package 5 implementation
 
-**Package 3 is complete (commit `f882405`, 806 passing, Leah audit PASS WITH
-MINOR NOTES). Package 4 (local-first background runner) is the next JSA
-engineering package.**
+**Phase 7 Package 5 — Runtime Demo Hardening and Screenshot Readiness is
+defined and implementation is authorized.** See `DECISION_LOG.md` "Phase 7
+Governance Correction — Runtime Demo Hardening Before Screenshot Capture."
 
-Package 4 is authorized but requires its own definition entry before any
-implementation begins. Per the standing governance rule, write and accept a
-DECISION_LOG entry covering: scope (wrap ingest/grade/generate/follow-up
-pipeline steps in a durable local execution layer; persist run stats and errors
-to `pipeline_runs`), authorized mutation paths (via PipelineService only),
-prohibited paths, acceptance criteria, and any Leah or Donut planning study
-references.
+Issue Anna a compact implementation prompt. Objective: make the live ATLAS
+runtime screenshot-ready by adding repeatable fictional demo-state tooling,
+fixing demo surface behavior, aligning demo counters, validating Radar card ->
+Opportunity Detail selected-state, enabling a fictional Ask Atlas investigation
+response, and removing or hiding visible development-shell artifacts such as
+`Desktop Shell / Package 1`.
 
-After that entry is accepted, issue an Anna implementation task referencing it.
+Authorized evaluation surface:
+- `scripts/seed-demo-data.ps1`
+- `scripts/seed_demo_data.py`
+- `docs/Runbooks/DEMO_CAPTURE.md`
+- `docs/Runbooks/DEMO_DATA.md`
+- `frontend/src/*`
+- `job_search/dashboard/routes/atlas_api.py`
+- `job_search/services/*`
+- `tests/test_desktop_demo_readiness.py`
+- `tests/test_desktop_opportunity_detail.py`
+- `tests/test_demo_seed.py`
 
-### Step 3 - Prompt ATLAS Desktop Package 10 implementation (Desktop track)
+Do not authorize screenshots/images, `docs/Artifacts/Images/*`, database file
+commits, real job data, generated resumes or cover letters, Gmail/Drive
+content, credential values, fixture JSON with real data, Tauri/Electron,
+installer work, native desktop claims, production-ready claims,
+external-user-ready claims, public-release-ready claims, public release, or a
+major redesign.
 
-**Desktop Packages 1 through 9 are complete and accepted.** Desktop Package 10 -
-Atlas Focus Resolution & Archive MVP definition is accepted; implementation is
-now authorized. See `DECISION_LOG.md` "ATLAS Desktop Package 10 - Atlas Focus
-Resolution & Archive MVP Definition Accepted."
+Required validation for Anna: pytest, private-data search, fresh DB creation,
+demo seed, launcher `jsa check`, Command Center/Radar/Pipeline/Opportunity
+Detail/Ask Atlas runtime checks, and confirmation that screenshot capture
+remains deferred.
 
-Package 10 implementation may now be prompted. Authorized scope: add bounded
-Focus resolution mutations, archive/history support, local persistence needed
-to preserve resolved Focus history, frontend client/types through the existing
-`client.ts` boundary, and Command Center resolution/archive presentation.
-
-Package 10 must remain Focus-domain only. It must not implement generic task
-management, reminders, notification center, alert system, calendar
-integration, Ask Atlas changes, recommendation generation changes,
-Radar/Pipeline/Opportunity Detail behavior changes, scoring or ingestion
-changes, background runner/scheduler behavior, pipeline execution,
-hard-coded LLM provider, cloud sync, or Tauri packaging.
-
-Package 10 must preserve the distinction between Recommendation and Focus: a
-recommendation says what Atlas suggests; a Focus says what deserves attention.
-Resolution-state display is allowed, but state-changing controls are not
-authorized.
-
-**Sequencing constraint:** Do not split Desktop v1 implementation into
-parallel agents before file ownership across surfaces is clearly separated.
-Surface packages must be defined with non-overlapping file sets.
-
-### Step 4 — Deferred content comparison (CLOSED)
+### Step 3 — Deferred content comparison (CLOSED)
 
 The 7-file deferred recovery comparison is complete. No action required.
 See DECISION_LOG.md "ATLAS Recovery — Deferred Overlap-Risk File Review

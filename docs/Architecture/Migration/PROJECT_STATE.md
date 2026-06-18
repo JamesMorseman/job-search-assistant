@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 definition accepted; Desktop Packages 1-11 complete
+Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 runtime demo hardening definition accepted; Desktop Packages 1-11 complete
 
 ## Purpose
 
@@ -35,9 +35,13 @@ ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). Phase 7 Package 2 (
 (commit `65cf0a7`; Leah ACCEPT FOR COMMIT). Phase 7 Package 3 (Local Launch
 Experience) is complete (commit `38314f2`; Leah ACCEPT FOR COMMIT). Phase 7
 Package 4 (Demo Data, Screenshot, and Redaction Readiness) is complete (commit
-`2227265`; Leah ACCEPT WITH MINOR NOTES). Phase 7 Package 5 (Demo Artifact
-Capture and Screenshot Review) definition is accepted; implementation is now
-authorized.
+`2227265`; Leah ACCEPT WITH MINOR NOTES). The prior Phase 7 Package 5
+Screenshot Capture definition is deferred because live runtime review found
+ATLAS demo-safe but not screenshot-ready. Phase 7 Package 5 is now Runtime Demo
+Hardening and Screenshot Readiness; implementation is authorized. Screenshot
+capture is renumbered to Phase 7 Package 6 and requires a future definition
+entry. Final portfolio/public release gate is renumbered to Phase 7 Package 7
+and remains unauthorized.
 Desktop Package 12+ work is not yet authorized and requires a separate
 definition entry.
 
@@ -294,11 +298,26 @@ Architecture complete, implementation pending:
   `docs/Runbooks/DEMO_CAPTURE.md` (new) + `docs/Runbooks/DEMO_DATA.md` (new).
   Docs/runbooks-only; no code changes; no screenshots; no fixture JSON; not a
   public release authorization
-- Phase 7 Package 5 (Demo Artifact Capture and Screenshot Review): definition
-  accepted; implementation authorized. Authorized scope: `docs/Artifacts/Images/`
-  (new directory) + screenshot files per surface (after Leah redaction review
-  and PM approval per surface). First package to authorize committing actual
-  screenshot files; no public release authorization
+- Phase 7 Package 5 (Runtime Demo Hardening and Screenshot Readiness):
+  definition accepted; implementation authorized. Purpose: make the live ATLAS
+  runtime screenshot-ready through repeatable fictional demo seeding, demo
+  counter alignment, Radar -> Opportunity Detail selected-state validation,
+  Ask Atlas fictional investigation response support, and removal/hiding of
+  visible development-shell artifacts such as `Desktop Shell / Package 1`.
+  Authorized evaluation surface is limited to demo seed scripts/runbooks,
+  `frontend/src/*`, `job_search/dashboard/routes/atlas_api.py`,
+  `job_search/services/*`, and focused tests (`test_desktop_demo_readiness.py`,
+  `test_desktop_opportunity_detail.py`, `test_demo_seed.py`). No screenshots,
+  images, database files, real job data, credential values, Tauri/Electron
+  packaging, native desktop claim, production-ready claim, external-user-ready
+  claim, public-release-ready claim, or public release authorization.
+- Phase 7 Package 6 (Demo Artifact Capture and Screenshot Review): deferred;
+  requires a future definition entry after Package 5 acceptance. This is the
+  renumbered screenshot capture package and is not currently authorized.
+- Phase 7 Package 7 (Final Portfolio/Public Release Gate): deferred; requires
+  a future definition entry after screenshot capture review. No public release,
+  repository-public, final publication, or external-user-ready decision is
+  currently authorized.
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 
