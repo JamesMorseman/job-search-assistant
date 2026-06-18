@@ -4043,6 +4043,136 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
   defined below. Implementation is now authorized.
 
+### Phase 7 Package 5 — Demo Artifact Capture and Screenshot Review Definition Accepted
+
+- Status: accepted
+- Area: Phase 7 / portfolio / demo artifact capture / screenshot review
+- Date: June 2026
+- Rationale: Phase 7 Package 4 is complete (commit `2227265`). The
+  readiness documentation — per-surface safe-state requirements, fictional
+  demo data specification, capture runbook, and redaction runbook — is now
+  in place. Package 5 authorizes the first actual screenshot capture and
+  commit workflow. All future screenshot commits remain gated on Leah
+  redaction review and Project Master approval per surface. Per the standing
+  governance rule, no implementation may begin before this entry is accepted.
+  This entry constitutes that acceptance.
+
+  **Package objective:**
+
+  Execute the Package 4 capture workflow to produce ATLAS runtime screenshots
+  using fictional demo data, submit each candidate to Leah redaction review,
+  and commit approved screenshots to `docs/Artifacts/Images/`. No public
+  release is authorized. No code changes are authorized.
+
+  **Authorized scope for Phase 7 Package 5:**
+
+  1. `docs/Artifacts/Images/` (new directory). Runtime screenshot home.
+     Create only if at least one screenshot is approved for commit.
+
+  2. Screenshot files under `docs/Artifacts/Images/` for P1/P2/P3 surfaces.
+     Each file requires:
+     - Fictional demo data only (per `docs/Runbooks/DEMO_DATA.md`)
+     - Pre-capture checklist passed (per `docs/Runbooks/DEMO_CAPTURE.md`)
+     - Redaction checklist passed (per `docs/Runbooks/DEMO_CAPTURE.md`)
+     - Leah redaction review: ACCEPT FOR COMMIT
+     - Project Master approval before commit
+     - Naming: `atlas_<surface>_runtime_v1.png`
+
+  **Authorized file types:**
+
+  - PNG screenshots only (in `docs/Artifacts/Images/`)
+  - No Python, TypeScript, HTML, CSS, PowerShell, or configuration file changes
+  - No markdown changes unless a future package explicitly authorizes them
+  - No new directories outside `docs/Artifacts/Images/`
+
+  **Out of scope / prohibited for Phase 7 Package 5:**
+
+  - Any screenshot showing real job records, real employer names, or real
+    application data
+  - Any screenshot showing real Windows username, machine name, or private path
+  - Public release authorization
+  - Code changes of any kind
+  - Fixture JSON, seed scripts, demo mode flags, database files
+  - New markdown documents beyond what Package 4 already authorized
+
+  **Acceptance criteria:**
+
+  1. `docs/Artifacts/Images/` directory exists (if any screenshot committed).
+  2. At least one screenshot committed under `docs/Artifacts/Images/`.
+  3. Every committed screenshot uses fictional demo data only.
+  4. Every committed screenshot passes the DEMO_CAPTURE.md redaction checklist.
+  5. Every committed screenshot has Leah redaction review: ACCEPT FOR COMMIT.
+  6. Every committed screenshot has Project Master approval.
+  7. File naming follows `atlas_<surface>_runtime_v1.png` convention.
+  8. No real employer, recruiter, application, or candidate data visible.
+  9. No real Windows username or private path visible in any screenshot.
+ 10. No code changes of any kind.
+ 11. No public release authorization.
+ 12. Existing pytest suite passes (baseline: 1011 passed, 1 skipped, 6 warnings).
+
+  As of definition acceptance: Phase 7 Package 4 complete (commit `2227265`).
+  Phase 7 Package 5 implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Follow-up work: After Package 5 ships, Phase 7 Package 6 may define
+  public release gate, final portfolio publication, and repository sharing
+  decisions. Each Phase 7 package requires its own definition entry before
+  implementation begins.
+
+### Phase 7 Package 4 — Demo Data, Screenshot, and Redaction Readiness Accepted / Complete
+
+- Status: accepted
+- Area: Phase 7 / portfolio / demo readiness / screenshot governance
+- Date: June 2026
+- Rationale: Phase 7 Package 4 has been implemented and audited by Leah
+  (ACCEPT WITH MINOR NOTES). All 15 acceptance criteria met. Implementation
+  commit: `2227265`.
+
+  **Implemented scope (commit `2227265`):**
+
+  | File | Action |
+  |---|---|
+  | `docs/Public/SCREENSHOTS.md` | Updated: per-surface safe-state requirements
+  (P1/P2/P3) with capture notes, redaction requirements, and approval gate;
+  package does not authorize screenshot files or public release |
+  | `docs/Public/PRIVACY_AND_REDACTION.md` | Updated: added 'Runtime Screenshot
+  Rules' section (per-surface redaction, terminal path masking, browser privacy
+  requirements, date/count guidance); added 'Demo Data Policy' section
+  (`source = 'demo'` convention, cleanup SQL, what must never appear) |
+  | `docs/Runbooks/DEMO_CAPTURE.md` | Created: operator capture runbook;
+  prerequisites, pre-capture checklist, priority capture sequence (8 surfaces),
+  per-surface notes, redaction checklist, terminal path masking, file naming,
+  offline storage, approval gate, not-authorized list |
+  | `docs/Runbooks/DEMO_DATA.md` | Created: fictional demo data specification;
+  fictional company bank (7 firms); fictional record requirements for
+  jobs/firms/pipeline runs; `source = 'demo'` rule; SQLite insert example; Ask
+  Atlas fictional prompt; what-must-never-appear list; cleanup instructions |
+
+  **Scope boundary confirmation:**
+
+  - Only 4 files in commit: all Markdown (.md); no code changes; confirmed
+  - No screenshot or image files: confirmed
+  - No fixture JSON, seed scripts, demo mode flags, database files: confirmed
+  - No new directories outside `docs/Public/` and `docs/Runbooks/`: confirmed
+  - No Python, TypeScript, HTML, CSS, PowerShell, schema, or config changes: confirmed
+  - No real employer data, credential values, or private records: confirmed
+  - Fictional examples use approved naming (Atlas Demo Infrastructure Group, etc.): confirmed
+  - No public release authorized: confirmed
+  - Terminal path examples use `C:\\Users\\<user>`: confirmed
+  - Credential guidance: 'Configure a valid local `.env` value' (no fake values): confirmed
+
+  **Leah audit result:** ACCEPT WITH MINOR NOTES
+
+  **Test baseline unchanged:** 1011 passed, 1 skipped, 6 warnings (no code
+  changes in Package 4)
+
+  Phase 7 Package 4 is complete. Phase 7 Package 5 definition is accepted in
+  this same governance commit; implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+
 ### Phase 7 Package 4 — Demo Data, Screenshot, and Redaction Readiness Definition Accepted
 
 - Status: accepted

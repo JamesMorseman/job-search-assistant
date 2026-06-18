@@ -1,6 +1,6 @@
 ﻿# Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-3 complete; Phase 7 Package 4 definition accepted; Desktop Packages 1-11 complete
+**Version:** June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 definition accepted; Desktop Packages 1-11 complete
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -44,10 +44,10 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Phase 7 Packages 1-3
-  acceptance and Phase 7 Package 4 definition accepted
+- **Governance files:** Current governance commit records Phase 7 Packages 1-4
+  acceptance and Phase 7 Package 5 definition accepted
 - **Implementation files:** Phase 6 complete through `a69b36d`; Phase 7
-  Package 1 complete at `1d02117`; Phase 7 Package 2 complete at `65cf0a7`; Phase 7 Package 3 complete at `38314f2`;
+  Package 1 complete at `1d02117`; Phase 7 Package 2 complete at `65cf0a7`; Phase 7 Package 3 complete at `38314f2`; Phase 7 Package 4 complete at `2227265`;
   Desktop Packages 1-11 committed in
   `d6bdde7`, `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`, `913cd4a`,
   `da6aed3`, `e985918`, `bf1655d`, `230bfe4`
@@ -85,7 +85,7 @@ explicit PM authorization):**
 | 4 — Dashboard Service Layer | Complete (June 2026; Package 5 reassigned to Phase 6) |
 | 5 — Dashboard UI | **MVP Complete** (Packages 1–6 + Package 8 done; 7 gated on sync implementation; 9a/9b/9c gated on Phase 6) |
 | 6 — Analytics & Pipeline Runs | **Active** — Packages 1+2+3 complete; Package 4 definition entry required |
-| 7 — Future Enhancements | **Active** — Package 1 complete `1d02117`; Package 2 complete `65cf0a7`; Package 3 complete `38314f2`; Package 4 definition accepted; implementation authorized |
+| 7 — Future Enhancements | **Active** — Package 1 complete `1d02117`; Package 2 complete `65cf0a7`; Package 3 complete `38314f2`; Package 4 complete `2227265`; Package 5 definition accepted; implementation authorized |
 
 ### Phase 6 Package Status (revised numbering — authoritative)
 
@@ -128,15 +128,14 @@ explicit PM authorization):**
 
 ```text
 (current governance commit)
-         docs(governance): accept Phase 7 Package 3 and define Phase 7 Package 4
-         DECISION_LOG.md: Phase 7 Package 3 accepted/complete (commit `38314f2`;
-           Leah ACCEPT FOR COMMIT; 1011 passed, 1 skipped, 6 warnings);
-           Phase 7 Package 4 (Demo Data, Screenshot, and Redaction Readiness)
-           definition accepted
-         PROJECT_STATE.md: Phase 7 Packages 1-3 complete; Package 4 definition
+         docs(governance): accept Phase 7 Package 4 and define Phase 7 Package 5
+         DECISION_LOG.md: Phase 7 Package 4 accepted/complete (impl `2227265`;
+           Leah ACCEPT WITH MINOR NOTES); Phase 7 Package 5 (Demo Artifact
+           Capture and Screenshot Review) definition accepted
+         PROJECT_STATE.md: Phase 7 Packages 1-4 complete; Package 5 definition
            accepted; implementation authorized
-         roadmap.md: Phase 7 table updated (Package 3 complete, Package 4 row
-           added); build order item 7 updated
+         roadmap.md: Phase 7 table updated (Package 4 complete, Package 5 row
+           added); build order items 7-8 updated
          ASH_INIT_NEXT.md: synchronized to current state
 
 38314f2  tools(launch): add Phase 7 Package 3 local ATLAS launcher

@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-3 complete; Phase 7 Package 4 definition accepted; Desktop Packages 1-11 complete
+Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 definition accepted; Desktop Packages 1-11 complete
 
 ## Purpose
 
@@ -34,8 +34,10 @@ complete (commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah
 ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). Phase 7 Package 2 (Portfolio Documentation Skeleton) is complete
 (commit `65cf0a7`; Leah ACCEPT FOR COMMIT). Phase 7 Package 3 (Local Launch
 Experience) is complete (commit `38314f2`; Leah ACCEPT FOR COMMIT). Phase 7
-Package 4 (Demo Data, Screenshot, and Redaction Readiness) definition is
-accepted; implementation is now authorized.
+Package 4 (Demo Data, Screenshot, and Redaction Readiness) is complete (commit
+`2227265`; Leah ACCEPT WITH MINOR NOTES). Phase 7 Package 5 (Demo Artifact
+Capture and Screenshot Review) definition is accepted; implementation is now
+authorized.
 Desktop Package 12+ work is not yet authorized and requires a separate
 definition entry.
 
@@ -286,7 +288,17 @@ Architecture complete, implementation pending:
 - Phase 7 Package 1 (Credential & Configuration Diagnostics): **complete** (commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). `jsa check` command and `jsa run` pre-flight guard delivered; read-only DB diagnostic with no WAL/SHM artifacts; `PipelineRunner` not modified; no schema or dashboard changes
 - Phase 7 Package 2 (Portfolio Documentation Skeleton): **complete** (commit `65cf0a7`; Leah ACCEPT FOR COMMIT). Delivered README.md portfolio reframe + 6 new `docs/Public/` files (ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE, RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS). Docs-only; no code changes; not a public release authorization
 - Phase 7 Package 3 (Local Launch Experience): **complete** (commit `38314f2`; Leah ACCEPT FOR COMMIT). Delivered `scripts/start-atlas.ps1` (PowerShell launcher; `.venv` executables; `jsa check` pre-flight guard; exits before uvicorn if diagnostics fail; `Write-Warning` for missing frontend; uvicorn factory start on 127.0.0.1:8000; prints ATLAS URL and Ctrl+C instruction; no daemon/service) + `docs/Runbooks/LOCAL_LAUNCH.md` (operator runbook). Scripts/docs-only; no code changes; not a public release authorization
-- Phase 7 Package 4 (Demo Data, Screenshot, and Redaction Readiness): definition accepted; implementation authorized. Authorized scope: `docs/Public/SCREENSHOTS.md` (update) + `docs/Public/PRIVACY_AND_REDACTION.md` (update) + `docs/Runbooks/DEMO_CAPTURE.md` (new) + `docs/Runbooks/DEMO_DATA.md` (new). Docs/runbooks-only; no code changes; no screenshots; no fixture JSON; not a public release authorization
+- Phase 7 Package 4 (Demo Data, Screenshot, and Redaction Readiness): complete
+  (commit `2227265`; Leah ACCEPT WITH MINOR NOTES). Scope: `docs/Public/SCREENSHOTS.md`
+  (updated) + `docs/Public/PRIVACY_AND_REDACTION.md` (updated) +
+  `docs/Runbooks/DEMO_CAPTURE.md` (new) + `docs/Runbooks/DEMO_DATA.md` (new).
+  Docs/runbooks-only; no code changes; no screenshots; no fixture JSON; not a
+  public release authorization
+- Phase 7 Package 5 (Demo Artifact Capture and Screenshot Review): definition
+  accepted; implementation authorized. Authorized scope: `docs/Artifacts/Images/`
+  (new directory) + screenshot files per surface (after Leah redaction review
+  and PM approval per surface). First package to authorize committing actual
+  screenshot files; no public release authorization
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 
