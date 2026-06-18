@@ -3940,6 +3940,193 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   defined below. **PM directive: a runtime validation pass is required before Package 5
   implementation begins.** See the Package 5 definition entry for the precondition.
 
+### Phase 6 Package 5 — Dashboard Integration: Pipeline Runs Screen Accepted / Complete
+
+- Status: accepted
+- Area: Phase 6 / dashboard / pipeline runs
+- Date: June 2026
+- Commit: `a69b36d` — `feat(dashboard): implement Phase 6 Package 5 Pipeline Runs screen`
+- Rationale: Records Project Master acceptance of Phase 6 Package 5 — Dashboard
+  Integration: Pipeline Runs Screen as implemented and complete. This entry also
+  records formal closure of Phase 6 — Analytics & Pipeline Runs.
+
+  **Runtime validation precondition — confirmed:**
+  Operator ran `jsa run --dry-run` (no `pipeline_runs` row written — correct) and
+  `jsa run --run-type full` (produced `pipeline_runs id=1`, `status=failed`,
+  `errors_count=1`, grade step credential error in `notes`, per-step stats in
+  `metadata_json`). The run failed at the LLM credential layer, not at the runner
+  or persistence layer. Runner persistence and dashboard data availability are
+  confirmed correct.
+
+  **Package accepted:**
+  - Phase 6 Package 5 — Dashboard Integration: Pipeline Runs Screen — **Accepted / Complete**
+
+  **Files created:**
+  - `job_search/dashboard/routes/pipeline_runs.py` — `GET /dashboard/pipeline-runs`
+    only; single `Depends(get_pipeline_service)` injection;
+    `PipelineService.list_recent_runs()` sole data path; 503 on service failure;
+    no direct SQL; no mutation routes
+  - `job_search/dashboard/templates/pipeline_runs.html` — extends `base.html`;
+    run table with `data-testid` attributes on every column; all 13 `PipelineRun`
+    fields rendered; `run.source or "—"` and `run.completed_at or "—"` null handling;
+    collapsible `<details>` block for `metadata_json`; empty-state paragraph
+
+  **Files modified:**
+  - `job_search/dashboard/app.py` — `pipeline_runs_routes` router registered with
+    `prefix="/dashboard"`, `tags=["pipeline-runs"]`; docstring updated to reflect
+    Pipeline Runs is now implemented
+  - `job_search/dashboard/templates/base.html` — navigation placeholder replaced with
+    `<a href="/dashboard/pipeline-runs">Pipeline Runs</a>`
+  - `tests/test_dashboard.py` — 13 new test functions
+
+  **Implemented scope (all items from the Package 5 definition entry):**
+  1. Pipeline Runs dashboard route — `GET /dashboard/pipeline-runs`; read-only;
+     `PipelineService.list_recent_runs()` sole data path
+  2. Pipeline Runs template — run list table with all counters, status, notes, and
+     collapsible metadata; empty, completed, failed, and running states covered
+  3. Navigation integration — nav link activated; previously a text placeholder
+  4. Tests — 13 test functions covering all required scenarios
+
+  **Authorized data path (verified):**
+  `PipelineService.list_recent_runs()` is the sole authorized data path.
+  The route has exactly one `Depends()` argument. No `get_db()`, `sqlite3`, or
+  `SELECT` in the route module — confirmed by source-inspection test.
+
+  **Scope boundary verified — none of the following were introduced:**
+  Runner changes, schema changes, ATLAS Desktop / frontend changes, `/atlas/api`
+  changes, mutation routes, rerun/delete/execution controls, scheduler/daemon/cloud
+  behavior, or direct SQLite access in the route.
+
+  **Validation:**
+  - `pytest -q`: 998 passed, 1 skipped, 6 warnings (net +13 tests over Package 4
+    baseline of 985)
+  - Leah audit: ACCEPT FOR COMMIT
+
+  As of this entry: 998 tests pass, 1 skipped, 6 warnings.
+
+  ---
+
+  **Phase 6 — Analytics & Pipeline Runs — formally closed.**
+
+  All five Phase 6 packages are accepted and complete:
+
+  | Package | Scope | Commit | Tests |
+  |---|---|---|---|
+  | 1 | Analytics expansion (MVP) | committed | 755 |
+  | 2 | Analytics depth | `6af126b` | 778 |
+  | 3 | Pipeline infrastructure | `f882405` | 806 |
+  | 4 | Local-first background runner | `31a560d` | 985 |
+  | 5 | Dashboard integration: Pipeline Runs screen | `a69b36d` | 998 |
+
+  Phase 5 Package 9 sub-packages are also complete:
+  - 9a (pipeline infrastructure) = Phase 6 Package 3 ✓
+  - 9b (background runner) = Phase 6 Package 4 ✓
+  - 9c (Pipeline Runs dashboard screen) = Phase 6 Package 5 ✓
+
+  The pipeline is now end-to-end: ingest → grade → report → generate → followup,
+  with durable run records, operator observability via `jsa run`, and a dashboard
+  screen showing run history and counters.
+
+  **Remaining Phase 5 deferred work (not blocking Phase 6 closure):**
+  - Package 7 — Firm Review Queue: deferred; gated on draft-to-SQLite sync
+    implementation (decision approved; implementation not yet built)
+
+  Phase 7 — Future Enhancements is now the active roadmap phase for new scope.
+  Per the standing governance rule, no Phase 7 package may begin without a
+  definition entry. The first Phase 7 package is defined below.
+
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 6 section)
+- Definition reference: `DECISION_LOG.md` "Phase 6 Package 5 — Dashboard Integration
+  Definition Accepted"
+- Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
+  defined below. Implementation is now authorized.
+
+### Phase 7 Package 1 — Credential & Configuration Diagnostics Definition Accepted
+
+- Status: accepted
+- Area: Phase 7 / operational readiness / configuration
+- Date: June 2026
+- Rationale: The Phase 6 Package 5 runtime validation precondition surfaced a
+  concrete usability gap: `jsa run --run-type full` produced `status=failed` with
+  a grade-step credential error in `notes`. The failure cause is correct runtime
+  behavior (credentials are missing), but the operator experience is poor — a
+  `failed` pipeline run record and buried error notes are not a clear signal that
+  the fix is "set your OpenAI API key." Before any further feature work, a bounded
+  credential and configuration diagnostics layer improves operator confidence and
+  prevents misattribution of credential failures to runner bugs.
+
+  Per the standing governance rule, no implementation may begin before this entry
+  is accepted. This entry constitutes that acceptance.
+
+  **Package objective:**
+
+  Add a pre-flight diagnostic path so operators receive clear, actionable messages
+  when required credentials or configuration are missing — before a pipeline run
+  is created and before the error is buried in `notes_json`.
+
+  **Authorized scope for Phase 7 Package 1:**
+
+  1. **`jsa check` command.** A new CLI command that validates all required
+     configuration and credentials without executing any pipeline steps or writing
+     any database records. Must check at minimum: LLM provider API key presence
+     (currently OpenAI); database file accessibility; any other configuration items
+     whose absence would cause a pipeline run to fail immediately. Output must
+     clearly distinguish pass, warn, and fail conditions.
+
+  2. **Pre-flight check in `jsa run`.** Before `PipelineService.start_run()` is
+     called, `jsa run` must execute a lightweight credential check. If required
+     credentials are absent, the command must exit with a clear message (e.g.,
+     `"Missing required credentials: OPENAI_API_KEY. Run 'jsa check' for details."`)
+     without creating a `pipeline_runs` record. A run must not be created for a
+     failure that is predictable from configuration state alone.
+
+  3. **Tests.** Tests must cover: `jsa check` passes when credentials present;
+     `jsa check` fails with actionable output when credentials absent; `jsa run`
+     does not create a `pipeline_runs` record when pre-flight check fails;
+     `jsa run` proceeds normally when pre-flight check passes.
+
+  **Authorized data paths:**
+
+  - `jsa check` is read-only: it reads configuration and environment only; it
+    writes no database records.
+  - The pre-flight check in `jsa run` is a guard at the CLI layer before
+    `PipelineRunner.run()` is invoked. `PipelineRunner` itself is not modified.
+
+  **Out of scope / prohibited for Phase 7 Package 1:**
+
+  - Changes to `PipelineRunner` orchestration logic
+  - New dashboard routes or templates
+  - New database tables or schema changes
+  - New service modules
+  - LLM provider changes or credential storage
+  - ATLAS Desktop changes
+  - Any feature expansion beyond diagnostic output
+
+  **Acceptance criteria:**
+
+  1. `pytest -q` passes with no regressions from Package 5 baseline (998 passed,
+     1 skipped, 6 warnings).
+  2. `jsa check` exits 0 when all required credentials are present; exits non-zero
+     with a clear per-item failure message when any required credential is absent.
+  3. `jsa run` (without `--dry-run`) does not create a `pipeline_runs` record when
+     pre-flight check detects missing credentials; exits with an actionable message.
+  4. `jsa run --dry-run` is not affected by the pre-flight guard (dry-run already
+     writes no records; behavior unchanged).
+  5. `PipelineRunner` source is not modified.
+  6. No new dashboard routes, templates, or schema changes.
+  7. Leah audit: ACCEPT FOR COMMIT.
+
+  As of definition acceptance: 998 tests pass, 1 skipped, 6 warnings. Phase 7
+  Package 1 implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Follow-up work: After Phase 7 Package 1 ships, portfolio launch readiness
+  (README, public-facing documentation) is the next candidate Phase 7 package.
+  Each Phase 7 package requires its own definition entry before implementation.
+
 ### Phase 6 Package 5 — Dashboard Integration: Pipeline Runs Screen Definition Accepted
 
 - Status: accepted

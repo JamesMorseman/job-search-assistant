@@ -337,7 +337,7 @@ Per `DECISION_LOG.md`'s "Phase 6 Authorization and Package Structure Accepted":
 | 2 | Analytics depth — Score Distribution (Q1/Median/Q3), stretch category response rates, Unified Source Comparison (replaces Source Effectiveness), operator velocity pairs (presented→selected, selected→applied); conditional: LLM grade correlation (≥ 5 terminal-resolved per grade); employer-stage velocity pairs deferred to Package 3 | **Complete** — 778 passing, 1 skipped; commit `6af126b`; no new routes/services/screens; Metrics route read-only; no mutation paths |
 | 3 | Pipeline infrastructure — `pipeline_runs` table schema, `services/pipeline.py` read/write service, run-record persistence | **Complete** — 806 passing, 1 skipped; commit `f882405`; Leah audit PASS WITH MINOR NOTES; `PipelineService` is sole authorized write path for `pipeline_runs`; see `DECISION_LOG.md` "Phase 6 Package 3 — Pipeline Infrastructure Complete" |
 | 4 | Local-first background runner — `job_search/pipeline/runner.py`; `PipelineRunner` orchestrating ingest → grade → report → generate → followup; `jsa run` CLI with `--dry-run` / `--run-type`; `PipelineService` sole write path; no dashboard UI, no new tables | **Complete** — commit `31a560d`; 985 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
-| 5 | Dashboard integration — Pipeline Runs screen (Phase 5 Package 9c); read-only `GET /dashboard/pipeline-runs` via `PipelineService.list_recent_runs()`; run list, counters, error detail, navigation link; no runner changes, no schema changes | **Definition accepted; implementation authorized** — pending operator runtime validation precondition (run `jsa run` against real data before implementation begins); see `DECISION_LOG.md` |
+| 5 | Dashboard integration — Pipeline Runs screen (Phase 5 Package 9c); read-only `GET /dashboard/pipeline-runs` via `PipelineService.list_recent_runs()`; run table with counters, error detail, collapsible metadata; navigation link | **Complete** — commit `a69b36d`; 998 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT; **Phase 6 formally closed** |
 
 Architecture decision: local-first background runner accepted — no external
 scheduler, task queue, or remote worker required for initial implementation.
@@ -705,7 +705,7 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
    implementation begins.
 7. ✓ ATLAS Desktop Packages 1–11 complete (Shell through Desktop v1 Hardening
    Pass). Package 12+ work remains unauthorized pending separate definition
-   entries. Phase 6 Package 4 (local-first background runner) complete —
-   commit `31a560d`. Phase 6 Package 5 (Pipeline Runs dashboard screen)
-   definition accepted; implementation pending operator runtime validation.
+   entries. Phase 6 complete — all 5 packages, commits through `a69b36d`;
+   Phase 5 Package 9 fully complete. Phase 7 active: Package 1 (Credential &
+   Configuration Diagnostics) definition accepted; implementation authorized.
 8. Treat Phase 7 as optional, human-reviewed extensions.

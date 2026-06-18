@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Packages 1-4 complete / Package 5 definition accepted; Desktop Packages 1-11 complete
+Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Package 1 definition accepted; Desktop Packages 1-11 complete
 
 ## Purpose
 
@@ -27,11 +27,12 @@ Build an automated engineering job-search platform for James Morseman that:
 ## Current Objectives
 
 Phases 1â€”5 MVP and ATLAS Desktop Packages 1â€”11 are complete. Phase 6
-(Analytics & Pipeline Runs) is active. Phase 6 Packages 1–4 are complete. Phase 6 Package 5
-(dashboard integration: Pipeline Runs screen) definition is accepted;
-implementation authorized pending runtime validation precondition.
-Desktop Package 12+ work is not yet authorized and requires a separate
-definition entry.
+(Analytics & Pipeline Runs) is active. Phase 6 is complete — all five packages accepted (commits through `a69b36d`).
+Phase 5 Package 9 (9a/9b/9c) is now fully complete. Phase 7 — Future
+Enhancements — is the active roadmap phase. Phase 7 Package 1 (Credential
+& Configuration Diagnostics) definition is accepted; implementation is
+now authorized. Desktop Package 12+ work is not yet authorized and requires
+a separate definition entry.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
@@ -73,13 +74,14 @@ Current objectives:
   source-inspection tests; recoverable and exception failure paths both close
   the run as `failed` with error detail persisted. No UI, schema, scheduler,
   or scope changes.
-- Phase 6 Package 5 (Dashboard integration: Pipeline Runs screen) Ã¢â‚¬â€ **definition
-  accepted; implementation authorized** pending operator runtime validation
-  precondition (run `jsa run` against real data and verify `pipeline_runs`
-  records before implementation begins). Scope: `GET /dashboard/pipeline-runs`
-  read-only screen via `PipelineService.list_recent_runs()`; template with run
-  list, counters, error detail, empty state; navigation link. Completes Phase 5
-  Package 9c. See `DECISION_LOG.md` for full scope and acceptance criteria.
+- Phase 6 Package 5 (Dashboard integration: Pipeline Runs screen) Ã¢â‚¬â€ **complete**
+  (commit `a69b36d`; 998 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR
+  COMMIT). Delivered `GET /dashboard/pipeline-runs` read-only via
+  `PipelineService.list_recent_runs()`; run table with all counters, status,
+  notes, and collapsible `metadata_json`; empty/running/completed/failed states;
+  nav link activated; 13 tests including source-inspection, no-mutation, and
+  single-dependency enforcement. Completes Phase 5 Package 9c and formally
+  closes Phase 6.
 - ATLAS Desktop Package 1 - Desktop Shell Ã¢â‚¬â€ **complete** (commit `d6bdde7`;
   808 passed, 1 skipped, 6 warnings). Delivered `frontend/` Vite React
   TypeScript scaffold, ATLAS shell layout, sidebar navigation, workspace
@@ -275,6 +277,8 @@ Architecture complete, implementation pending:
 - draft-to-SQLite sync for firm profiles: approved as a decision; implementation not yet built; required before Package 7 (Firm Review Queue) can begin
 - dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 4+5)
 - local-first background runner (Phase 6 Package 4): complete (commit `31a560d`); `jsa run` CLI and `PipelineRunner` delivered
+- Phase 6 Package 5 / Phase 5 Package 9c (Pipeline Runs dashboard screen): complete (commit `a69b36d`); Phase 6 formally closed
+- Phase 7 Package 1 (Credential & Configuration Diagnostics): definition accepted; implementation authorized; addresses credential error surfaced by runtime validation pass
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 
