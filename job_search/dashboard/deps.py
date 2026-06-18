@@ -20,6 +20,7 @@ from job_search.services.firms import FirmsService
 from job_search.services.jobs import JobsService
 from job_search.services.metrics import MetricsService
 from job_search.services.pipeline import PipelineService
+from job_search.services.recommendations import RecommendationService
 from job_search.services.source_health import SourceHealthService
 from job_search.services.tracker import TrackerService
 
@@ -38,6 +39,10 @@ def get_atlas_data_service() -> AtlasDataService:
 
 def get_pipeline_service() -> PipelineService:
     return PipelineService()
+
+
+def get_recommendation_service() -> RecommendationService:
+    return RecommendationService()
 
 
 def get_tracker_service() -> TrackerService:

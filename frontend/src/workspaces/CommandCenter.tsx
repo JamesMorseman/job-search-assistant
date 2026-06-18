@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { AtlasApiError, getPipelineRuns, getSummary } from "../api/client";
+import { AtlasApiError, getPipelineRuns, getRecommendations, getSummary } from "../api/client";
 import {
   type DataState,
   errorState,
@@ -9,7 +9,7 @@ import {
   loadingState,
   successState,
 } from "../api/state";
-import type { AtlasPipelineRun, AtlasSummary } from "../api/types";
+import type { AtlasPipelineRun, AtlasRecommendation, AtlasSummary } from "../api/types";
 import "./commandCenter.css";
 
 type RunStatusLabel = "Running" | "Completed" | "Failed" | "Unknown";
@@ -41,11 +41,25 @@ function statusClass(label: RunStatusLabel): string {
   }
 }
 
+function recommendationPriorityLabel(priority: AtlasRecommendation["priority"]): string {
+  switch (priority) {
+    case "high":
+      return "High";
+    case "medium":
+      return "Medium";
+    case "low":
+      return "Low";
+  }
+}
+
 export default function CommandCenter() {
   const [summaryState, setSummaryState] = useState<DataState<AtlasSummary>>(idleState());
   const [pipelineState, setPipelineState] = useState<DataState<AtlasPipelineRun[]>>(
     idleState(),
   );
+  const [recommendationState, setRecommendationState] = useState<
+    DataState<AtlasRecommendation[]>
+  >(idleState());
 
   useEffect(() => {
     let cancelled = false;
@@ -92,6 +106,32 @@ export default function CommandCenter() {
             ? `Unable to load pipeline snapshot: ${error.message}`
             : "Unable to load pipeline snapshot.";
         setPipelineState(errorState(message));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setRecommendationState(loadingState());
+
+    getRecommendations()
+      .then((response) => {
+        if (!cancelled) {
+          setRecommendationState(successState(response.recommendations));
+        }
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        const message =
+          error instanceof AtlasApiError
+            ? `Unable to load recommendations: ${error.message}`
+            : "Unable to load recommendations.";
+        setRecommendationState(errorState(message));
       });
 
     return () => {
@@ -211,14 +251,53 @@ export default function CommandCenter() {
           )}
         </article>
 
-        <article
-          className="atlas-cc-panel atlas-cc-panel-deferred"
-          aria-labelledby="cc-recommendations-title"
-        >
+        <article className="atlas-cc-panel" aria-labelledby="cc-recommendations-title">
           <h3 id="cc-recommendations-title">Recommendations</h3>
-          <div className="atlas-cc-status atlas-cc-status-deferred">
-            <p>Recommendations engine not yet active.</p>
-          </div>
+
+          {recommendationState.status === "loading" && (
+            <div className="atlas-cc-status" role="status">
+              <p>Loading recommendations...</p>
+            </div>
+          )}
+
+          {recommendationState.status === "error" && (
+            <div className="atlas-cc-status atlas-cc-status-error" role="alert">
+              <p>Unable to load recommendations.</p>
+              <p className="atlas-cc-status-detail">{recommendationState.error}</p>
+            </div>
+          )}
+
+          {recommendationState.status === "success" &&
+            recommendationState.data?.length === 0 && (
+              <div className="atlas-cc-status">
+                <p>No recommendations available yet.</p>
+              </div>
+            )}
+
+          {recommendationState.status === "success" &&
+            recommendationState.data &&
+            recommendationState.data.length > 0 && (
+              <ul className="atlas-cc-recommendations">
+                {recommendationState.data.map((recommendation, index) => (
+                  <li
+                    className="atlas-cc-recommendation-card"
+                    key={`${recommendation.action_surface}-${index}`}
+                  >
+                    <div className="atlas-cc-recommendation-meta">
+                      <span
+                        className={`atlas-cc-recommendation-priority atlas-cc-recommendation-priority-${recommendation.priority}`}
+                      >
+                        {recommendationPriorityLabel(recommendation.priority)}
+                      </span>
+                      <span className="atlas-cc-recommendation-surface">
+                        {recommendation.action_surface}
+                      </span>
+                    </div>
+                    <p>{recommendation.text}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
         </article>
       </div>
 

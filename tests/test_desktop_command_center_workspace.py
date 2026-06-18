@@ -31,6 +31,8 @@ OPPORTUNITY_DETAIL_SURFACE_TSX = (
 ATLAS_API_PY = (
     Path(__file__).resolve().parents[1] / "job_search" / "dashboard" / "routes" / "atlas_api.py"
 ).read_text(encoding="utf-8")
+CLIENT_TS = (FRONTEND_SRC / "api" / "client.ts").read_text(encoding="utf-8")
+TYPES_TS = (FRONTEND_SRC / "api" / "types.ts").read_text(encoding="utf-8")
 
 
 @pytest.fixture
@@ -73,6 +75,10 @@ def test_command_center_uses_get_pipeline_runs():
     assert "getPipelineRuns" in COMMAND_CENTER_TSX
 
 
+def test_command_center_uses_get_recommendations():
+    assert "getRecommendations" in COMMAND_CENTER_TSX
+
+
 def test_command_center_does_not_call_fetch_directly():
     assert "fetch(" not in COMMAND_CENTER_TSX
 
@@ -99,6 +105,17 @@ def test_command_center_no_backend_endpoint_added():
     assert "command-center" not in ATLAS_API_PY
 
 
+def test_frontend_client_exposes_get_recommendations():
+    assert "export function getRecommendations" in CLIENT_TS
+    assert '"/recommendations"' in CLIENT_TS
+
+
+def test_frontend_types_define_recommendation_shape():
+    assert "AtlasRecommendation" in TYPES_TS
+    assert "AtlasRecommendationsResponse" in TYPES_TS
+    assert "action_surface" in TYPES_TS
+
+
 # ── Panel content ──────────────────────────────────────────────────────────
 
 
@@ -115,8 +132,12 @@ def test_pipeline_snapshot_panel_renders_status_counters_timestamp():
     assert "started_at" in COMMAND_CENTER_TSX
 
 
-def test_recommendations_deferred_state_renders():
-    assert "Recommendations engine not yet active" in COMMAND_CENTER_TSX
+def test_recommendations_section_renders_from_api_data():
+    assert "Recommendations engine not yet active" not in COMMAND_CENTER_TSX
+    assert "recommendationState" in COMMAND_CENTER_TSX
+    assert "recommendation.text" in COMMAND_CENTER_TSX
+    assert "recommendation.priority" in COMMAND_CENTER_TSX
+    assert "recommendation.action_surface" in COMMAND_CENTER_TSX
 
 
 def test_navigation_shortcuts_present():
@@ -130,17 +151,20 @@ def test_navigation_shortcuts_present():
 def test_loading_states_exist():
     assert "Loading opportunity signals" in COMMAND_CENTER_TSX
     assert "Loading pipeline snapshot" in COMMAND_CENTER_TSX
+    assert "Loading recommendations" in COMMAND_CENTER_TSX
 
 
 def test_error_states_exist():
     assert "AtlasApiError" in COMMAND_CENTER_TSX
     assert "Unable to load opportunity signals" in COMMAND_CENTER_TSX
     assert "Unable to load pipeline snapshot" in COMMAND_CENTER_TSX
+    assert "Unable to load recommendations" in COMMAND_CENTER_TSX
 
 
 def test_empty_states_exist():
     assert "No opportunities tracked yet" in COMMAND_CENTER_TSX
     assert "No pipeline runs recorded yet" in COMMAND_CENTER_TSX
+    assert "No recommendations available yet" in COMMAND_CENTER_TSX
 
 
 # ── Boundary / scope enforcement ─────────────────────────────────────────

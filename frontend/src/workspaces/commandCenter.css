@@ -38,11 +38,6 @@
   font-size: 15px;
 }
 
-.atlas-cc-panel-deferred {
-  border-style: dashed;
-  background: rgba(255, 255, 255, 0.02);
-}
-
 .atlas-cc-status {
   color: var(--atlas-muted);
   font-size: 13px;
@@ -57,12 +52,6 @@
   margin-top: 8px;
   color: var(--atlas-soft);
   font-size: 13px;
-}
-
-.atlas-cc-status-deferred p {
-  margin: 0;
-  color: var(--atlas-muted);
-  font-style: italic;
 }
 
 .atlas-cc-total {
@@ -171,6 +160,70 @@
   margin: 14px 0 0;
   color: var(--atlas-muted);
   font-size: 12px;
+}
+
+.atlas-cc-recommendations {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.atlas-cc-recommendation-card {
+  padding: 12px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.atlas-cc-recommendation-card p {
+  margin: 9px 0 0;
+  color: var(--atlas-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.atlas-cc-recommendation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.atlas-cc-recommendation-priority,
+.atlas-cc-recommendation-surface {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-cc-recommendation-priority {
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.atlas-cc-recommendation-priority-high {
+  color: #f08a8a;
+  background: rgba(240, 138, 138, 0.1);
+  border: 1px solid rgba(240, 138, 138, 0.32);
+}
+
+.atlas-cc-recommendation-priority-medium {
+  color: var(--atlas-accent-strong);
+  background: rgba(88, 166, 255, 0.12);
+  border: 1px solid rgba(88, 166, 255, 0.35);
+}
+
+.atlas-cc-recommendation-priority-low {
+  color: var(--atlas-success);
+  background: rgba(121, 223, 157, 0.1);
+  border: 1px solid rgba(121, 223, 157, 0.32);
+}
+
+.atlas-cc-recommendation-surface {
+  color: var(--atlas-muted);
 }
 
 .atlas-cc-shortcuts {

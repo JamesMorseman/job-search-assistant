@@ -75,3 +75,14 @@ export type AtlasPipelineRunsResponse = {
   runs: AtlasPipelineRun[];
   limit: number;
 };
+
+export type AtlasRecommendation = {
+  text: string;
+  priority: "high" | "medium" | "low";
+  action_surface: "radar" | "pipeline" | "opportunity-detail" | "command-center";
+};
+
+export type AtlasRecommendationsResponse = {
+  recommendations: AtlasRecommendation[];
+  generated_at: string;
+};

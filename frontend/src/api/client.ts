@@ -2,6 +2,7 @@ import type {
   AtlasOpportunityDetail,
   AtlasOpportunityListResponse,
   AtlasPipelineRunsResponse,
+  AtlasRecommendationsResponse,
   AtlasSummary,
 } from "./types";
 
@@ -54,4 +55,8 @@ export function getPipelineRuns(limit?: number): Promise<AtlasPipelineRunsRespon
   }
   const query = search.toString();
   return fetchJson<AtlasPipelineRunsResponse>(`/pipeline/runs${query ? `?${query}` : ""}`);
+}
+
+export function getRecommendations(): Promise<AtlasRecommendationsResponse> {
+  return fetchJson<AtlasRecommendationsResponse>("/recommendations");
 }
