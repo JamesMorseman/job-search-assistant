@@ -124,5 +124,6 @@ source of truth for accepted scope.
 - `docs/Architecture/resume_generation_architecture.md` - document generation
   architecture
 - `docs/Architecture/location_scoring.md` - location-scoring methodology
+- `docs/Runbooks/LOCAL_LAUNCH.md` - local Windows ATLAS launch runbook
 - `docs/Public/TECHNICAL_ARCHITECTURE.md` - portfolio technical summary
 - `docs/Public/PRIVACY_AND_REDACTION.md` - publication gate checklist
