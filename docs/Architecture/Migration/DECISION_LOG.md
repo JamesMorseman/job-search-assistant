@@ -1905,8 +1905,9 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
     `job_search/`
   - No Jinja2 templates may be created for ATLAS product surfaces
   - Tauri integration is not authorized until Desktop v1 proof is complete
-  - Ask Atlas (Desktop Package 7) must include an explicit prohibited-scope
-    list enforcing "Investigation Surface not Chat Surface" at implementation time
+  - Ask Atlas (current Desktop Package 8; previously referenced here as
+    Package 7) must include an explicit prohibited-scope list enforcing
+    "Investigation Surface not Chat Surface" at implementation time
 - Date: June 2026
 - State reference: `PROJECT_STATE.md`
 - Architecture reference: `roadmap.md` (Phase 6 / ATLAS Desktop section),
@@ -2724,7 +2725,7 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   visibility, run counters and timing.
 
   Pipeline does not own: opportunity discovery (Radar), opportunity investigation
-  (Opportunity Detail / Ask Atlas), recommendations (Package 7+), career strategy
+  (Opportunity Detail / Ask Atlas), recommendations (Package 7), career strategy
   (Command Center).
 
   **Data dependency note:**
@@ -3087,6 +3088,250 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
   `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md` §7
   Step 5, `docs/Brand/ATLAS Command Center Workspace Specification v1.0.md`
-- Follow-up work: After Package 6 ships and acceptance criteria are verified,
-  write and accept ATLAS Desktop Package 7 — Recommendations Integration
-  definition entry before issuing the Package 7 implementation task.
+- Follow-up work: Desktop Package 7 — Recommendations MVP definition accepted;
+  implementation authorized (see entry below).
+
+### ATLAS Desktop Package 6 - Command Center MVP Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Command Center workspace
+- Date: June 2026
+- Rationale: Records Project Master acceptance of commit `d9eec59`. Desktop
+  Package 6 — Command Center MVP is accepted as complete. All 15 acceptance
+  criteria from the Package 6 definition entry are verified. Implementation is
+  closed.
+
+  **Commit:** `d9eec59` (`feat(atlas): implement Desktop Package 6 Command Center MVP`)
+
+  **Test result:** 892 passed, 1 skipped, 6 warnings (baseline: 870 passed, 1
+  skipped). 22 tests added by Package 6. No regressions.
+
+  **Leah audit verdict:** ACCEPT FOR COMMIT. Blockers: none.
+
+  **Files created:** `frontend/src/workspaces/commandCenter.css`,
+  `tests/test_desktop_command_center_workspace.py`
+
+  **Files modified:** `frontend/src/workspaces/CommandCenter.tsx`
+
+  **Scope delivered:**
+
+  1. Command Center route at `/atlas/command-center` replacing Package 1
+     placeholder. `WorkspacePlaceholder` removed.
+  2. Opportunity Signal summary panel — `getSummary()` from Package 2 frontend
+     API client; displays `total_opportunities` and `stages` distribution.
+     Independent loading/error/empty state.
+  3. Pipeline Snapshot panel — `getPipelineRuns()` from Package 5 frontend API
+     client; displays `mostRecentRun` (index 0) with status indicator, counters
+     (seen/created/updated/errors), and timestamp. Independent loading/error/
+     empty state.
+  4. Recommendations deferred-state section — renders "Recommendations engine
+     not yet active" explicitly; not silently absent.
+  5. Navigation shortcuts — `<Link to="/radar">Open Radar</Link>` and
+     `<Link to="/pipeline">Open Pipeline</Link>`.
+  6. No new backend endpoint added (`test_command_center_no_backend_endpoint_added`
+     confirmed: "command-center" absent from `atlas_api.py`). Existing Package 2
+     and Package 5 DTOs were sufficient.
+  7. Each panel uses independent `useEffect` fetch with cancellation guard;
+     independent `DataState<T>` state.
+
+  **Acceptance criteria verification (all 15 pass):**
+
+  - Build PASS; pytest 892 passed, 0 regressions; `/dashboard/*` unaffected ✓
+  - Command Center renders within ATLAS shell ✓
+  - Opportunity Signal summary panel renders from `getSummary()` ✓
+  - Pipeline Snapshot panel renders from `getPipelineRuns()` (most recent run) ✓
+  - Recommendations section renders deferred-state message (not silent) ✓
+  - Navigation shortcuts to `/radar` and `/pipeline` present ✓
+  - Loading / error / empty states per panel render without crashing ✓
+  - No Recommendations generation, Focus objects, Ask Atlas, mutations, or
+    prohibited scope (`test_command_center_does_not_implement_prohibited_behavior`
+    passes) ✓
+  - No database / schema changes (diff: frontend/workspaces/* and tests/* only;
+    no `atlas_api.py` change) ✓
+  - No `ContextPanelContext` ownership ✓
+  - Package 5 `Pipeline.tsx`, Package 4 `Radar.tsx`, Package 3
+    `OpportunityDetailSurface.tsx` not modified ✓
+  - Package 2 and Package 5 API boundaries unmodified in `atlas_api.py`
+    (`test_package2_and_package5_api_boundaries_unmodified_in_source` passes) ✓
+  - No direct `fetch()` outside `client.ts` (`test_frontend_api_client_remains_centralized`
+    passes) ✓
+
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
+- Follow-up work: Desktop Package 7 — Recommendations MVP definition accepted;
+  implementation authorized (see entry below).
+
+### ATLAS Desktop Package 7 - Recommendations MVP Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Recommendations
+- Date: June 2026
+- Rationale: Records the formal package definition for ATLAS Desktop Package 7
+  — Recommendations MVP. Per the standing governance rule, no implementation
+  may begin before this entry is accepted by Project Master. This entry
+  constitutes that acceptance. Implementation is now authorized within the
+  scope defined below.
+
+  **Authority:** `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`
+  §7 Step 6 ("Integrate recommendations across: Command Center, Opportunity
+  Detail, Pipeline, Ask Atlas. Reason: Recommendations prove Atlas interprets.");
+  `docs/Brand/ATLAS Recommendation Card Specification v1.0.md`;
+  `docs/Brand/ATLAS Recommendation Card v1.0 Production Candidate..md`
+
+  **Package objective:**
+
+  Introduce ATLAS's interpretation layer — the first LLM-driven signal in the
+  desktop surface. The Recommendations MVP establishes a `RecommendationService`
+  using the existing JSA LLM provider abstraction, a new read-only
+  `/atlas/api/recommendations` endpoint, and populates the Command Center
+  Recommendations section with real generated recommendations (replacing the
+  Package 6 deferred-state placeholder). Cross-surface integration into
+  Opportunity Detail, Pipeline, and Ask Atlas is deferred to Package 8+.
+
+  **Workspace ownership:**
+
+  Recommendations are contextual intelligence objects surfaced within the Command
+  Center at Package 7 MVP. They do not own any workspace themselves — they are
+  a cross-cutting product feature integrated into surfaces progressively across
+  packages.
+
+  **Architecture note — stateless at MVP:**
+
+  Package 7 uses stateless, per-request recommendation generation. No new
+  database table or schema change is required at MVP. The `GET
+  /atlas/api/recommendations` endpoint calls `RecommendationService` on each
+  request. `RecommendationService` reads from existing services (opportunity
+  summary and most recent pipeline run) as context, then calls the existing LLM
+  provider abstraction to generate at most 3 structured recommendations.
+  Caching and persistence are deferred to a future package once the
+  recommendation quality and format are validated.
+
+  **Pattern authority:**
+
+  The existing LLM provider abstraction in this codebase (used by grading and
+  generation services) is the authorized pattern. `RecommendationService` must
+  follow the same provider-abstraction interface — it must not introduce a
+  new LLM client or hard-code a provider.
+
+  **Scope — authorized for Package 7 implementation:**
+
+  1. **`RecommendationService`** — new service at
+     `job_search/services/recommendations.py`. Accepts opportunity summary data
+     and most recent pipeline run as context. Calls the existing LLM provider
+     abstraction. Returns a structured list of at most 3 `Recommendation` objects.
+     Each object includes: `text` (the recommendation copy), `priority`
+     (high/medium/low), and `action_surface` (the ATLAS surface most relevant to
+     the recommendation, e.g., "radar", "pipeline", "opportunity-detail").
+     Stateless — no database reads or writes.
+
+  2. **`GET /atlas/api/recommendations` endpoint** — new read-only GET route in
+     `atlas_api.py`. Calls `RecommendationService` with context sourced from
+     `AtlasDataService.get_summary()` and `PipelineService.list_recent_runs(limit=1)`.
+     Returns `{recommendations: Recommendation[], generated_at: str}`.
+
+  3. **`getRecommendations()` frontend client method** — added to
+     `frontend/src/api/client.ts`. Corresponding `AtlasRecommendation` and
+     `AtlasRecommendationsResponse` types added to `frontend/src/api/types.ts`.
+     Follows Package 2 `fetchJson` pattern.
+
+  4. **Command Center Recommendations section populated** — replace the
+     Package 6 deferred-state placeholder with a real `getRecommendations()` call.
+     Render recommendation cards displaying `text` and `priority`. Retain
+     loading, error, and empty states (if LLM returns zero recommendations).
+     The deferred-state message ("Recommendations engine not yet active") is
+     retired in Package 7 — this is the engine becoming active.
+
+  5. **Tests** — covering: `RecommendationService` constructs correct prompt and
+     parses structured response (LLM call mocked in tests); endpoint returns
+     correct response shape; frontend consumes endpoint via client boundary;
+     Recommendations section renders from API data; loading/error/empty states;
+     `RecommendationService` follows provider abstraction (does not hard-code
+     provider); no mutation actions on recommendations; prior surfaces
+     (Pipeline.tsx, Radar.tsx, OpportunityDetailSurface.tsx) not modified;
+     no ContextPanelContext ownership.
+
+  **Authorized data paths:**
+
+  - `RecommendationService` may read from `AtlasDataService` and
+    `PipelineService` for context — it must not query SQLite directly.
+  - `GET /atlas/api/recommendations` is the sole authorized backend endpoint for
+    recommendation data. No new frontend fetch outside `client.ts`.
+  - Package 7 must not add recommendation data to the `pipeline_runs` table or
+    any existing table.
+
+  **Out of scope / prohibited for Desktop Package 7:**
+
+  - Recommendation persistence or caching (deferred to a future package)
+  - New database tables or schema changes
+  - Recommendation display in Opportunity Detail (deferred to Package 8)
+  - Recommendation display in Pipeline workspace (deferred to Package 8)
+  - Recommendation display in Radar (deferred to Package 8)
+  - Ask Atlas / conversational behavior
+  - Mutation actions on recommendations (no "apply", "dismiss", "accept",
+    "reject" actions)
+  - New scoring or ingestion logic
+  - Background runner or scheduler behavior
+  - Hard-coded LLM provider (must use existing abstraction)
+  - Cloud sync or Tauri packaging
+  - Atlas Focus objects
+
+  **Package boundaries:**
+
+  - Package 7 modifies only: `job_search/services/recommendations.py` (new),
+    `job_search/dashboard/routes/atlas_api.py` (new endpoint),
+    `job_search/dashboard/deps.py` (new factory),
+    `frontend/src/api/client.ts` (new method),
+    `frontend/src/api/types.ts` (new types),
+    `frontend/src/workspaces/CommandCenter.tsx` (Recommendations section updated).
+  - Package 6 `commandCenter.css` may be extended for recommendation card styles.
+  - Package 5 `Pipeline.tsx`, Package 4 `Radar.tsx`, Package 3
+    `OpportunityDetailSurface.tsx` must not be modified.
+  - `ContextPanelContext` must not be set or cleared.
+  - Package 2 and Package 5 API boundaries must not be modified.
+  - No new database tables or schema files modified.
+
+  **Standing rule carried forward:**
+
+  The tech stack acceptance entry (DECISION_LOG.md, "ATLAS Desktop v1 —
+  Frontend Technology Stack Decision") established: "Ask Atlas (Desktop Package
+  7) must include an explicit prohibited-scope list enforcing 'Investigation
+  Surface not Chat Surface' at implementation time." In the current package
+  numbering, Ask Atlas is Desktop Package 8 (not 7). This rule is carried
+  forward to the Package 8 definition: the Package 8 DECISION_LOG entry must
+  include an explicit prohibited-scope list enforcing "Investigation Surface not
+  Chat Surface" before implementation is authorized.
+
+  **Acceptance criteria:**
+
+  1. Frontend build passes (`npm run build`).
+  2. `pytest` passes with no regressions (baseline: 892 passed, 1 skipped).
+  3. Existing `/dashboard/*` routes remain unaffected.
+  4. `/atlas` routing remains isolated.
+  5. `GET /atlas/api/recommendations` endpoint returns `{recommendations, generated_at}`.
+  6. `RecommendationService` uses the existing LLM provider abstraction (not a
+     hard-coded provider).
+  7. Recommendations render in the Command Center section (deferred placeholder
+     retired).
+  8. Loading, error, and empty (zero recommendations) states render without
+     crashing.
+  9. No mutation actions on recommendations (no apply/dismiss/accept/reject).
+  10. No database / schema changes.
+  11. Package 5 `Pipeline.tsx` not modified.
+  12. Package 4 `Radar.tsx` not modified.
+  13. Package 3 `OpportunityDetailSurface.tsx` not modified.
+  14. No `ContextPanelContext` ownership.
+  15. No direct `fetch()` outside `client.ts`.
+
+  As of this entry: 892 tests pass, 1 skipped (Package 6 baseline). Package 7
+  implementation is now authorized.
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md` §7
+  Step 6, `docs/Brand/ATLAS Recommendation Card Specification v1.0.md`,
+  `docs/Brand/ATLAS Recommendation Card v1.0 Production Candidate..md`
+- Follow-up work: After Package 7 ships and acceptance criteria are verified,
+  write and accept ATLAS Desktop Package 8 — Ask Atlas definition entry
+  (must include explicit "Investigation Surface not Chat Surface" prohibited-scope
+  list) before issuing the Package 8 implementation task.

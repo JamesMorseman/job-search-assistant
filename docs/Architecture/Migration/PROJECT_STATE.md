@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-5 complete; Desktop Package 6 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-6 complete; Desktop Package 7 definition accepted
 
 ## Purpose
 
@@ -33,9 +33,9 @@ required before its implementation begins.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
-MVP), 4 (Radar Workspace MVP), and 5 (Pipeline Workspace MVP) are accepted and
-complete. Desktop Package 6 — Command Center MVP definition is accepted;
-implementation is now authorized.
+MVP), 4 (Radar Workspace MVP), 5 (Pipeline Workspace MVP), and 6 (Command
+Center MVP) are accepted and complete. Desktop Package 7 — Recommendations MVP
+definition is accepted; implementation is now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -99,14 +99,23 @@ Current objectives:
   and timestamps; loading/error/empty states; 23 tests. No mutations, no schema
   changes, no ContextPanelContext ownership, Package 4 and Package 3 surfaces
   untouched.
-- ATLAS Desktop Package 6 - Command Center MVP — **definition accepted;
-  implementation authorized.** Scope: replace `/command-center` placeholder;
-  Opportunity Signal summary panel (via `getSummary()` Package 2 boundary);
-  Pipeline Snapshot panel (via `getPipelineRuns()` Package 5 boundary);
-  Recommendations deferred-state section; navigation shortcuts to Radar and
-  Pipeline; loading/error/empty states per panel; tests. No new backend endpoints
-  required at MVP; one optional aggregate endpoint conditionally authorized.
-  See `DECISION_LOG.md` "ATLAS Desktop Package 6 - Command Center MVP Definition
+- ATLAS Desktop Package 6 - Command Center MVP — **complete** (commit
+  `d9eec59`; 892 passed, 1 skipped; Leah ACCEPT FOR COMMIT). Delivered
+  `/atlas/command-center` route replacing Package 1 placeholder; Opportunity
+  Signal summary panel via `getSummary()` (Package 2); Pipeline Snapshot panel
+  via `getPipelineRuns()` (Package 5) showing most recent run; Recommendations
+  deferred-state section ("Recommendations engine not yet active"); navigation
+  shortcuts to `/radar` and `/pipeline`; independent loading/error/empty states
+  per panel. No new backend endpoint; no schema changes; no ContextPanelContext
+  ownership; Packages 3-5 surfaces untouched.
+- ATLAS Desktop Package 7 - Recommendations MVP — **definition accepted;
+  implementation authorized.** Scope: new `RecommendationService` using existing
+  LLM provider abstraction; `GET /atlas/api/recommendations` read endpoint;
+  `getRecommendations()` frontend client method; Command Center Recommendations
+  section populated (deferred placeholder retired); loading/error/empty states;
+  tests. Stateless at MVP (no new schema/table). Cross-surface integration into
+  Opportunity Detail, Pipeline, Ask Atlas deferred to Package 8+. See
+  `DECISION_LOG.md` "ATLAS Desktop Package 7 - Recommendations MVP Definition
   Accepted."
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
