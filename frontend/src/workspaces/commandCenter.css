@@ -303,6 +303,65 @@
   line-height: 1.45;
 }
 
+.atlas-cc-focus-archive-panel {
+  border-color: rgba(56, 211, 196, 0.16);
+}
+
+.atlas-cc-focus-archive-list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.atlas-cc-focus-archive-card {
+  padding: 12px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(13, 18, 27, 0.6);
+}
+
+.atlas-cc-focus-archive-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.atlas-cc-focus-archive-header p {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.atlas-cc-focus-archive-header span {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: 999px;
+  color: var(--atlas-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-cc-focus-archive-meta {
+  margin: 6px 0 0;
+  color: var(--atlas-muted);
+  font-size: 11px;
+}
+
+.atlas-cc-focus-archive-note {
+  margin: 6px 0 0;
+  color: var(--atlas-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .atlas-cc-shortcuts {
   display: flex;
   flex-wrap: wrap;

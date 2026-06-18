@@ -210,6 +210,24 @@ CREATE INDEX IF NOT EXISTS idx_pipeline_runs_started
 CREATE INDEX IF NOT EXISTS idx_pipeline_runs_type_started
     ON pipeline_runs(run_type, started_at DESC);
 
+-- ── Atlas Focus resolution/archive records ───────────────────────────────────
+-- Written exclusively through FocusResolutionService (ATLAS Desktop Package 10).
+-- Preserves resolved Atlas Focus objects as a local archive instead of letting
+-- them disappear once FocusService stops deriving them.
+CREATE TABLE IF NOT EXISTS focus_resolutions (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_object   TEXT NOT NULL,
+    focus_statement TEXT NOT NULL,
+    resolution      TEXT NOT NULL,               -- completed|deferred|dismissed|superseded|expired
+    note            TEXT,
+    resolved_at     TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_focus_resolutions_source
+    ON focus_resolutions(source_object, resolved_at DESC);
+CREATE INDEX IF NOT EXISTS idx_focus_resolutions_resolved_at
+    ON focus_resolutions(resolved_at DESC);
+
 -- ── Triggers: keep updated_at fresh ──────────────────────────────────────────
 CREATE TRIGGER IF NOT EXISTS jobs_updated_at
     AFTER UPDATE ON jobs

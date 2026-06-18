@@ -1,11 +1,14 @@
 import type {
   AskAtlasInvestigationResponse,
+  AtlasFocusArchiveResponse,
   AtlasFocusListResponse,
   AtlasOpportunityDetail,
   AtlasOpportunityListResponse,
   AtlasPipelineRunsResponse,
   AtlasRecommendationsResponse,
   AtlasSummary,
+  FocusResolutionRecord,
+  FocusResolutionRequest,
 } from "./types";
 
 const API_BASE = "/atlas/api";
@@ -72,4 +75,23 @@ export function getAskAtlasInvestigation(prompt: string): Promise<AskAtlasInvest
 
 export function getFocuses(): Promise<AtlasFocusListResponse> {
   return fetchJson<AtlasFocusListResponse>("/focuses");
+}
+
+export function resolveFocus(
+  request: FocusResolutionRequest,
+): Promise<FocusResolutionRecord> {
+  return fetchJson<FocusResolutionRecord>("/focuses/resolutions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+export function getFocusArchive(limit?: number): Promise<AtlasFocusArchiveResponse> {
+  const search = new URLSearchParams();
+  if (limit !== undefined) {
+    search.set("limit", String(limit));
+  }
+  const query = search.toString();
+  return fetchJson<AtlasFocusArchiveResponse>(`/focuses/archive${query ? `?${query}` : ""}`);
 }

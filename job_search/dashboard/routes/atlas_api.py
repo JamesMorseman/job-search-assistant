@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from job_search.dashboard.deps import (
     get_atlas_data_service,
     get_ask_atlas_service,
+    get_focus_resolution_service,
     get_focus_service,
     get_pipeline_service,
     get_recommendation_service,
@@ -22,6 +23,11 @@ from job_search.services.atlas import (
     AtlasSummary,
 )
 from job_search.services.focus import AtlasFocus, FocusService
+from job_search.services.focus_resolution import (
+    FocusResolutionAction,
+    FocusResolutionRecord,
+    FocusResolutionService,
+)
 from job_search.services.pipeline import PipelineRun, PipelineService
 from job_search.services.recommendations import Recommendation, RecommendationService
 
@@ -46,6 +52,18 @@ class AskAtlasInvestigationResponse(BaseModel):
 class FocusList(BaseModel):
     focuses: list[AtlasFocus]
     generated_at: str
+
+
+class FocusResolutionRequest(BaseModel):
+    source_object: str
+    focus_statement: str
+    resolution: FocusResolutionAction
+    note: str | None = None
+
+
+class FocusArchiveList(BaseModel):
+    resolutions: list[FocusResolutionRecord]
+    limit: int
 
 
 def _now_iso() -> str:
@@ -106,18 +124,42 @@ def list_focuses(
     atlas_service: AtlasDataService = Depends(get_atlas_data_service),
     pipeline_service: PipelineService = Depends(get_pipeline_service),
     focus_service: FocusService = Depends(get_focus_service),
+    focus_resolution_service: FocusResolutionService = Depends(get_focus_resolution_service),
 ) -> FocusList:
     summary = atlas_service.get_summary()
     opportunities = atlas_service.list_opportunities(limit=3)
     most_recent_run = next(iter(pipeline_service.list_recent_runs(limit=1)), None)
+    focuses = focus_service.list_active_focuses(
+        summary=summary,
+        opportunities=opportunities,
+        most_recent_run=most_recent_run,
+    )
+    resolved = focus_resolution_service.resolved_source_objects()
     return FocusList(
-        focuses=focus_service.list_active_focuses(
-            summary=summary,
-            opportunities=opportunities,
-            most_recent_run=most_recent_run,
-        ),
+        focuses=[f for f in focuses if f.source_object not in resolved],
         generated_at=_now_iso(),
     )
+
+
+@router.post("/focuses/resolutions", response_model=FocusResolutionRecord)
+def resolve_focus(
+    payload: FocusResolutionRequest,
+    service: FocusResolutionService = Depends(get_focus_resolution_service),
+) -> FocusResolutionRecord:
+    return service.record_resolution(
+        source_object=payload.source_object,
+        focus_statement=payload.focus_statement,
+        resolution=payload.resolution,
+        note=payload.note,
+    )
+
+
+@router.get("/focuses/archive", response_model=FocusArchiveList)
+def list_focus_archive(
+    limit: int = 20,
+    service: FocusResolutionService = Depends(get_focus_resolution_service),
+) -> FocusArchiveList:
+    return FocusArchiveList(resolutions=service.list_recent_resolutions(limit=limit), limit=limit)
 
 
 @router.get("/ask-atlas/investigation", response_model=AskAtlasInvestigationResponse)

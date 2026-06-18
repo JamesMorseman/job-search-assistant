@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import {
   AtlasApiError,
+  getFocusArchive,
   getFocuses,
   getPipelineRuns,
   getRecommendations,
@@ -20,6 +21,7 @@ import type {
   AtlasPipelineRun,
   AtlasRecommendation,
   AtlasSummary,
+  FocusResolutionRecord,
 } from "../api/types";
 import "./commandCenter.css";
 
@@ -63,6 +65,21 @@ function recommendationPriorityLabel(priority: AtlasRecommendation["priority"]):
   }
 }
 
+function resolutionLabel(resolution: FocusResolutionRecord["resolution"]): string {
+  switch (resolution) {
+    case "completed":
+      return "Completed";
+    case "deferred":
+      return "Deferred";
+    case "dismissed":
+      return "Dismissed";
+    case "superseded":
+      return "Superseded";
+    case "expired":
+      return "Expired";
+  }
+}
+
 export default function CommandCenter() {
   const [summaryState, setSummaryState] = useState<DataState<AtlasSummary>>(idleState());
   const [pipelineState, setPipelineState] = useState<DataState<AtlasPipelineRun[]>>(
@@ -72,6 +89,9 @@ export default function CommandCenter() {
     DataState<AtlasRecommendation[]>
   >(idleState());
   const [focusState, setFocusState] = useState<DataState<AtlasFocus[]>>(idleState());
+  const [focusArchiveState, setFocusArchiveState] = useState<
+    DataState<FocusResolutionRecord[]>
+  >(idleState());
 
   useEffect(() => {
     let cancelled = false;
@@ -177,6 +197,32 @@ export default function CommandCenter() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    setFocusArchiveState(loadingState());
+
+    getFocusArchive()
+      .then((response) => {
+        if (!cancelled) {
+          setFocusArchiveState(successState(response.resolutions));
+        }
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        const message =
+          error instanceof AtlasApiError
+            ? `Unable to load Focus history: ${error.message}`
+            : "Unable to load Focus history.";
+        setFocusArchiveState(errorState(message));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const mostRecentRun = pipelineState.data?.[0] ?? null;
 
   return (
@@ -236,6 +282,53 @@ export default function CommandCenter() {
               ))}
             </ul>
           )}
+        </article>
+
+        <article
+          className="atlas-cc-panel atlas-cc-focus-archive-panel"
+          aria-labelledby="cc-focus-archive-title"
+        >
+          <h3 id="cc-focus-archive-title">Focus History</h3>
+
+          {focusArchiveState.status === "loading" && (
+            <div className="atlas-cc-status" role="status">
+              <p>Loading Focus history...</p>
+            </div>
+          )}
+
+          {focusArchiveState.status === "error" && (
+            <div className="atlas-cc-status atlas-cc-status-error" role="alert">
+              <p>Unable to load Focus history.</p>
+              <p className="atlas-cc-status-detail">{focusArchiveState.error}</p>
+            </div>
+          )}
+
+          {focusArchiveState.status === "success" && focusArchiveState.data?.length === 0 && (
+            <div className="atlas-cc-status">
+              <p>No Focus objects have been resolved yet.</p>
+            </div>
+          )}
+
+          {focusArchiveState.status === "success" &&
+            focusArchiveState.data &&
+            focusArchiveState.data.length > 0 && (
+              <ul className="atlas-cc-focus-archive-list">
+                {focusArchiveState.data.map((record) => (
+                  <li className="atlas-cc-focus-archive-card" key={record.id}>
+                    <div className="atlas-cc-focus-archive-header">
+                      <p>{record.focus_statement}</p>
+                      <span>{resolutionLabel(record.resolution)}</span>
+                    </div>
+                    <p className="atlas-cc-focus-archive-meta">
+                      {record.source_object} · {record.resolved_at}
+                    </p>
+                    {record.note && (
+                      <p className="atlas-cc-focus-archive-note">{record.note}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
         </article>
 
         <article className="atlas-cc-panel" aria-labelledby="cc-signals-title">

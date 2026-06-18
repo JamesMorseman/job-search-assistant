@@ -112,3 +112,31 @@ export type AtlasFocusListResponse = {
   focuses: AtlasFocus[];
   generated_at: string;
 };
+
+export type FocusResolutionAction =
+  | "completed"
+  | "deferred"
+  | "dismissed"
+  | "superseded"
+  | "expired";
+
+export type FocusResolutionRequest = {
+  source_object: string;
+  focus_statement: string;
+  resolution: FocusResolutionAction;
+  note?: string | null;
+};
+
+export type FocusResolutionRecord = {
+  id: number;
+  source_object: string;
+  focus_statement: string;
+  resolution: FocusResolutionAction;
+  note: string | null;
+  resolved_at: string;
+};
+
+export type AtlasFocusArchiveResponse = {
+  resolutions: FocusResolutionRecord[];
+  limit: number;
+};

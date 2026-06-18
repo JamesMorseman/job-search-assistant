@@ -140,8 +140,11 @@ def test_ask_atlas_endpoint_is_get_only_and_uses_existing_context_boundaries():
     assert "ask_atlas_service.investigate" in ATLAS_API_PY
     assert "get_ask_atlas_service" in DEPS_PY
     assert "AskAtlasService()" in DEPS_PY
-    for verb in ['@router.post(', '@router.put(', '@router.patch(', '@router.delete(']:
+    for verb in ['@router.put(', '@router.patch(', '@router.delete(']:
         assert verb not in ATLAS_API_PY
+    # Package 10 authorizes exactly one POST mutation route (Focus
+    # resolution); Ask Atlas itself must not gain one.
+    assert '@router.post("/ask-atlas' not in ATLAS_API_PY
 
 
 def test_ask_atlas_route_exists_and_placeholder_is_replaced():

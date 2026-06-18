@@ -130,8 +130,11 @@ def test_recommendations_endpoint_is_get_only_and_uses_existing_context_services
     assert "recommendation_service.generate" in ATLAS_API_PY
     assert "get_recommendation_service" in DEPS_PY
     assert "RecommendationService()" in DEPS_PY
-    for verb in ['@router.post(', '@router.put(', '@router.patch(', '@router.delete(']:
+    for verb in ['@router.put(', '@router.patch(', '@router.delete(']:
         assert verb not in ATLAS_API_PY
+    # Package 10 authorizes exactly one POST mutation route (Focus
+    # resolution); Recommendations itself must not gain one.
+    assert '@router.post("/recommendations' not in ATLAS_API_PY
 
 
 def test_recommendations_package_does_not_add_schema_or_persistence():
