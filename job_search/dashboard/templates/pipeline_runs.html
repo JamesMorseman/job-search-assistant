@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Pipeline Runs — Job Search Assistant{% endblock %}
+
+{% block content %}
+<h2>Pipeline Runs</h2>
+
+{% if runs %}
+<table data-testid="pipeline-runs-table">
+    <thead>
+        <tr>
+            <th>Run ID</th>
+            <th>Run Type</th>
+            <th>Trigger</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Started</th>
+            <th>Completed</th>
+            <th>Seen</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Presented</th>
+            <th>Errors</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for run in runs %}
+        <tr data-testid="pipeline-run-row">
+            <td data-testid="run-id">{{ run.id }}</td>
+            <td data-testid="run-type">{{ run.run_type }}</td>
+            <td data-testid="run-trigger">{{ run.trigger }}</td>
+            <td data-testid="run-source">{{ run.source or "—" }}</td>
+            <td data-testid="run-status">{{ run.status }}</td>
+            <td data-testid="run-started-at">{{ run.started_at }}</td>
+            <td data-testid="run-completed-at">{{ run.completed_at or "—" }}</td>
+            <td data-testid="run-jobs-seen">{{ run.jobs_seen }}</td>
+            <td data-testid="run-jobs-created">{{ run.jobs_created }}</td>
+            <td data-testid="run-jobs-updated">{{ run.jobs_updated }}</td>
+            <td data-testid="run-jobs-presented">{{ run.jobs_presented }}</td>
+            <td data-testid="run-errors-count">{{ run.errors_count }}</td>
+            <td data-testid="run-notes">
+                {% if run.notes %}{{ run.notes }}{% else %}—{% endif %}
+                {% if run.metadata_json %}
+                <details data-testid="run-metadata">
+                    <summary>Metadata</summary>
+                    <pre>{{ run.metadata_json }}</pre>
+                </details>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p data-testid="no-runs-recorded">No pipeline runs recorded yet</p>
+{% endif %}
+{% endblock %}

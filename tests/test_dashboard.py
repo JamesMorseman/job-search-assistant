@@ -23,6 +23,7 @@ from job_search.dashboard.deps import (
     get_firms_service,
     get_jobs_service,
     get_metrics_service,
+    get_pipeline_service,
     get_source_health_service,
     get_tracker_service,
 )
@@ -33,6 +34,7 @@ from job_search.services.documents import DocumentsService
 from job_search.services.firms import FirmsService
 from job_search.services.jobs import JobsService
 from job_search.services.metrics import MetricsService
+from job_search.services.pipeline import PipelineService
 from job_search.services.tracker import TrackerService
 from job_search.tracking import advance_state
 
@@ -2370,3 +2372,141 @@ def test_metrics_stretch_response_suppresses_rates_for_small_n(db):
         resp = client.get("/dashboard/metrics")
     assert resp.status_code == 200
     assert "— (n=2)" in resp.text
+
+
+# ── Phase 6 Package 5 — Pipeline Runs Dashboard Screen ──────────────────
+
+
+def test_pipeline_runs_renders_200_with_empty_table(client, db):
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert "Pipeline Runs" in resp.text
+
+
+def test_pipeline_runs_empty_table_shows_no_runs_recorded(client, db):
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert 'data-testid="no-runs-recorded"' in resp.text
+
+
+def test_pipeline_runs_renders_completed_run(client, db):
+    svc = PipelineService(db)
+    run_id = svc.start_run("ingest", source="greenhouse", trigger="cli")
+    svc.update_counters(run_id, jobs_seen=120, jobs_created=8, jobs_updated=3, jobs_presented=4)
+    svc.complete_run(run_id, metadata={"adapter": "greenhouse"}, notes="OK")
+
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert 'data-testid="pipeline-run-row"' in resp.text
+    assert "ingest" in resp.text
+    assert "cli" in resp.text
+    assert "greenhouse" in resp.text
+    assert "complete" in resp.text
+    assert "120" in resp.text
+    assert "OK" in resp.text
+
+
+def test_pipeline_runs_renders_failed_run_with_error_detail(client, db):
+    svc = PipelineService(db)
+    run_id = svc.start_run("grade", trigger="cli")
+    svc.update_counters(run_id, jobs_seen=10, errors_count=10)
+    svc.fail_run(run_id, error_detail="Batch API unavailable", metadata={"retries": 3})
+
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert "failed" in resp.text
+    assert "Batch API unavailable" in resp.text
+    assert 'data-testid="run-errors-count"' in resp.text
+
+
+def test_pipeline_runs_renders_running_run_with_dash_for_completed_at(client, db):
+    svc = PipelineService(db)
+    svc.start_run("full", trigger="manual")
+
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert "running" in resp.text
+
+
+def test_pipeline_runs_shows_metadata_summary_when_present(client, db):
+    svc = PipelineService(db)
+    run_id = svc.start_run("report", trigger="cli")
+    svc.complete_run(run_id, metadata={"steps": {"report": {"presented": 4}}})
+
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert 'data-testid="run-metadata"' in resp.text
+
+
+def test_pipeline_runs_nav_link_is_active(client, db):
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert 'href="/dashboard/pipeline-runs"' in resp.text
+    assert "Pipeline Runs (not yet implemented)" not in resp.text
+
+
+def test_pipeline_runs_screen_has_no_forms(client, db):
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert "<form" not in resp.text
+
+
+def test_pipeline_runs_uses_dependency_override_not_direct_construction(db):
+    app = create_app()
+    calls = []
+
+    class _StubPipelineService:
+        def list_recent_runs(self):
+            calls.append("list_recent_runs")
+            return []
+
+    app.dependency_overrides[get_pipeline_service] = lambda: _StubPipelineService()
+    with TestClient(app) as c:
+        resp = c.get("/dashboard/pipeline-runs")
+
+    assert resp.status_code == 200
+    assert "list_recent_runs" in calls
+
+
+def test_pipeline_runs_handles_service_failure_without_500(db):
+    app = create_app()
+
+    class _FailingPipelineService:
+        def list_recent_runs(self):
+            raise RuntimeError("simulated database outage")
+
+    app.dependency_overrides[get_pipeline_service] = lambda: _FailingPipelineService()
+    with TestClient(app, raise_server_exceptions=False) as c:
+        resp = c.get("/dashboard/pipeline-runs")
+
+    assert resp.status_code == 503
+    assert "temporarily unavailable" in resp.text
+    assert "Traceback" not in resp.text
+    assert "RuntimeError" not in resp.text
+
+
+def test_pipeline_runs_route_does_not_query_sqlite_directly():
+    import inspect
+
+    from job_search.dashboard.routes import pipeline_runs as pipeline_runs_routes
+    source = inspect.getsource(pipeline_runs_routes.pipeline_runs)
+    assert "get_db" not in source
+    assert "sqlite3" not in source
+    assert "SELECT" not in source
+
+
+def test_pipeline_runs_route_has_exactly_one_dependency():
+    import inspect
+
+    from job_search.dashboard.routes import pipeline_runs as pipeline_runs_routes
+    source = inspect.getsource(pipeline_runs_routes.pipeline_runs)
+    assert source.count("Depends(") == 1
+
+
+def test_pipeline_runs_route_has_no_mutation_routes():
+    import inspect
+
+    from job_search.dashboard.routes import pipeline_runs as pipeline_runs_routes
+    source = inspect.getsource(pipeline_runs_routes)
+    for verb in ("@router.post(", "@router.put(", "@router.patch(", "@router.delete("):
+        assert verb not in source
