@@ -4043,6 +4043,153 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
   defined below. Implementation is now authorized.
 
+### Phase 7 Package 2 - Portfolio Documentation Skeleton Definition Accepted
+
+- Status: accepted
+- Area: Phase 7 / portfolio / public-facing documentation
+- Date: June 2026
+- Rationale: Phase 7 Package 1 is complete. The accepted implementation state
+  across Phases 1-6, ATLAS Desktop Packages 1-11, and Phase 7 Package 1 now
+  constitutes a portfolio-quality engineering body of work. Before any public
+  presentation, the next bounded step is to convert accepted governance state
+  into repo-grounded draft public documentation skeletons. This package is
+  documentation-only. It is not a public release authorization. Each created
+  file requires future redaction review and PM release approval before any
+  content is made public. Per the standing governance rule, no implementation
+  may begin before this entry is accepted. This entry constitutes that
+  acceptance.
+
+  **Package objective:**
+
+  Produce draft, publication-preparation documentation skeletons that:
+  (a) accurately reflect only the accepted implementation state;
+  (b) use professional portfolio language appropriate for eventual public
+  presentation; (c) include privacy/redaction guidance gating future release;
+  (d) do not constitute or authorize public release.
+
+  **Path rationale:**
+
+  docs/Public/ does not currently exist. The ATLAS Canonical Documentation
+  Taxonomy study (docs/Documentation/ATLAS_Canonical_Documentation_Taxonomy.md)
+  defines a future canonical restructure placing public-facing content under
+  docs/Developer_Guide/, docs/Product/, and docs/User_Guide/. That
+  reorganization is not authorized by this package. docs/Public/ is authorized
+  as a staging namespace, clearly separated from internal governance and
+  architecture docs, pending a future taxonomy implementation decision.
+  Existing docs/Product/ placeholder files are out of scope for this package.
+
+  **Authorized scope for Phase 7 Package 2:**
+
+  1. README.md (update). The existing README predates ATLAS Desktop, Phase 6,
+     and Phase 7, and contains personal framing (civil-engineering job pipeline
+     for James) inappropriate for a portfolio-public repo. Package 2 is
+     authorized to update README.md to reflect the accepted implementation
+     state with professional portfolio framing. The update must preserve
+     privacy/gitignore guidance, must not make production-ready or
+     external-user-ready claims, and must preserve ATLAS identity as a
+     local-first Career Intelligence / Career Mission Control system.
+
+  2. docs/Public/ATLAS_OVERVIEW.md (new). High-level product overview for
+     portfolio and non-technical readers. What ATLAS is, what problem it
+     solves, what the system delivers. ATLAS brand identity preserved:
+     local-first, Career Intelligence, Career Mission Control.
+
+  3. docs/Public/TECHNICAL_ARCHITECTURE.md (new). Technical architecture
+     draft for technical readers. Must cover: local-first SQLite as operational
+     source of truth; service boundary conventions (PipelineService,
+     FocusResolutionService, sole-write-path pattern); FastAPI (dashboard and
+     ATLAS Desktop API); React 18 + TypeScript + Vite (ATLAS Desktop SPA);
+     LLM provider abstraction layer; PipelineRunner orchestration and
+     pipeline_runs lifecycle; jsa check / jsa run CLI. Must distinguish
+     implemented from deferred. Must not include credential details or API keys.
+
+  4. docs/Public/RECRUITER_BRIEF.md (new). Non-technical summary for
+     recruiters and hiring managers. What the system does, what engineering
+     disciplines it demonstrates. No code. No internal identifiers or
+     architecture jargon. May reference ATLAS as a local-first career
+     intelligence dashboard.
+
+  5. docs/Public/PRIVACY_AND_REDACTION.md (new). Enumerates what must not
+     be public before any release: real job data, generated application
+     documents, candidate PII, API keys, capstone files, employer intelligence
+     derived from personal job search. Defines gitignore rules gating private
+     data. Serves as the publication pre-release checklist.
+
+  6. docs/Public/FEATURE_SUMMARY.md (new). Enumerated list of delivered
+     features derived from accepted governance only. Must not present planned
+     or deferred features as delivered. Deferred items clearly labelled.
+
+  7. docs/Public/SCREENSHOTS.md (new). Screenshot index with placeholder
+     rules only. Describes what screenshots should exist and what PM
+     authorization is required before actual screenshots are committed.
+     No actual screenshots or images committed by this package.
+
+  **Authorized file types:**
+
+  - Markdown (.md) only
+  - README.md (update at repo root)
+  - New files under docs/Public/ only
+  - No images, PDFs, binaries, or generated artifacts
+  - No code changes of any kind
+
+  **Out of scope / prohibited for Phase 7 Package 2:**
+
+  - Public release authorization of any kind
+  - Claims that the system is production-ready, installer-ready, or
+    external-user-ready
+  - Code changes (Python, TypeScript, HTML, CSS, configuration files)
+  - Schema or database changes
+  - Dashboard template or route changes
+  - ATLAS Desktop or frontend changes
+  - API route additions or modifications
+  - Screenshot commits (PNG, JPG, SVG, or any image format)
+  - Private job data, generated documents (resumes/cover letters),
+    capstone files, or credential/API key details
+  - Content derived from personal job search activity or real employer data
+  - Modification of any existing governance, architecture, brand, or strategy
+    docs other than README.md
+  - Population of docs/Product/ placeholder files
+
+  **Acceptance criteria:**
+
+  1. README.md uses professional portfolio framing; does not contain personal
+     framing (pipeline for James or equivalent); preserves privacy/gitignore
+     guidance; no production-ready or external-user-ready claims; correctly
+     identifies ATLAS as local-first Career Intelligence / Career Mission Control.
+  2. All seven authorized files exist (README.md updated + 6 new files under
+     docs/Public/).
+  3. docs/Public/TECHNICAL_ARCHITECTURE.md covers all required topics: SQLite,
+     service boundaries, FastAPI, React/Vite Desktop, LLM abstraction,
+     PipelineRunner, pipeline_runs lifecycle, jsa CLI. Distinguishes
+     implemented from deferred.
+  4. docs/Public/FEATURE_SUMMARY.md lists only accepted features; planned or
+     deferred items clearly labelled; no feature presented as delivered unless
+     it appears in an accepted governance commit.
+  5. docs/Public/SCREENSHOTS.md contains placeholder rules only; no image or
+     screenshot files committed alongside it.
+  6. docs/Public/PRIVACY_AND_REDACTION.md enumerates all private data
+     categories and includes a pre-release publication checklist.
+  7. Prohibited claim check: grep production.ready and installer.ready and
+     external.user.ready across docs/Public/ and README.md returns empty.
+  8. Private data leak check: grep OPENAI_API_KEY and james_profile across
+     docs/Public/ returns empty or only redaction warnings, never actual values.
+  9. No non-Markdown files modified: git diff confirms only .md files changed.
+ 10. No image files committed: git diff confirms no image files in the diff.
+ 11. pytest -q passes with no regressions (baseline: 1011 passed, 1 skipped,
+     6 warnings). Confirms no code was accidentally modified.
+ 12. Leah documentation review: confirms content accuracy against accepted
+     governance files; confirms no prohibited claims; confirms no private data.
+
+  As of definition acceptance: 1011 tests pass, 1 skipped, 6 warnings.
+  Phase 7 Package 2 implementation is now authorized.
+- Date: June 2026
+- State reference: PROJECT_STATE.md
+- Architecture reference: roadmap.md (Phase 7 section)
+- Follow-up work: After Package 2 ships and Leah documentation review passes,
+  a future Phase 7 Package 3 definition will govern publication readiness
+  review and public release authorization (a separate PM decision). Each
+  Phase 7 package requires its own definition entry before implementation begins.
+
 ### Phase 7 Package 1 — Credential & Configuration Diagnostics Accepted / Complete
 
 - Status: accepted

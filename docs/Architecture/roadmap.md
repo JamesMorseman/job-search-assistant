@@ -651,6 +651,7 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
 | Package | Status | Notes |
 |---|---|---|
 | 1 — Credential & Configuration Diagnostics | **Complete** — commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed | `jsa check` command + pre-flight guard in `jsa run`; read-only DB diagnostic; `PipelineRunner` not modified |
+| 2 — Portfolio Documentation Skeleton | **Definition accepted** — implementation authorized | README.md update + docs/Public/ skeleton (ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE, RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS); docs-only; no code; not a public release authorization |
 
 ### Objectives
 
@@ -712,8 +713,8 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
 7. ✓ ATLAS Desktop Packages 1–11 complete (Shell through Desktop v1 Hardening
    Pass). Package 12+ work remains unauthorized pending separate definition
    entries. Phase 6 complete — all 5 packages, commits through `a69b36d`;
-   Phase 5 Package 9 fully complete. Phase 7 active: Package 1 (Credential &
-   Configuration Diagnostics) complete — commit `1d02117`; 1011 passed;
-   Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest 1011 passed.
-   Next: Phase 7 Package 2 definition required before implementation begins.
+   Phase 5 Package 9 fully complete. Phase 7 active: Package 1 (Credential & Configuration Diagnostics)
+   complete — commit `1d02117`; 1011 passed; user-local pytest passed.
+   Package 2 (Portfolio Documentation Skeleton) definition accepted;
+   implementation authorized.
 8. Treat Phase 7 as optional, human-reviewed extensions.
