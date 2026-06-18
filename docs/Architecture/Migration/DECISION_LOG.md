@@ -3088,8 +3088,9 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
   `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md` §7
   Step 5, `docs/Brand/ATLAS Command Center Workspace Specification v1.0.md`
-- Follow-up work: Desktop Package 7 — Recommendations MVP definition accepted;
-  implementation authorized (see entry below).
+- Follow-up work: Desktop Package 7 - Recommendations MVP is now complete and
+  accepted; see "ATLAS Desktop Package 7 - Recommendations MVP Accepted /
+  Complete" below.
 
 ### ATLAS Desktop Package 6 - Command Center MVP Accepted / Complete
 
@@ -3159,8 +3160,9 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Date: June 2026
 - State reference: `PROJECT_STATE.md`
 - Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
-- Follow-up work: Desktop Package 7 — Recommendations MVP definition accepted;
-  implementation authorized (see entry below).
+- Follow-up work: Desktop Package 7 - Recommendations MVP is now complete and
+  accepted; see "ATLAS Desktop Package 7 - Recommendations MVP Accepted /
+  Complete" below.
 
 ### ATLAS Desktop Package 7 - Recommendations MVP Definition Accepted
 
@@ -3187,7 +3189,8 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   `/atlas/api/recommendations` endpoint, and populates the Command Center
   Recommendations section with real generated recommendations (replacing the
   Package 6 deferred-state placeholder). Cross-surface integration into
-  Opportunity Detail, Pipeline, and Ask Atlas is deferred to Package 8+.
+  Opportunity Detail and Pipeline is deferred to a future Package 9+; Ask Atlas
+  investigation surface is Package 8.
 
   **Workspace ownership:**
 
@@ -3331,7 +3334,190 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md` §7
   Step 6, `docs/Brand/ATLAS Recommendation Card Specification v1.0.md`,
   `docs/Brand/ATLAS Recommendation Card v1.0 Production Candidate..md`
-- Follow-up work: After Package 7 ships and acceptance criteria are verified,
-  write and accept ATLAS Desktop Package 8 — Ask Atlas definition entry
-  (must include explicit "Investigation Surface not Chat Surface" prohibited-scope
-  list) before issuing the Package 8 implementation task.
+- Follow-up work: Desktop Package 7 implementation is now complete and
+  accepted; see "ATLAS Desktop Package 7 - Recommendations MVP Accepted /
+  Complete" below. Desktop Package 8 - Ask Atlas Investigation Surface MVP is
+  defined below.
+
+### ATLAS Desktop Package 7 - Recommendations MVP Accepted / Complete
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Recommendations
+- Date: June 2026
+- Commit: `913cd4a` - `feat(atlas): implement Desktop Package 7 Recommendations MVP`
+- Test suite: 903 passed, 1 skipped, 6 warnings
+- Audit: Leah - ACCEPT FOR COMMIT. Blockers: none.
+- Rationale: Records Project Master acceptance of Desktop Package 7 -
+  Recommendations MVP. The implementation satisfies the accepted Package 7
+  definition and closes Package 7.
+
+  **Package accepted:**
+  - ATLAS Desktop Package 7 - Recommendations MVP - **Accepted / Complete**
+
+  **Delivered scope:**
+  - `RecommendationService` in `job_search/services/recommendations.py`
+  - Read-only `GET /atlas/api/recommendations` endpoint
+  - Existing-context reads via `AtlasDataService.get_summary()` and
+    `PipelineService.list_recent_runs(limit=1)`
+  - Existing LLM provider abstraction:
+    `get_llm_provider("generation")`, `resolve_service_config("generation")`,
+    `LLMRequest`, `LLMMessage`, and `JSONSchemaSpec`
+  - Stateless generation of up to 3 structured recommendations
+  - `getRecommendations()` frontend client method
+  - Recommendation response types in `frontend/src/api/types.ts`
+  - Command Center Recommendations section populated from API data
+  - Loading, error, and empty states
+  - Tests for service behavior, API contract, frontend integration, and
+    Command Center rendering
+
+  **Not included / still out of scope:**
+  - recommendation persistence
+  - recommendation caching
+  - schema/database changes
+  - new tables
+  - Ask Atlas/chat behavior
+  - Focus objects
+  - mutation actions
+  - apply/select/reject/mark-applied actions
+  - scoring changes
+  - ingestion changes
+  - background runner/scheduler
+  - hard-coded LLM provider
+  - Radar integration
+  - Pipeline integration beyond read-only latest-run context
+  - Opportunity Detail integration
+  - Tauri packaging
+  - cloud sync
+
+  **Acceptance basis:**
+  - `npm run build`: PASS
+  - `pytest -q`: 903 passed, 1 skipped, 6 warnings
+  - Leah audit: ACCEPT FOR COMMIT; blockers none
+  - Local validation rerun after audit: `npm run build` PASS; `pytest -q`
+    903 passed, 1 skipped, 6 warnings
+
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section)
+- Definition reference: `DECISION_LOG.md` "ATLAS Desktop Package 7 -
+  Recommendations MVP Definition Accepted"
+- Follow-up work: Desktop Package 8 - Ask Atlas Investigation Surface MVP is
+  defined below. Package 8 implementation may now be prompted only within that
+  definition's scope.
+
+### ATLAS Desktop Package 8 - Ask Atlas Investigation Surface MVP Definition Accepted
+
+- Status: accepted
+- Area: ATLAS Desktop v1 / Ask Atlas
+- Date: June 2026
+- Rationale: Defines the next ATLAS Desktop implementation package after
+  acceptance of Desktop Package 7. Package 8 authorizes an Ask Atlas MVP as an
+  investigation surface, not a generic chat surface. This entry carries forward
+  the standing governance rule from the Desktop v1 tech stack decision:
+  **Investigation Surface not Chat Surface**.
+
+  **Authority:**
+  - `docs/Brand/ATLAS Ask Atlas Conversation Surface Specification v1.0.md`
+  - `docs/Brand/ATLAS_Ask_Atlas_Final_Validation_Review.md`
+  - `docs/Brand/ATLAS_Ask_Atlas_Workspace_v1_Visual_Reference.md`
+  - `docs/Strategy/ATLAS_Desktop_v1_Implementation_Translation_Study.md`
+
+  **Package objective:**
+
+  Implement the Ask Atlas MVP workspace as a contextual investigation surface
+  that explains opportunity and recommendation context. Package 8 should prove
+  that Atlas can communicate interpretation without becoming a messenger-style
+  chatbot.
+
+  **Future implementation scope authorized by this definition:**
+
+  1. Replace the `/atlas/ask-atlas` placeholder with an Ask Atlas workspace.
+  2. Implement investigation-oriented layout: investigation header, attached
+     context region, investigation surface, suggested follow-ups, and bottom
+     investigation input.
+  3. Support local investigation state for a single active investigation.
+  4. Allow context-aware launch from available ATLAS context where existing
+     routes already provide enough information.
+  5. Generate an investigation response through the existing LLM provider
+     abstraction, structured as observation, explanation, suggested action, and
+     suggested follow-ups.
+  6. Add one read-only/generation endpoint for Ask Atlas investigation response
+     generation if needed.
+  7. Add frontend API client/types through the existing `client.ts` boundary.
+  8. Render loading, error, empty, and context-missing states.
+  9. Add tests for endpoint contract, provider abstraction, route isolation,
+     frontend client use, rendering states, and prohibited chat/mutation scope.
+
+  **Authorized data paths:**
+
+  - Package 8 may read existing opportunity, recommendation, and pipeline
+    context through accepted service/API boundaries.
+  - Package 8 may call the existing LLM provider abstraction for investigation
+    response generation.
+  - Any backend route added by Package 8 must be scoped under `/atlas/api`.
+  - Frontend network access must remain centralized in `frontend/src/api/client.ts`.
+  - Package 8 is stateless at MVP unless a separate governance entry authorizes
+    persistence.
+
+  **Explicit prohibited scope - Investigation Surface not Chat Surface:**
+
+  - No chat-bubble UI.
+  - No avatar-centric assistant UI.
+  - No message-thread chronology as the primary information architecture.
+  - No generic open-ended chatbot experience disconnected from ATLAS context.
+  - No persistent conversation history.
+  - No multi-turn memory store.
+  - No investigation case persistence.
+  - No Atlas Focus objects.
+  - No recommendation persistence or caching.
+  - No mutation actions on jobs, applications, pipeline runs, recommendations,
+    documents, profile data, firms, or scoring config.
+  - No apply/select/reject/mark-applied/transition/resolve/regenerate actions.
+  - No new scoring or ingestion logic.
+  - No background runner, scheduler, or pipeline execution.
+  - No database/schema changes or new tables.
+  - No hard-coded LLM provider.
+  - No cloud sync.
+  - No Tauri packaging.
+
+  **Package boundaries:**
+
+  - Package 8 may modify the Ask Atlas workspace route/surface and shared API
+    client/types required for that surface.
+  - Package 8 may add an Ask Atlas service and endpoint only if they use
+    existing provider/service boundaries.
+  - Package 8 must not modify closed workspace behavior for Radar, Pipeline,
+    Opportunity Detail, or Command Center except for narrowly scoped navigation
+    links required to launch Ask Atlas with context.
+  - Context Panel ownership must remain explicit; Package 8 may read attached
+    context, but must not silently replace existing shell-level context behavior.
+  - Recommendation Cards remain recommendation objects; Ask Atlas may reference
+    them but must not transform recommendation cards into messages.
+
+  **Acceptance criteria for the future implementation:**
+
+  1. Frontend build passes (`npm run build`).
+  2. `pytest` passes with no regressions (baseline: 903 passed, 1 skipped,
+     6 warnings).
+  3. Existing `/dashboard/*` routes remain unaffected.
+  4. `/atlas` routing remains isolated.
+  5. Ask Atlas renders as an investigation surface, not a chat surface.
+  6. Response structure includes observation, explanation, suggested action, and
+     suggested follow-ups.
+  7. Existing LLM provider abstraction is used; no hard-coded provider.
+  8. Loading, error, empty, and context-missing states render without crashing.
+  9. No mutation actions are introduced.
+  10. No database/schema changes or new tables.
+  11. No persistent conversation history, multi-turn memory store, or
+      investigation case persistence.
+  12. No direct `fetch()` outside `frontend/src/api/client.ts`.
+  13. Radar, Pipeline, Opportunity Detail, and Command Center behavior remain
+      unchanged except for explicitly scoped Ask Atlas launch links if needed.
+
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (ATLAS Desktop v1 section),
+  `docs/Brand/ATLAS Ask Atlas Conversation Surface Specification v1.0.md`,
+  `docs/Brand/ATLAS_Ask_Atlas_Final_Validation_Review.md`,
+  `docs/Brand/ATLAS_Ask_Atlas_Workspace_v1_Visual_Reference.md`
+- Follow-up work: ATLAS Desktop Package 8 implementation may now be prompted.
+  The implementation prompt must reference this entry and preserve all
+  prohibited-scope boundaries above.

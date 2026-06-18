@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-6 complete; Desktop Package 7 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-7 complete; Desktop Package 8 definition accepted
 
 ## Purpose
 
@@ -34,8 +34,9 @@ required before its implementation begins.
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
 MVP), 4 (Radar Workspace MVP), 5 (Pipeline Workspace MVP), and 6 (Command
-Center MVP) are accepted and complete. Desktop Package 7 — Recommendations MVP
-definition is accepted; implementation is now authorized.
+Center MVP), and 7 (Recommendations MVP) are accepted and complete. Desktop
+Package 8 - Ask Atlas Investigation Surface MVP definition is accepted;
+implementation is now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -108,15 +109,26 @@ Current objectives:
   shortcuts to `/radar` and `/pipeline`; independent loading/error/empty states
   per panel. No new backend endpoint; no schema changes; no ContextPanelContext
   ownership; Packages 3-5 surfaces untouched.
-- ATLAS Desktop Package 7 - Recommendations MVP — **definition accepted;
-  implementation authorized.** Scope: new `RecommendationService` using existing
-  LLM provider abstraction; `GET /atlas/api/recommendations` read endpoint;
-  `getRecommendations()` frontend client method; Command Center Recommendations
-  section populated (deferred placeholder retired); loading/error/empty states;
-  tests. Stateless at MVP (no new schema/table). Cross-surface integration into
-  Opportunity Detail, Pipeline, Ask Atlas deferred to Package 8+. See
-  `DECISION_LOG.md` "ATLAS Desktop Package 7 - Recommendations MVP Definition
-  Accepted."
+- ATLAS Desktop Package 7 - Recommendations MVP - **complete** (commit
+  `913cd4a`; 903 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT).
+  Delivered `RecommendationService` using the existing LLM provider abstraction;
+  read-only `GET /atlas/api/recommendations`; `getRecommendations()` frontend
+  client method and response types; Command Center Recommendations section
+  populated from API data; loading/error/empty states; service/API/frontend
+  tests. Stateless at MVP; no schema/database changes, persistence, caching,
+  mutation actions, hard-coded LLM provider, Ask Atlas/chat behavior, Focus
+  objects, or cross-surface display beyond Command Center.
+- ATLAS Desktop Package 8 - Ask Atlas Investigation Surface MVP - **definition
+  accepted; implementation authorized.** Scope: replace `/atlas/ask-atlas`
+  placeholder with an investigation-oriented Ask Atlas workspace; support a
+  single active local investigation; use the existing LLM provider abstraction
+  for structured observation/explanation/suggested-action/follow-up responses;
+  add scoped `/atlas/api` endpoint and frontend client/types if needed; render
+  loading/error/empty/context-missing states; enforce "Investigation Surface not
+  Chat Surface." No chat-bubble UI, persistent conversation history, multi-turn
+  memory store, mutation actions, schema/database changes, Focus objects,
+  background runner/scheduler, scoring/ingestion changes, cloud sync, or Tauri
+  packaging.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
 - keep the repository suitable for eventual portfolio presentation
@@ -665,18 +677,16 @@ workspace content, recommendations, Ask Atlas behavior, LLM calls, background
 runner/scheduler/pipeline execution, document generation, scoring changes, or
 database/schema changes.
 
-Desktop Package 3 - Opportunity Detail Surface MVP is defined and may now be
-prompted. Package 3 is the first real read-only data-consuming ATLAS desktop
-surface. It may consume the Package 2 opportunity detail DTO and render one
-selected opportunity with the hierarchy: opportunity first, Atlas advisory
-context second, metrics supporting, context panel subordinate. It must remain
-read-only and local-first and must not implement recommendation cards,
-generated recommendations, Atlas Focus objects, Ask Atlas behavior, LLM calls,
-new scoring logic, state mutations, select/reject/apply or mark-applied
-actions, document regeneration, Pipeline/Command Center/Radar content,
-background runner/scheduler behavior, pipeline execution controls,
-database/schema changes, new tables, cloud sync, or Tauri packaging. See
-`ASH_INIT_NEXT.md` §7–9 for full Desktop v1 governance.
+Desktop Packages 3 through 7 are accepted and complete: Opportunity Detail
+Surface MVP, Radar Workspace MVP, Pipeline Workspace MVP, Command Center MVP,
+and Recommendations MVP. Desktop Package 8 - Ask Atlas Investigation Surface
+MVP is defined and may now be prompted. Package 8 must preserve the explicit
+"Investigation Surface not Chat Surface" rule: no chat-bubble UI, no generic
+chatbot experience disconnected from ATLAS context, no persistent conversation
+history or multi-turn memory store, no mutation actions, no schema/database
+changes, no Focus objects, no hard-coded LLM provider, and no background
+runner/scheduler/pipeline execution. See `ASH_INIT_NEXT.md` sections 7-9 for
+full Desktop v1 governance.
 
 ## Cross-System Dependencies
 

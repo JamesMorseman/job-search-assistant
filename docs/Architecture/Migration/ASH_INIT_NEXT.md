@@ -1,7 +1,7 @@
 # Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-6
-complete; Desktop Package 7 Recommendations MVP definition accepted
+**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-7
+complete; Desktop Package 8 Ask Atlas definition accepted
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -45,11 +45,11 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Desktop Package 6
-  acceptance and Desktop Package 7 definition
-- **Implementation files:** Desktop Packages 1-6 committed in `d6bdde7`,
-  `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`
-- **Test suite:** 892 passing, 1 skipped, 6 warnings (as of Desktop Package 6)
+- **Governance files:** Current governance commit records Desktop Package 7
+  acceptance and Desktop Package 8 definition
+- **Implementation files:** Desktop Packages 1-7 committed in `d6bdde7`,
+  `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`, `913cd4a`
+- **Test suite:** 903 passing, 1 skipped, 6 warnings (as of Desktop Package 7)
 
 **Confirm at session start:**
 
@@ -115,8 +115,9 @@ explicit PM authorization):**
 | 4 - Radar Workspace MVP | Opportunity Signal Card grid via Package 2 API; client-side search and source filter; selected card state; `ContextPanelContext` shell-level context; Context Panel opportunity preview; "Open Opportunity Detail" navigation; loading/error/empty states; tests | **Accepted / Complete** — commit `2195cd8`; 847 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
 | 5 - Pipeline Workspace MVP | `GET /atlas/api/pipeline/runs` read endpoint (consuming Phase 6 Package 3 `PipelineService.list_recent_runs()`); recent pipeline runs list; status indicators; counters and timestamps; frontend API client extension; loading/error/empty states; tests | **Accepted / Complete** — commit `c7562de`; 870 passed, 1 skipped; Leah ACCEPT FOR COMMIT |
 | 6 - Command Center MVP | Opportunity Signal summary panel (Package 2 `getSummary()`); Pipeline Snapshot panel (Package 5 `getPipelineRuns()`); Recommendations deferred-state section; navigation shortcuts to Radar and Pipeline; loading/error/empty states per panel; tests | **Accepted / Complete** - commit `d9eec59`; 892 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
-| 7 - Recommendations MVP | `RecommendationService` using existing LLM provider abstraction; `GET /atlas/api/recommendations`; `getRecommendations()` frontend client; Command Center Recommendations section populated; loading/error/empty states; tests; stateless at MVP | **Definition accepted - implementation authorized** |
-| 8+ | Ask Atlas and other product surfaces | Not yet authorized; require separate definition entries |
+| 7 - Recommendations MVP | `RecommendationService` using existing LLM provider abstraction; `GET /atlas/api/recommendations`; `getRecommendations()` frontend client; Command Center Recommendations section populated; loading/error/empty states; tests; stateless at MVP | **Accepted / Complete** - commit `913cd4a`; 903 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR COMMIT |
+| 8 - Ask Atlas Investigation Surface MVP | Investigation-oriented `/atlas/ask-atlas` workspace; attached context; structured observation/explanation/suggested-action/follow-up response via existing LLM provider abstraction; loading/error/empty/context-missing states; tests; stateless at MVP | **Definition accepted - implementation authorized** |
+| 9+ | Later product surfaces and enhancements | Not yet authorized; require separate definition entries |
 
 ---
 
@@ -124,14 +125,25 @@ explicit PM authorization):**
 
 ```text
 (current governance commit)
-         docs(governance): accept Desktop Package 6 and define Package 7
-         DECISION_LOG.md: Desktop Package 6 accepted/complete (d9eec59, 892
-           passing, Leah ACCEPT FOR COMMIT); Package 7 Recommendations MVP
-           definition accepted (stateless MVP, LLM provider abstraction)
-         PROJECT_STATE.md: Desktop Package 6 complete, Package 7 authorized
-         roadmap.md: Package 6 complete, Package 7 row added, Package 7
+         docs(governance): accept Desktop Package 7 and define Package 8
+         DECISION_LOG.md: Desktop Package 7 accepted/complete (913cd4a, 903
+           passing, Leah ACCEPT FOR COMMIT); Package 8 Ask Atlas Investigation
+           Surface MVP definition accepted
+         PROJECT_STATE.md: Desktop Package 7 complete, Package 8 authorized
+         roadmap.md: Package 7 complete, Package 8 row added, Package 8
            Boundaries section added, build order step 7 updated
          ASH_INIT_NEXT.md: synchronized to current state
+
+913cd4a  feat(atlas): implement Desktop Package 7 Recommendations MVP
+         recommendations.py (new), test_recommendation_service.py (new),
+         test_desktop_recommendations_api.py (new); deps.py, atlas_api.py,
+         client.ts, types.ts, CommandCenter.tsx, commandCenter.css, and
+         test_desktop_command_center_workspace.py modified; read-only
+         /atlas/api/recommendations endpoint; RecommendationService via existing
+         LLM provider abstraction; Command Center recommendations populated
+         (903 passed, 1 skipped, 6 warnings)
+
+96dc71f  docs(governance): accept Desktop Package 6 and define Package 7
 
 d9eec59  feat(atlas): implement Desktop Package 6 Command Center MVP
          commandCenter.css (new), test_desktop_command_center_workspace.py
@@ -526,36 +538,36 @@ references.
 
 After that entry is accepted, issue an Anna implementation task referencing it.
 
-### Step 3 - Prompt ATLAS Desktop Package 7 implementation (Desktop track)
+### Step 3 - Prompt ATLAS Desktop Package 8 implementation (Desktop track)
 
-**Desktop Packages 1 through 6 are complete and accepted.** Desktop Package 7 -
-Recommendations MVP definition is accepted; implementation is now authorized.
-See `DECISION_LOG.md` "ATLAS Desktop Package 7 - Recommendations MVP Definition
-Accepted."
+**Desktop Packages 1 through 7 are complete and accepted.** Desktop Package 8 -
+Ask Atlas Investigation Surface MVP definition is accepted; implementation is
+now authorized. See `DECISION_LOG.md` "ATLAS Desktop Package 8 - Ask Atlas
+Investigation Surface MVP Definition Accepted."
 
-Package 7 implementation may now be prompted. Authorized scope:
-`RecommendationService` using the existing JSA LLM provider abstraction;
-read-only `GET /atlas/api/recommendations` endpoint; `getRecommendations()`
-frontend client method and response types; Command Center Recommendations
-section populated with real generated recommendations; loading/error/empty
-states; tests. Package 7 is stateless at MVP: recommendations are generated per
-request and are not persisted or cached.
+Package 8 implementation may now be prompted. Authorized scope: replace the
+`/atlas/ask-atlas` placeholder with an investigation-oriented Ask Atlas
+workspace; implement investigation header, attached context, investigation
+surface, suggested follow-ups, and bottom investigation input; support local
+single-investigation state; generate structured observation, explanation,
+suggested action, and suggested follow-ups through the existing LLM provider
+abstraction; add a scoped `/atlas/api` endpoint and frontend client/types if
+needed; render loading/error/empty/context-missing states; add tests.
 
-Package 7 may read context through `AtlasDataService.get_summary()` and
-`PipelineService.list_recent_runs(limit=1)`. It must not query SQLite directly,
-write application state, add recommendation data to `pipeline_runs`, or modify
-database/schema files.
+Package 8 must preserve "Investigation Surface not Chat Surface." It must not
+implement chat-bubble UI, avatar-centric assistant UI, message-thread chronology
+as the primary information architecture, generic chatbot behavior disconnected
+from ATLAS context, persistent conversation history, multi-turn memory store,
+investigation case persistence, Atlas Focus objects, recommendation
+persistence/caching, mutation actions, scoring or ingestion changes, background
+runner/scheduler behavior, pipeline execution, database/schema changes,
+hard-coded LLM provider, cloud sync, or Tauri packaging.
 
-Package 7 must not implement recommendation persistence/caching, display in
-Opportunity Detail/Pipeline/Radar, Ask Atlas or conversational behavior,
-mutation actions on recommendations, new scoring or ingestion logic, background
-runner/scheduler behavior, a hard-coded LLM provider, cloud sync, Tauri
-packaging, or Atlas Focus objects.
-
-Package 7 must not set or clear `ContextPanelContext` state. It must not modify
-Package 5 `Pipeline.tsx`, Package 4 `Radar.tsx`, or Package 3
-`OpportunityDetailSurface.tsx`. Package 2 and Package 5 API boundaries must not
-be modified.
+Package 8 must not modify closed workspace behavior for Radar, Pipeline,
+Opportunity Detail, or Command Center except for narrowly scoped Ask Atlas
+launch links if required. Recommendation Cards remain recommendation objects;
+Ask Atlas may reference them but must not transform recommendation cards into
+messages.
 
 **Sequencing constraint:** Do not split Desktop v1 implementation into
 parallel agents before file ownership across surfaces is clearly separated.
@@ -593,14 +605,12 @@ A new Ash must not:
   state** — those are historical reference only
 - **Expand Desktop v1 scope** to include Intelligence Workspace, Professional
   Graph, Career Memory, Forecasting, or enterprise features
-- **Treat Desktop Package 7 as authorizing broad Recommendations or Ask Atlas
-  scope** - Package 7 is Recommendations MVP only: stateless per-request
-  recommendations in Command Center using the existing LLM provider abstraction.
-  No recommendation persistence/caching, new database tables, schema changes,
-  display in Opportunity Detail/Pipeline/Radar, Ask Atlas or conversational
-  behavior, mutation actions, new scoring/ingestion logic, background runner,
-  scheduler, hard-coded LLM provider, cloud sync, Tauri packaging, or Atlas
-  Focus objects. Package 7 must not set or clear ContextPanelContext state.
+- **Treat Desktop Package 8 as authorizing generic chat or broad agentic
+  behavior** - Package 8 is Ask Atlas Investigation Surface MVP only. No
+  chat-bubble UI, avatar-centric assistant UI, persistent conversation history,
+  multi-turn memory store, investigation case persistence, mutation actions,
+  schema/database changes, Focus objects, background runner, scheduler,
+  pipeline execution, hard-coded LLM provider, cloud sync, or Tauri packaging.
 - **Issue parallel implementation tasks** without first confirming disjoint
   file ownership across agents
 
