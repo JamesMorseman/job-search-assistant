@@ -14,6 +14,7 @@ database.
 
 from __future__ import annotations
 
+from job_search.services.ask_atlas import AskAtlasService
 from job_search.services.atlas import AtlasDataService
 from job_search.services.documents import DocumentsService
 from job_search.services.firms import FirmsService
@@ -35,6 +36,10 @@ def get_documents_service() -> DocumentsService:
 
 def get_atlas_data_service() -> AtlasDataService:
     return AtlasDataService()
+
+
+def get_ask_atlas_service() -> AskAtlasService:
+    return AskAtlasService()
 
 
 def get_pipeline_service() -> PipelineService:

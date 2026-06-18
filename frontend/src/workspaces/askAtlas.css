@@ -1,0 +1,249 @@
+.atlas-ask {
+  display: grid;
+  gap: 22px;
+}
+
+.atlas-ask-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.atlas-ask-eyebrow {
+  margin: 0 0 6px;
+  color: var(--atlas-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.atlas-ask-header h2 {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 26px;
+}
+
+.atlas-ask-context-pill {
+  padding: 7px 11px;
+  border: 1px solid rgba(56, 211, 196, 0.32);
+  border-radius: 999px;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.08);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-ask-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1.5fr) minmax(220px, 0.8fr);
+  gap: 18px;
+}
+
+.atlas-ask-context,
+.atlas-ask-investigation,
+.atlas-ask-followups {
+  padding: 20px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(13, 18, 27, 0.78);
+  box-shadow: var(--atlas-shadow);
+}
+
+.atlas-ask-context h3,
+.atlas-ask-investigation h3,
+.atlas-ask-followups h3 {
+  margin: 0 0 14px;
+  color: var(--atlas-text);
+  font-size: 15px;
+}
+
+.atlas-ask-context-list {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.atlas-ask-context-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.atlas-ask-context-list dt {
+  color: var(--atlas-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-ask-context-list dd {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.atlas-ask-status,
+.atlas-ask-empty {
+  color: var(--atlas-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.atlas-ask-status p,
+.atlas-ask-empty p {
+  margin: 0;
+}
+
+.atlas-ask-status-error p:first-child {
+  color: var(--atlas-text);
+  font-weight: 700;
+}
+
+.atlas-ask-status-detail {
+  margin-top: 8px;
+  color: var(--atlas-soft);
+}
+
+.atlas-ask-result {
+  display: grid;
+  gap: 16px;
+}
+
+.atlas-ask-result section {
+  padding: 14px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.atlas-ask-result h4 {
+  margin: 0 0 8px;
+  color: var(--atlas-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.atlas-ask-result p {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.atlas-ask-followups ul {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.atlas-ask-followups button,
+.atlas-ask-input button,
+.atlas-ask-shortcuts a {
+  border: 1px solid var(--atlas-line);
+  border-radius: var(--atlas-radius);
+  color: var(--atlas-accent-strong);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.atlas-ask-followups button {
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.atlas-ask-followups button:hover,
+.atlas-ask-input button:hover:not(:disabled),
+.atlas-ask-shortcuts a:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.atlas-ask-shortcuts {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.atlas-ask-shortcuts a {
+  display: block;
+  padding: 10px 12px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.atlas-ask-input {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(13, 18, 27, 0.9);
+}
+
+.atlas-ask-input label {
+  color: var(--atlas-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-ask-input div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.atlas-ask-input input {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  color: var(--atlas-text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.atlas-ask-input input::placeholder {
+  color: var(--atlas-muted);
+}
+
+.atlas-ask-input button {
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.atlas-ask-input button:disabled {
+  color: var(--atlas-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 1180px) {
+  .atlas-ask-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .atlas-ask-input div {
+    grid-template-columns: 1fr;
+  }
+
+  .atlas-ask-input button {
+    min-height: 42px;
+  }
+}

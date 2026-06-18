@@ -86,3 +86,15 @@ export type AtlasRecommendationsResponse = {
   recommendations: AtlasRecommendation[];
   generated_at: string;
 };
+
+export type AskAtlasInvestigation = {
+  observation: string;
+  explanation: string;
+  suggested_action: string;
+  suggested_followups: string[];
+};
+
+export type AskAtlasInvestigationResponse = {
+  investigation: AskAtlasInvestigation;
+  generated_at: string;
+};

@@ -1,4 +1,5 @@
 import type {
+  AskAtlasInvestigationResponse,
   AtlasOpportunityDetail,
   AtlasOpportunityListResponse,
   AtlasPipelineRunsResponse,
@@ -59,4 +60,11 @@ export function getPipelineRuns(limit?: number): Promise<AtlasPipelineRunsRespon
 
 export function getRecommendations(): Promise<AtlasRecommendationsResponse> {
   return fetchJson<AtlasRecommendationsResponse>("/recommendations");
+}
+
+export function getAskAtlasInvestigation(prompt: string): Promise<AskAtlasInvestigationResponse> {
+  const search = new URLSearchParams({ prompt });
+  return fetchJson<AskAtlasInvestigationResponse>(
+    `/ask-atlas/investigation?${search.toString()}`,
+  );
 }

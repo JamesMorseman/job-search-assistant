@@ -9,9 +9,11 @@ from datetime import datetime, timezone
 
 from job_search.dashboard.deps import (
     get_atlas_data_service,
+    get_ask_atlas_service,
     get_pipeline_service,
     get_recommendation_service,
 )
+from job_search.services.ask_atlas import AskAtlasInvestigation, AskAtlasService
 from job_search.services.atlas import (
     AtlasDataService,
     AtlasOpportunityDetail,
@@ -31,6 +33,11 @@ class PipelineRunList(BaseModel):
 
 class RecommendationList(BaseModel):
     recommendations: list[Recommendation]
+    generated_at: str
+
+
+class AskAtlasInvestigationResponse(BaseModel):
+    investigation: AskAtlasInvestigation
     generated_at: str
 
 
@@ -81,6 +88,30 @@ def get_recommendations(
     return RecommendationList(
         recommendations=recommendation_service.generate(
             summary=summary,
+            most_recent_run=most_recent_run,
+        ),
+        generated_at=_now_iso(),
+    )
+
+
+@router.get("/ask-atlas/investigation", response_model=AskAtlasInvestigationResponse)
+def investigate_with_ask_atlas(
+    prompt: str,
+    atlas_service: AtlasDataService = Depends(get_atlas_data_service),
+    pipeline_service: PipelineService = Depends(get_pipeline_service),
+    ask_atlas_service: AskAtlasService = Depends(get_ask_atlas_service),
+) -> AskAtlasInvestigationResponse:
+    cleaned_prompt = prompt.strip()
+    if not cleaned_prompt:
+        raise HTTPException(status_code=400, detail="Investigation prompt is required")
+    summary = atlas_service.get_summary()
+    opportunities = atlas_service.list_opportunities(limit=3)
+    most_recent_run = next(iter(pipeline_service.list_recent_runs(limit=1)), None)
+    return AskAtlasInvestigationResponse(
+        investigation=ask_atlas_service.investigate(
+            prompt=cleaned_prompt,
+            summary=summary,
+            opportunities=opportunities,
             most_recent_run=most_recent_run,
         ),
         generated_at=_now_iso(),
