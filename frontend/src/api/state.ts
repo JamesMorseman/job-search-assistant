@@ -1,4 +1,4 @@
-export type DataStatus = "idle" | "loading" | "success" | "error";
+export type DataStatus = "idle" | "loading" | "success" | "error" | "not-found";
 
 export type DataState<T> = {
   status: DataStatus;
@@ -28,4 +28,10 @@ export const errorState = <T>(error: string, data: T | null = null): DataState<T
   status: "error",
   data,
   error,
+});
+
+export const notFoundState = <T>(): DataState<T> => ({
+  status: "not-found",
+  data: null,
+  error: null,
 });
