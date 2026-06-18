@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(git *)",
+      "Bash(python *)",
+      "Bash(powershell *)",
+      "Bash(npm *)",
+      "Read(**)"
+    ]
+  }
+}
