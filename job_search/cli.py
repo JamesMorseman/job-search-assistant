@@ -166,6 +166,29 @@ def followup():
             console.print(f"[yellow]{action['action_type']}[/yellow] — {action['company']} / {action['title']} (due {action['due_date']})")
 
 
+@cli.command(name="run")
+@click.option("--dry-run", is_flag=True, default=False, help="Execute without writing any database records.")
+@click.option(
+    "--run-type",
+    default="full",
+    show_default=True,
+    help="full | ingest | grade | report | generate | followup",
+)
+def run_pipeline(dry_run: bool, run_type: str):
+    """Run the local pipeline: ingest -> grade -> report -> generate -> follow-up."""
+    from job_search.pipeline import PipelineRunner
+
+    result = PipelineRunner().run(run_type=run_type, dry_run=dry_run, trigger="cli")
+    console.print(f"[bold]Run type:[/bold] {result.run_type}  [bold]Status:[/bold] {result.status}")
+    if result.run_id is not None:
+        console.print(f"[bold]Run ID:[/bold] {result.run_id}")
+    for step in result.steps:
+        color = {"ok": "green", "error": "red", "skipped": "yellow"}[step.status]
+        console.print(f"  [{color}]{step.name}: {step.status}[/{color}]")
+        if step.error:
+            console.print(f"    {step.error}")
+
+
 @cli.command()
 @click.argument("firm_name")
 @click.argument("website")
