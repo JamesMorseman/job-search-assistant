@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-7 complete; Desktop Package 8 definition accepted
+Version: June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-8 complete; Desktop Package 9 definition accepted
 
 ## Purpose
 
@@ -34,9 +34,9 @@ required before its implementation begins.
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
 MVP), 4 (Radar Workspace MVP), 5 (Pipeline Workspace MVP), and 6 (Command
-Center MVP), and 7 (Recommendations MVP) are accepted and complete. Desktop
-Package 8 - Ask Atlas Investigation Surface MVP definition is accepted;
-implementation is now authorized.
+Center MVP), 7 (Recommendations MVP), and 8 (Ask Atlas Investigation Surface
+MVP) are accepted and complete. Desktop Package 9 - Atlas Focus MVP definition
+is accepted; implementation is now authorized.
 
 Phase 5 remaining package status:
 - Package 7 (Firm Review Queue): draft-to-SQLite sync decision approved;
@@ -118,16 +118,30 @@ Current objectives:
   tests. Stateless at MVP; no schema/database changes, persistence, caching,
   mutation actions, hard-coded LLM provider, Ask Atlas/chat behavior, Focus
   objects, or cross-surface display beyond Command Center.
-- ATLAS Desktop Package 8 - Ask Atlas Investigation Surface MVP - **definition
-  accepted; implementation authorized.** Scope: replace `/atlas/ask-atlas`
-  placeholder with an investigation-oriented Ask Atlas workspace; support a
-  single active local investigation; use the existing LLM provider abstraction
-  for structured observation/explanation/suggested-action/follow-up responses;
-  add scoped `/atlas/api` endpoint and frontend client/types if needed; render
-  loading/error/empty/context-missing states; enforce "Investigation Surface not
-  Chat Surface." No chat-bubble UI, persistent conversation history, multi-turn
-  memory store, mutation actions, schema/database changes, Focus objects,
-  background runner/scheduler, scoring/ingestion changes, cloud sync, or Tauri
+- ATLAS Desktop Package 8 - Ask Atlas Investigation Surface MVP - **complete**
+  (commit `da6aed3`; 921 passed, 1 skipped, 6 warnings; Leah ACCEPT FOR
+  COMMIT). Delivered GET-only `/atlas/api/ask-atlas/investigation?prompt=...`;
+  `AskAtlasService` using the existing LLM provider abstraction; context reads
+  through `AtlasDataService.get_summary()`,
+  `AtlasDataService.list_opportunities(limit=3)`, and
+  `PipelineService.list_recent_runs(limit=1)`; Ask Atlas workspace replacing
+  the placeholder; one active investigation at a time; follow-up prompts replace
+  the current investigation rather than forming a timeline; loading/error/empty
+  states; service/workspace tests. No schema/database changes, persistent
+  conversation history, Focus objects, mutation actions, hard-coded LLM
+  provider/model, closed workspace changes, cloud sync, or Tauri packaging.
+- ATLAS Desktop Package 9 - Atlas Focus MVP - **definition accepted;
+  implementation authorized.** Scope: add an Atlas Focus read model/DTO and
+  local-first Focus service deriving active prioritized awareness objects from
+  existing accepted read sources; add read-only `/atlas/api/focuses` endpoint if
+  needed; add frontend client/types; render Focus objects in Command Center
+  with statement, reason, source object, attention horizon, next action, and
+  resolution state; loading/error/empty states; tests. Package 9 is read-only at
+  MVP: no focus resolution mutations, persistence/archive/history tables,
+  schema changes, generic task/reminder/notification system, calendar
+  integration, job/application mutations, recommendation generation changes, Ask
+  Atlas changes, closed workspace changes, scoring/ingestion changes,
+  background runner/scheduler/pipeline execution, cloud sync, or Tauri
   packaging.
 - preserve an accurate project state document
 - prevent cross-chat knowledge drift
@@ -677,16 +691,15 @@ workspace content, recommendations, Ask Atlas behavior, LLM calls, background
 runner/scheduler/pipeline execution, document generation, scoring changes, or
 database/schema changes.
 
-Desktop Packages 3 through 7 are accepted and complete: Opportunity Detail
+Desktop Packages 3 through 8 are accepted and complete: Opportunity Detail
 Surface MVP, Radar Workspace MVP, Pipeline Workspace MVP, Command Center MVP,
-and Recommendations MVP. Desktop Package 8 - Ask Atlas Investigation Surface
-MVP is defined and may now be prompted. Package 8 must preserve the explicit
-"Investigation Surface not Chat Surface" rule: no chat-bubble UI, no generic
-chatbot experience disconnected from ATLAS context, no persistent conversation
-history or multi-turn memory store, no mutation actions, no schema/database
-changes, no Focus objects, no hard-coded LLM provider, and no background
-runner/scheduler/pipeline execution. See `ASH_INIT_NEXT.md` sections 7-9 for
-full Desktop v1 governance.
+Recommendations MVP, and Ask Atlas Investigation Surface MVP. Desktop Package
+9 - Atlas Focus MVP is defined and may now be prompted. Package 9 must preserve
+the distinction between Recommendation and Focus, remain read-only at MVP, and
+must not introduce focus resolution mutations, persistence/archive/history
+tables, schema/database changes, generic task management, notifications,
+calendar integration, closed workspace changes, or background runner/scheduler
+behavior. See `ASH_INIT_NEXT.md` sections 7-9 for full Desktop v1 governance.
 
 ## Cross-System Dependencies
 
