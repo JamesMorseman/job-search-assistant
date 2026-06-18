@@ -646,6 +646,12 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
 
 ## Phase 7 - Future Enhancements
 
+### Packages
+
+| Package | Status | Notes |
+|---|---|---|
+| 1 — Credential & Configuration Diagnostics | **Complete** — commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed | `jsa check` command + pre-flight guard in `jsa run`; read-only DB diagnostic; `PipelineRunner` not modified |
+
 ### Objectives
 
 - Add optional higher-level tools after the core local workflow is stable.
@@ -707,5 +713,7 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
    Pass). Package 12+ work remains unauthorized pending separate definition
    entries. Phase 6 complete — all 5 packages, commits through `a69b36d`;
    Phase 5 Package 9 fully complete. Phase 7 active: Package 1 (Credential &
-   Configuration Diagnostics) definition accepted; implementation authorized.
+   Configuration Diagnostics) complete — commit `1d02117`; 1011 passed;
+   Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest 1011 passed.
+   Next: Phase 7 Package 2 definition required before implementation begins.
 8. Treat Phase 7 as optional, human-reviewed extensions.

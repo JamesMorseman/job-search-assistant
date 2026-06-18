@@ -1,7 +1,6 @@
 ﻿# Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 Package 3 complete; Desktop Packages 1-9
-complete; Desktop Package 10 Atlas Focus Resolution & Archive definition accepted
+**Version:** June 2026 - Phase 6 complete (all 5 packages); Desktop Packages 1-11 complete; Phase 7 Package 1 complete
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -45,12 +44,13 @@ Documentation strategy and portfolio presentation go to Rin.
 ## 2. Current Branch and Repository State
 
 - **Branch:** `feature/llm-abstraction`
-- **Governance files:** Current governance commit records Desktop Package 9
-  acceptance and Desktop Package 10 definition
-- **Implementation files:** Desktop Packages 1-9 committed in `d6bdde7`,
-  `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`, `913cd4a`, `da6aed3`,
-  `e985918`
-- **Test suite:** 940 passing, 1 skipped, 6 warnings (as of Desktop Package 9)
+- **Governance files:** Current governance commit records Phase 7 Package 1
+  acceptance and Phase 7 Package 2 definition pending
+- **Implementation files:** Phase 6 complete through `a69b36d`; Phase 7
+  Package 1 complete at `1d02117`; Desktop Packages 1-11 committed in
+  `d6bdde7`, `42fff28`, `5b19d5e`, `2195cd8`, `c7562de`, `d9eec59`, `913cd4a`,
+  `da6aed3`, `e985918`, `bf1655d`, `230bfe4`
+- **Test suite:** 1011 passing, 1 skipped, 6 warnings (as of Phase 7 Package 1)
 
 **Confirm at session start:**
 

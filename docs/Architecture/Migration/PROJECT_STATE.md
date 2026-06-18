@@ -1,6 +1,6 @@
 # Project State
 
-Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Package 1 definition accepted; Desktop Packages 1-11 complete
+Version: June 2026 - Phase 6 complete (all 5 packages); Phase 7 Package 1 complete; Desktop Packages 1-11 complete
 
 ## Purpose
 
@@ -29,10 +29,11 @@ Build an automated engineering job-search platform for James Morseman that:
 Phases 1â€”5 MVP and ATLAS Desktop Packages 1â€”11 are complete. Phase 6
 (Analytics & Pipeline Runs) is active. Phase 6 is complete — all five packages accepted (commits through `a69b36d`).
 Phase 5 Package 9 (9a/9b/9c) is now fully complete. Phase 7 — Future
-Enhancements — is the active roadmap phase. Phase 7 Package 1 (Credential
-& Configuration Diagnostics) definition is accepted; implementation is
-now authorized. Desktop Package 12+ work is not yet authorized and requires
-a separate definition entry.
+Enhancements — is the active roadmap phase. Phase 7 Package 1 (Credential & Configuration Diagnostics) is
+complete (commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah
+ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). Desktop
+Package 12+ work is not yet authorized and requires a separate definition
+entry.
 
 ATLAS Desktop v1 tech stack accepted: React 18 + TypeScript + Vite SPA served
 by FastAPI. Desktop Packages 1 (Shell), 2 (Core Data Layer), 3 (Opportunity Detail Surface
@@ -278,7 +279,7 @@ Architecture complete, implementation pending:
 - dashboard UI deferred screens: Firm Review Queue (Package 7, gated on sync implementation), Pipeline Runs (Package 9a/9b/9c, gated on Phase 6 Packages 4+5)
 - local-first background runner (Phase 6 Package 4): complete (commit `31a560d`); `jsa run` CLI and `PipelineRunner` delivered
 - Phase 6 Package 5 / Phase 5 Package 9c (Pipeline Runs dashboard screen): complete (commit `a69b36d`); Phase 6 formally closed
-- Phase 7 Package 1 (Credential & Configuration Diagnostics): definition accepted; implementation authorized; addresses credential error surfaced by runtime validation pass
+- Phase 7 Package 1 (Credential & Configuration Diagnostics): **complete** (commit `1d02117`; 1011 passed, 1 skipped, 6 warnings; Leah ACCEPT PENDING USER-LOCAL PYTEST; user-local pytest passed). `jsa check` command and `jsa run` pre-flight guard delivered; read-only DB diagnostic with no WAL/SHM artifacts; `PipelineRunner` not modified; no schema or dashboard changes
 - ATLAS Desktop v1: Desktop Packages 1 and 2 complete; Desktop Package 3
   definition accepted and implementation may now be prompted
 

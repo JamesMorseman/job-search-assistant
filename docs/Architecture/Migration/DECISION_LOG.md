@@ -4043,6 +4043,50 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
   defined below. Implementation is now authorized.
 
+### Phase 7 Package 1 — Credential & Configuration Diagnostics Accepted / Complete
+
+- Status: accepted
+- Area: Phase 7 / operational readiness / configuration
+- Date: June 2026
+- Rationale: Phase 7 Package 1 has been implemented, re-audited by Leah (ACCEPT
+  PENDING USER-LOCAL PYTEST), and confirmed by user-local pytest. All 7
+  acceptance criteria met. Implementation commit: `1d02117`.
+
+  **Implemented scope (commit `1d02117`):**
+
+  | File | Role |
+  |---|---|
+  | `job_search/diagnostics.py` | New module: `check_openai_api_key()`, `check_database_connectivity()`, `run_all_checks()`, `required_checks_passed()` |
+  | `job_search/cli.py` | `jsa check` command; pre-flight guard in `jsa run` before `PipelineRunner` import/construction |
+  | `tests/test_diagnostics.py` | 235-line test file; 13 new tests |
+
+  **Scope boundary confirmation:**
+
+  - `PipelineRunner` source not modified: confirmed (diff shows no change to
+    `job_search/pipeline/runner.py`)
+  - DB diagnostic uses read-only SQLite URI (`mode=ro&immutable=1`): no WAL
+    file, no SHM file, no commits written; tests confirm zero artifacts
+  - `jsa check` exit behavior: exits 0 when all pass; exits non-zero when any fail
+  - `jsa run` pre-flight: guard runs before `PipelineRunner` import; dry-run
+    unaffected; no `pipeline_runs` record written when guard fails
+  - No new dashboard routes, templates, or schema changes: confirmed
+  - No new service modules in `job_search/services/`: confirmed
+  - No ATLAS Desktop or frontend changes: confirmed
+
+  **Audit and test evidence:**
+
+  - Leah re-audit: ACCEPT PENDING USER-LOCAL PYTEST
+  - User-local pytest: **1011 passed, 1 skipped, 6 warnings** (13 new tests vs.
+    Package 5 baseline of 998 passed, 1 skipped, 6 warnings)
+  - All 7 acceptance criteria met
+
+- Date: June 2026
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Follow-up work: Portfolio launch readiness (README, public-facing
+  documentation) is the next candidate Phase 7 package. Each Phase 7 package
+  requires its own definition entry before implementation begins.
+
 ### Phase 7 Package 1 — Credential & Configuration Diagnostics Definition Accepted
 
 - Status: accepted
