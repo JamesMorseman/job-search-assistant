@@ -1,6 +1,7 @@
 import type {
   AtlasOpportunityDetail,
   AtlasOpportunityListResponse,
+  AtlasPipelineRunsResponse,
   AtlasSummary,
 } from "./types";
 
@@ -44,4 +45,13 @@ export function getOpportunity(jobId: string): Promise<AtlasOpportunityDetail> {
 
 export function getSummary(): Promise<AtlasSummary> {
   return fetchJson<AtlasSummary>("/summary");
+}
+
+export function getPipelineRuns(limit?: number): Promise<AtlasPipelineRunsResponse> {
+  const search = new URLSearchParams();
+  if (limit !== undefined) {
+    search.set("limit", String(limit));
+  }
+  const query = search.toString();
+  return fetchJson<AtlasPipelineRunsResponse>(`/pipeline/runs${query ? `?${query}` : ""}`);
 }

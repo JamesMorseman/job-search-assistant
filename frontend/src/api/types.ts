@@ -53,3 +53,25 @@ export type AtlasSummary = {
   total_opportunities: number;
   stages: AtlasStageCount[];
 };
+
+export type AtlasPipelineRun = {
+  id: number;
+  run_type: string;
+  status: string;
+  started_at: string;
+  completed_at: string | null;
+  source: string | null;
+  trigger: string;
+  jobs_seen: number;
+  jobs_created: number;
+  jobs_updated: number;
+  jobs_presented: number;
+  errors_count: number;
+  metadata_json: string | null;
+  notes: string | null;
+};
+
+export type AtlasPipelineRunsResponse = {
+  runs: AtlasPipelineRun[];
+  limit: number;
+};

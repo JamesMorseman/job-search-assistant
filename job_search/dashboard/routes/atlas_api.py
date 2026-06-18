@@ -3,16 +3,23 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
-from job_search.dashboard.deps import get_atlas_data_service
+from job_search.dashboard.deps import get_atlas_data_service, get_pipeline_service
 from job_search.services.atlas import (
     AtlasDataService,
     AtlasOpportunityDetail,
     AtlasOpportunityList,
     AtlasSummary,
 )
+from job_search.services.pipeline import PipelineRun, PipelineService
 
 router = APIRouter()
+
+
+class PipelineRunList(BaseModel):
+    runs: list[PipelineRun]
+    limit: int
 
 
 @router.get("/opportunities", response_model=AtlasOpportunityList)
@@ -37,6 +44,14 @@ def get_opportunity(
 @router.get("/summary", response_model=AtlasSummary)
 def get_summary(service: AtlasDataService = Depends(get_atlas_data_service)) -> AtlasSummary:
     return service.get_summary()
+
+
+@router.get("/pipeline/runs", response_model=PipelineRunList)
+def list_pipeline_runs(
+    limit: int = 20,
+    service: PipelineService = Depends(get_pipeline_service),
+) -> PipelineRunList:
+    return PipelineRunList(runs=service.list_recent_runs(limit=limit), limit=limit)
 
 
 @router.get("/{path:path}", include_in_schema=False)
