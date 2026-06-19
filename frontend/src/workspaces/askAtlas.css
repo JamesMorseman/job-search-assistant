@@ -12,12 +12,20 @@
 }
 
 .atlas-ask-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: 0 0 6px;
   color: var(--atlas-accent);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.atlas-ask-eyebrow svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(56, 211, 196, 0.6));
 }
 
 .atlas-ask-header h2 {
@@ -28,10 +36,11 @@
 
 .atlas-ask-context-pill {
   padding: 7px 11px;
-  border: 1px solid rgba(56, 211, 196, 0.32);
+  border: 1px solid rgba(56, 211, 196, 0.4);
   border-radius: 999px;
   color: var(--atlas-accent);
-  background: rgba(56, 211, 196, 0.08);
+  background: rgba(56, 211, 196, 0.1);
+  box-shadow: var(--atlas-glow-soft);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -134,12 +143,19 @@
 }
 
 .atlas-ask-result h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0 0 8px;
   color: var(--atlas-accent);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.atlas-ask-result h4 svg {
+  flex-shrink: 0;
 }
 
 .atlas-ask-result p {

@@ -19,23 +19,25 @@
 
 .atlas-brand {
   display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 12px;
+  grid-template-columns: 52px 1fr;
+  gap: 14px;
   align-items: center;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--atlas-line-soft);
 }
 
 .atlas-mark {
   position: relative;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
   color: var(--atlas-accent);
   border-radius: 50%;
   background:
-    radial-gradient(circle, rgba(56, 211, 196, 0.1) 0 2px, transparent 60%),
-    radial-gradient(circle, rgba(13, 18, 27, 0.92), rgba(13, 18, 27, 0.5));
-  box-shadow: inset 0 0 14px rgba(56, 211, 196, 0.12);
+    radial-gradient(circle, rgba(56, 211, 196, 0.18) 0 2px, transparent 62%),
+    radial-gradient(circle, rgba(13, 18, 27, 0.95), rgba(13, 18, 27, 0.55));
+  box-shadow: inset 0 0 18px rgba(56, 211, 196, 0.22), var(--atlas-glow-soft);
 }
 
 .atlas-mark-svg {
@@ -83,9 +85,9 @@
 .atlas-brand-wordmark {
   margin: 0;
   color: var(--atlas-text);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   line-height: 1.1;
 }
 
@@ -114,6 +116,7 @@
 }
 
 .atlas-nav-link {
+  position: relative;
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 12px;
@@ -123,7 +126,9 @@
   border: 1px solid transparent;
   border-radius: var(--atlas-radius);
   color: var(--atlas-muted);
+  font-weight: 600;
   text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .atlas-nav-link:hover,
@@ -131,6 +136,25 @@
   border-color: var(--atlas-line);
   color: var(--atlas-text);
   background: rgba(148, 163, 184, 0.08);
+}
+
+.atlas-nav-link.is-active {
+  border-color: rgba(56, 211, 196, 0.32);
+  background: rgba(56, 211, 196, 0.08);
+  font-weight: 800;
+}
+
+.atlas-nav-link.is-active::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  width: 3px;
+  height: 18px;
+  background: var(--atlas-accent);
+  border-radius: 0 4px 4px 0;
+  box-shadow: var(--atlas-glow-accent);
+  transform: translateY(-50%);
 }
 
 .atlas-nav-icon {
@@ -167,20 +191,17 @@
 
 .atlas-sidebar-footer {
   margin-top: auto;
-  padding: 10px 14px;
-  border: 1px solid var(--atlas-line-soft);
-  border-radius: var(--atlas-radius);
+  padding: 8px 12px;
   color: var(--atlas-muted);
-  background: rgba(255, 255, 255, 0.02);
-  font-size: 11px;
-  opacity: 0.62;
+  font-size: 10px;
+  opacity: 0.4;
 }
 
 .atlas-sidebar-footer strong {
   display: block;
   margin-top: 2px;
   color: var(--atlas-muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
 }
 

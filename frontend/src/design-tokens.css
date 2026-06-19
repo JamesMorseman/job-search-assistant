@@ -18,9 +18,22 @@
   --atlas-warn: #f5c66b;
   --atlas-success: #79df9d;
   --atlas-radius: 8px;
+  --atlas-radius-lg: 16px;
   --atlas-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
   --atlas-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
+
+  /* Shared signal/glow accents (radar + brand identity grammar) */
+  --atlas-glow-accent: 0 0 16px rgba(56, 211, 196, 0.55);
+  --atlas-glow-accent-strong: 0 0 18px rgba(88, 166, 255, 0.6);
+  --atlas-glow-soft: 0 0 24px rgba(56, 211, 196, 0.18);
+
+  /* Shared pill / eyebrow / chip rhythm so new surfaces inherit one grammar */
+  --atlas-eyebrow-size: 11px;
+  --atlas-eyebrow-tracking: 0.1em;
+  --atlas-chip-radius: 999px;
+  --atlas-card-padding: 22px;
+  --atlas-card-padding-lg: 28px;
 }
 
 * {

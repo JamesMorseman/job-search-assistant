@@ -55,6 +55,54 @@ function EmploymentTypeGlyph() {
   );
 }
 
+function SignalStrengthGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <rect x="2" y="9" width="2.4" height="5" rx="0.6" fill="currentColor" />
+      <rect x="6.8" y="6" width="2.4" height="8" rx="0.6" fill="currentColor" />
+      <rect x="11.6" y="3" width="2.4" height="11" rx="0.6" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SaveGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        d="M4 2.5h8a1 1 0 0 1 1 1V14l-5-3-5 3V3.5a1 1 0 0 1 1-1Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        fill="none"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function TrackGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2" fill="none" />
+      <path d="M8 5.2v2.8h2.4" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function EyeGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        d="M1.5 8s2.3-4.2 6.5-4.2S14.5 8 14.5 8s-2.3 4.2-6.5 4.2S1.5 8 1.5 8Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        fill="none"
+        strokeLinejoin="round"
+      />
+      <circle cx="8" cy="8" r="1.8" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    </svg>
+  );
+}
+
 /**
  * Atlas Opportunity Signal Card: the reusable signal-discovery object used
  * by Radar (and optionally Command Center). Reproduces the accepted
@@ -111,7 +159,10 @@ export default function SignalCard({
               <span className="atlas-signal-detected-dot" />
               Atlas Signal Detected
             </span>
-            <span className="atlas-signal-indicator">{signalLabel}</span>
+            <span className="atlas-signal-indicator">
+              <SignalStrengthGlyph />
+              {signalLabel}
+            </span>
           </div>
 
           <h3>{title}</h3>
@@ -154,10 +205,21 @@ export default function SignalCard({
         </div>
       </div>
 
-      <Link className="atlas-signal-card-cta" to={`/opportunities/${encodeURIComponent(jobId)}`}>
-        Review Opportunity
-        <span aria-hidden="true">&rarr;</span>
-      </Link>
+      <div className="atlas-signal-card-actions">
+        <button type="button" className="atlas-signal-card-action" aria-pressed="false">
+          <SaveGlyph />
+          Save
+        </button>
+        <Link className="atlas-signal-card-cta" to={`/opportunities/${encodeURIComponent(jobId)}`}>
+          <EyeGlyph />
+          Review Opportunity
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+        <button type="button" className="atlas-signal-card-action" aria-pressed="false">
+          <TrackGlyph />
+          Track
+        </button>
+      </div>
       <Link className="atlas-signal-card-link" to={`/opportunities/${encodeURIComponent(jobId)}`}>
         Open Opportunity Detail
       </Link>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { AtlasApiError, getOpportunity } from "../api/client";
 import {
@@ -46,6 +46,21 @@ function LinkGlyph() {
         strokeWidth="1.1"
         fill="none"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function BackArrowGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+      <path
+        d="M9.5 3.2 4 8l5.5 4.8M4 8h8.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -156,6 +171,32 @@ function stateLabel(stage: string): string {
   return STATE_LABELS[stage] ?? stage;
 }
 
+// Next Step copy is a direct, deterministic mapping of the already-stored
+// `stage` value to a human-readable description of what that stage means —
+// it does not introduce new recommendation/decision logic.
+const NEXT_STEP_COPY: Record<string, string> = {
+  discovered: "Atlas detected this opportunity. Review it to decide whether to save it.",
+  presented: "This opportunity has been presented for review.",
+  selected: "Saved to your pipeline. Review requirements before applying.",
+  applied: "Application submitted. Watch for acknowledgement from the source.",
+  acknowledged: "Acknowledged by the source. Awaiting next contact.",
+  screen: "In screening. Track any scheduling activity in Pipeline.",
+  interview: "In interview stage. Track scheduling activity in Pipeline.",
+  offer: "Offer stage reached.",
+  rejected: "This opportunity was marked rejected.",
+  ghosted: "No further contact has been recorded for this opportunity.",
+};
+
+function NextStepModule({ stage }: { stage: string }) {
+  const copy = NEXT_STEP_COPY[stage] ?? "Stage not recognized.";
+  return (
+    <div className="atlas-detail-nextstep" aria-label="Next step">
+      <p className="atlas-detail-nextstep-eyebrow">Next Step</p>
+      <p className="atlas-detail-nextstep-body">{copy}</p>
+    </div>
+  );
+}
+
 function CurrentStateStrip({ stage }: { stage: string }) {
   const terminal = stage === "rejected" || stage === "ghosted";
   const currentIndex = STATE_PROGRESSION.indexOf(stage as (typeof STATE_PROGRESSION)[number]);
@@ -238,13 +279,25 @@ function ConfidenceModule({ opportunity }: { opportunity: AtlasOpportunityDetail
   );
 }
 
+function DetailTopbar({ company }: { company: string }) {
+  return (
+    <div className="atlas-detail-topbar">
+      <Link className="atlas-detail-topbar-back" to="/pipeline">
+        <BackArrowGlyph />
+        Back to Pipeline
+      </Link>
+      <p className="atlas-detail-topbar-context">{company} &middot; Opportunity Detail</p>
+    </div>
+  );
+}
+
 function RelatedAndContextRail({ opportunity }: { opportunity: AtlasOpportunityDetail }) {
   return (
     <aside className="atlas-detail-rail" aria-label="Related opportunity context">
       <section className="atlas-detail-rail-card">
         <p className="atlas-detail-rail-eyebrow">Related Opportunities</p>
-        <p className="atlas-detail-rail-empty">
-          Related fictional opportunities from the same source feed will appear here as Radar detects them.
+        <p className="atlas-detail-rail-body">
+          Radar surfaces other {opportunity.source} signals as Atlas detects them.
         </p>
       </section>
       <section className="atlas-detail-rail-card">
@@ -256,13 +309,18 @@ function RelatedAndContextRail({ opportunity }: { opportunity: AtlasOpportunityD
       </section>
       <section className="atlas-detail-rail-card">
         <p className="atlas-detail-rail-eyebrow">Active Focuses</p>
-        <p className="atlas-detail-rail-empty">No active focuses reference this opportunity yet.</p>
+        <p className="atlas-detail-rail-body">
+          Focus objects referencing this opportunity will appear here once Atlas raises one.
+        </p>
       </section>
       <section className="atlas-detail-rail-card atlas-detail-rail-ask">
         <p className="atlas-detail-rail-eyebrow">Ask Atlas</p>
         <p className="atlas-detail-rail-body">
           Bring this opportunity into an Ask Atlas investigation to compare it against other detected signals.
         </p>
+        <Link className="atlas-detail-rail-link" to="/ask-atlas">
+          Open Ask Atlas
+        </Link>
       </section>
     </aside>
   );
@@ -274,7 +332,11 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
   const benefitReasons = formatReasons(opportunity.benefit_reasons);
   const trajectoryReasons = formatReasons(opportunity.trajectory_reasons);
 
+  const disciplineTags = formatReasons(opportunity.discipline_tags);
+
   return (
+    <div className="atlas-detail-page">
+    <DetailTopbar company={opportunity.company} />
     <div className="atlas-detail-layout">
     <article className="atlas-detail">
       <header className="atlas-detail-hero">
@@ -288,6 +350,15 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
             <p className="atlas-detail-subline">
               {opportunity.company} • {opportunity.source}
             </p>
+            {disciplineTags.length > 0 ? (
+              <ul className="atlas-detail-discipline-tags" role="list">
+                {disciplineTags.map((tag, index) => (
+                  <li role="listitem" key={index}>
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
           <ConfidenceModule opportunity={opportunity} />
         </div>
@@ -301,6 +372,7 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
       </header>
 
       <CurrentStateStrip stage={opportunity.stage} />
+      <NextStepModule stage={opportunity.stage} />
 
       <section className="atlas-detail-section" aria-labelledby="atlas-detail-application-context">
         <h2 id="atlas-detail-application-context">Application Context</h2>
@@ -441,6 +513,7 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
       </section>
     </article>
     <RelatedAndContextRail opportunity={opportunity} />
+    </div>
     </div>
   );
 }

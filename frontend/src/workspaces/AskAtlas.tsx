@@ -17,6 +17,48 @@ import {
 import type { AskAtlasInvestigation, AtlasPipelineRun, AtlasSummary } from "../api/types";
 import "./askAtlas.css";
 
+function RadarGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2" fill="none" />
+      <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1" strokeOpacity="0.6" fill="none" />
+      <path d="M8 8 L8 2.4 A5.6 5.6 0 0 1 12.7 5.2 Z" fill="currentColor" fillOpacity="0.4" />
+      <circle cx="8" cy="8" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ObservationGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+      <path
+        d="M1.5 8s2.3-4.2 6.5-4.2S14.5 8 14.5 8s-2.3 4.2-6.5 4.2S1.5 8 1.5 8Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        fill="none"
+        strokeLinejoin="round"
+      />
+      <circle cx="8" cy="8" r="1.8" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    </svg>
+  );
+}
+
+function PathGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+      <path
+        d="M2 13 6 6l3 3 5-7"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="14" cy="2" r="1.4" fill="currentColor" />
+    </svg>
+  );
+}
+
 const DEFAULT_INVESTIGATION_PROMPT =
   "Based on the fictional demo opportunities, which opportunity should I inspect first and why?";
 
@@ -161,7 +203,10 @@ export default function AskAtlas() {
     <section className="atlas-ask" aria-labelledby="ask-atlas-title">
       <header className="atlas-ask-header">
         <div>
-          <p className="atlas-ask-eyebrow">Ask Atlas</p>
+          <p className="atlas-ask-eyebrow">
+            <RadarGlyph />
+            Ask Atlas
+          </p>
           <h2 id="ask-atlas-title">Investigation Surface</h2>
         </div>
         <span className="atlas-ask-context-pill">{attachedContextLabel}</span>
@@ -258,15 +303,24 @@ export default function AskAtlas() {
             <div className="atlas-ask-result">
               <p className="atlas-ask-result-eyebrow">Atlas Investigation &middot; Fictional Demo Scope</p>
               <section className="atlas-ask-result-card atlas-ask-result-observation">
-                <h4>Atlas Observation</h4>
+                <h4>
+                  <ObservationGlyph />
+                  Atlas Observation
+                </h4>
                 <p>{investigationState.data.observation}</p>
               </section>
               <section className="atlas-ask-result-card atlas-ask-result-explanation">
-                <h4>Atlas Explanation</h4>
+                <h4>
+                  <RadarGlyph />
+                  Atlas Explanation
+                </h4>
                 <p>{investigationState.data.explanation}</p>
               </section>
               <section className="atlas-ask-result-card atlas-ask-result-path">
-                <h4>Suggested Review Path</h4>
+                <h4>
+                  <PathGlyph />
+                  Suggested Review Path
+                </h4>
                 <p>{investigationState.data.suggested_action}</p>
               </section>
             </div>

@@ -1,10 +1,11 @@
 .atlas-rec-card {
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 14px;
+  padding: 18px;
   border: 1px solid var(--atlas-line-soft);
-  border-radius: var(--atlas-radius);
+  border-radius: var(--atlas-radius-lg);
   background: rgba(13, 18, 27, 0.7);
+  box-shadow: var(--atlas-shadow);
 }
 
 .atlas-rec-card-high {
@@ -25,11 +26,19 @@
 }
 
 .atlas-rec-card-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--atlas-accent);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.atlas-rec-card-label svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(56, 211, 196, 0.6));
 }
 
 .atlas-rec-card-confidence {
@@ -62,45 +71,94 @@
 .atlas-rec-card-text {
   margin: 0;
   color: var(--atlas-text);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .atlas-rec-card-reasons-label {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   color: var(--atlas-muted);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .atlas-rec-card-reasons ul {
+  display: grid;
+  gap: 7px;
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-rec-card-reasons li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--atlas-soft);
-  font-size: 12px;
-  line-height: 1.6;
-  list-style: disc;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.atlas-rec-card-reasons li svg {
+  flex-shrink: 0;
+  color: var(--atlas-accent);
 }
 
 .atlas-rec-card-ctarow {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--atlas-line-soft);
 }
 
 .atlas-rec-card-cta {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: var(--atlas-radius);
   color: #06121b;
   background: linear-gradient(120deg, var(--atlas-accent), var(--atlas-accent-strong));
-  font-size: 12px;
+  box-shadow: var(--atlas-glow-accent);
+  font-size: 13px;
   font-weight: 800;
   text-decoration: none;
 }
 
 .atlas-rec-card-cta:hover {
   filter: brightness(1.05);
+}
+
+.atlas-rec-card-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--atlas-accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.atlas-rec-card-secondary:hover {
+  color: var(--atlas-text);
+}
+
+.atlas-rec-card-dismiss {
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--atlas-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.atlas-rec-card-dismiss:hover {
+  color: var(--atlas-soft);
 }
