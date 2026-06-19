@@ -4043,6 +4043,295 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
 - Follow-up work: Phase 7 Package 1 (Credential & Configuration Diagnostics) is
   defined below. Implementation is now authorized.
 
+### Phase 7 Package 5B — Visual Governance Reconciliation: Technical Conditional Pass, Visual Reference-Parity Fail; Phase 7 Package 5C Defined
+
+- Status: accepted
+- Area: Phase 7 / portfolio / demo runtime readiness / visual governance / screenshot governance
+- Date: June 2026 (2026-06-19)
+- Supersedes-for-state: extends (does not replace) the "Phase 7 Package 5 —
+  Visual Governance Reconciliation" entry below. P7P5B was the corrective
+  package defined in that prior entry; it has now been implemented and
+  re-reviewed, and this entry records that outcome and defines the next
+  corrective package (P7P5C).
+- Rationale: Phase 7 Package 5B (ATLAS Visual Alignment Corrective Pass) was
+  implemented at commit `727ce71` ("feat(p7p5b): ATLAS visual alignment
+  corrective pass"; 17 files: `frontend/src/shell/ContextPanel.tsx`,
+  `frontend/src/shell/Sidebar.tsx`, `frontend/src/shell/shell.css`,
+  `frontend/src/workspaces/AskAtlas.tsx`,
+  `frontend/src/workspaces/OpportunityDetailSurface.tsx`,
+  `frontend/src/workspaces/Radar.tsx`, `frontend/src/workspaces/askAtlas.css`,
+  `frontend/src/workspaces/opportunityDetailSurface.css`,
+  `frontend/src/workspaces/radar.css`, the built `frontend/dist/*` bundle,
+  and two `.claude/agent-memory` notes). The P7P5B definition (entry below)
+  required two re-audit gates: a Leah technical re-audit (acceptance criterion
+  11) and a Sara visual-design re-audit (acceptance criterion 12). Both have
+  now landed.
+
+  **Two separate audit findings, reconciled here:**
+
+  - **Leah technical/privacy/scope re-audit — CONDITIONAL PASS.** Verified:
+    scope compliant (only the authorized P7P5B surfaces touched); no prohibited
+    artifacts (no screenshots, images, or database files committed); no secrets
+    or PII; full pytest suite passes (1019 passed / 1 skipped); all
+    surface-specific corrections present in source. Leah explicitly deferred all
+    visual-adequacy judgment to Sara (e.g. whether the CSS ring/dot brand mark
+    or the Radar card-grid-with-tier-blips satisfies reference parity). Leah's
+    pass stands as a separate, valid finding for the technical/scope/privacy
+    layer.
+
+  - **Sara visual-governance re-audit — VISUAL FAIL for reference parity.**
+    Reviewing the runtime against a **corrected / more specific reference image
+    suite supplied by the user** (Ask Atlas Reference, Command Center Reference,
+    Opportunity Detail Reference, Opportunity Signal Card Reference, Pipeline
+    Reference, Radar Reference, Recommendation Card Reference, and the combined
+    Reference Image suite — present in the working tree under `Reference Images/`
+    and a root-level `Pipeline Reference.png`; untracked, not committed), Sara
+    finds the P7P5B build is closer than the pre-P7P5B state (square "A" tile
+    gone, `Desktop Shell / Package 1` label gone, Context Panel no longer says
+    "Stub", Opportunity Detail shows populated data, Radar has small signal
+    blips, Ask Atlas uses safer language) but still fails on 10 primary
+    blockers:
+
+    1. ATLAS radar/compass/sweep logo mark still not restored (current is a
+       generic CSS ring/dot, not the accepted brand mark).
+    2. Sidebar/navigation lacks the accepted iconographic treatment (uses
+       bullets/dots).
+    3. Radar is still a card-grid list with small blips, not a true
+       Radar/signal-discovery surface.
+    4. Opportunity Signal Card object (large radar-sweep card with "ATLAS
+       SIGNAL DETECTED" label, signal strength, Save/Review/Track actions) is
+       essentially missing.
+    5. Command Center doesn't match reference layout/object hierarchy (missing
+       Action Queue, Upcoming Interviews, Opportunity Signals row, System
+       Health, Context Tips).
+    6. Pipeline remains "Run Visibility" diagnostics, not the accepted Pipeline
+       workspace (Attention Queue / Pipeline Overview / Active Opportunity
+       Stream) — and must not be captured as Pipeline.
+    7. Ask Atlas shows only a pre-response "ready" state, not a completed
+       investigation (missing Atlas Observation/Explanation cards, populated
+       follow-ups).
+    8. Recommendation Card object not implemented anywhere.
+    9. Opportunity Detail is the closest surface but still lacks full top
+       shell, company/logo identity tile, confidence/score ring, tabs
+       (Overview/Requirements/Qualifications/Company/Signal Context/Job
+       Description), reference-style right panel (Related Opportunities/Atlas
+       Context/Active Focuses/Ask Atlas), and footer mission strip. Two
+       concrete defects also flagged: an ambiguous "No" chip with no meaning,
+       and a recursive "Open Opportunity Detail" button shown while already on
+       the Opportunity Detail page.
+    10. Global shell/topbar/footer/mission-language system ("ATLAS scans.
+        Atlas interprets. Ask Atlas communicates. Pipeline executes.")
+        incomplete across surfaces.
+
+    Sara explicitly notes her re-audit does not evaluate
+    backend/tests/privacy/governance/commit hygiene — those are Leah's domain —
+    and that her VISUAL FAIL neither overrides nor is overridden by Leah's
+    technical pass; they are orthogonal gates.
+
+  **Reconciliation logic (no actual contradiction):**
+
+  Leah's CONDITIONAL PASS and Sara's VISUAL FAIL are not in conflict. They
+  evaluate different gates: Leah governs technical correctness, scope
+  compliance, privacy, and artifact hygiene; Sara governs visual parity against
+  the accepted (now corrected) ATLAS reference suite. Both reports state this
+  explicitly. The dual outcome is therefore coherent: P7P5B is **technically
+  conditionally acceptable** (Leah) but **fails visual screenshot-readiness**
+  (Sara) against the corrected reference suite.
+
+  **Reconciled disposition:**
+
+  Phase 7 Package 5B receives a **technical/scope/privacy conditional pass**
+  (Leah) but **fails visual reference parity** (Sara). P7P5B is therefore
+  **NOT accepted as a whole** and **NOT screenshot-ready**; no whole-package
+  acceptance is recorded. The technical/runtime work is acknowledged as valid
+  internal progress only — this acknowledgement explicitly excludes screenshot
+  readiness and any portfolio/public-facing visual claim. Phase 7 Package 6
+  (screenshot capture) **remains blocked**. Rin-Docs documentation activity
+  for screenshot-bearing public surfaces **remains blocked**. Phase 7 Package 7
+  (final release gate) remains unauthorized.
+
+  **Corrective package defined: Phase 7 Package 5C — ATLAS Visual Reference
+  Alignment Corrective Pass.** (Numbered 5C, continuing the 5B convention, to
+  avoid renumbering P7P6/P7P7 and their cross-references.) This package is
+  scoped to Sara's P0 blocker list and supersedes the open visual-parity work
+  that P7P5B did not complete.
+
+  **Phase 7 Package 5C objective:** Bring the ATLAS runtime into acceptable
+  visual parity with the corrected ATLAS reference image suite on the surfaces
+  intended for portfolio capture, by restoring the accepted brand/object
+  language and rebuilding the named surfaces to reference hierarchy. This is a
+  bounded visual-reference-alignment package against an explicit reference
+  suite — it is **not** a broad redesign, **not** a new visual concept, and
+  **not** a backend/feature package. P7P5C makes screenshots possible later;
+  it must not capture or commit screenshots.
+
+  **Phase 7 Package 5C authorized scope (Sara P0 list):**
+
+  *P0-1 — Brand mark and navigation iconography.* Restore the accepted ATLAS
+  radar/compass/sweep logo mark in place of the generic CSS ring/dot. Replace
+  sidebar/navigation bullets/dots with the accepted iconographic treatment.
+  Files: `frontend/src/shell/Sidebar.tsx`, `frontend/src/shell/shell.css`,
+  and shell/brand assets.
+
+  *P0-2 — Opportunity Signal Card object + Radar layout rebuild.* Implement the
+  accepted Opportunity Signal Card object (large radar-sweep card with an
+  "ATLAS SIGNAL DETECTED"-style label, signal strength/tier, and
+  Save/Review/Track actions) per the Opportunity Signal Card Reference. Rebuild
+  Radar from a card-grid-with-blips into a true signal-discovery surface per
+  the Radar Reference. Files: `frontend/src/workspaces/Radar.tsx`,
+  `frontend/src/workspaces/radar.css`, and a new Signal Card component + CSS.
+
+  *P0-3 — Opportunity Detail shell/header/tabs/confidence-module/right-panel
+  upgrade + the two named defects.* Add the full top shell, company/logo
+  identity tile, confidence/score ring, the reference tab set
+  (Overview/Requirements/Qualifications/Company/Signal Context/Job
+  Description), and the reference-style right panel (Related Opportunities /
+  Atlas Context / Active Focuses / Ask Atlas). Fix the two concrete defects:
+  remove or give meaning to the ambiguous "No" chip, and remove the recursive
+  "Open Opportunity Detail" button shown while already on the Opportunity
+  Detail page. Files: `frontend/src/workspaces/OpportunityDetailSurface.tsx`,
+  `frontend/src/workspaces/opportunityDetailSurface.css`.
+
+  *P0-4 — Ask Atlas completed-response state.* Replace the pre-response "ready"
+  state with a completed investigation showing Atlas Observation and
+  Explanation cards and populated follow-ups, per the Ask Atlas Reference,
+  using fictional/demo content only. Files:
+  `frontend/src/workspaces/AskAtlas.tsx`,
+  `frontend/src/workspaces/askAtlas.css`.
+
+  *P0-5 — Command Center reference-layout pass.* Rebuild Command Center to the
+  reference layout/object hierarchy: Action Queue, Upcoming Interviews,
+  Opportunity Signals row, System Health, and Context Tips. Files: Command
+  Center workspace component + CSS.
+
+  *P0-6 — Recommendation Card object.* Implement the accepted Recommendation
+  Card object per the Recommendation Card Reference, on the surface(s) where the
+  reference places it (Command Center / Opportunity Detail right panel as
+  applicable). Files: new Recommendation Card component + CSS and its host
+  surface.
+
+  *P0-7 — Global shell / topbar / footer / mission-language system.* Complete
+  the global shell chrome and mission-language strip ("ATLAS scans. Atlas
+  interprets. Ask Atlas communicates. Pipeline executes.") consistently across
+  the captured surfaces. Files: `frontend/src/shell/*`, shell CSS.
+
+  **Phase 7 Package 5C denied scope (hard deny):**
+
+  - Real/private data of any kind: real employer/application data, credential
+    values, Gmail/Drive content, real generated resumes or cover letters,
+    private profile content. Demo content must remain fictional-only.
+  - Final screenshot capture; screenshot/image commits; `docs/Artifacts/Images/*`;
+    committing the untracked reference PNGs.
+  - Database file commits; seeded data files committed; fixture JSON with real
+    data.
+  - Rin-Docs invocation / any documentation governance update tied to captured
+    surfaces (Rin remains blocked).
+  - Governance self-update by Anna (Anna implements only; she does not edit
+    PROJECT_STATE.md, DECISION_LOG.md, roadmap.md, or ASH_INIT_NEXT.md).
+  - Public release; making the repo public; production-ready /
+    external-user-ready / public-release-ready claims.
+  - Unrelated backend features; schema changes; new endpoints beyond what the
+    visual surfaces strictly require for demo rendering; scoring/ingestion
+    changes; background runner/scheduler/pipeline execution; Tauri/Electron /
+    installer / native packaging.
+  - **Pipeline stays excluded.** Do not rebuild the Pipeline workspace
+    (Attention Queue / Pipeline Overview / Active Opportunity Stream) under
+    this package, and do not let the existing "Run Visibility" diagnostics
+    surface be captured or presented as Pipeline. Rebuilding Pipeline requires
+    a separate, explicitly authorized package.
+
+  **Phase 7 Package 5C acceptance criteria:**
+
+  1. Accepted ATLAS radar/compass/sweep brand mark restored; generic CSS
+     ring/dot removed.
+  2. Sidebar/navigation uses the accepted iconographic treatment (no
+     bullets/dots).
+  3. Opportunity Signal Card object implemented per reference; Radar reads as a
+     true signal-discovery surface, not a card-grid-with-blips.
+  4. Opportunity Detail has the full shell, company/logo identity tile,
+     confidence/score ring, the reference tab set, and the reference right
+     panel; the ambiguous "No" chip and the recursive "Open Opportunity
+     Detail" button are resolved.
+  5. Ask Atlas shows a completed investigation (Observation/Explanation cards +
+     populated follow-ups) with fictional demo content.
+  6. Command Center matches the reference layout/object hierarchy (Action
+     Queue, Upcoming Interviews, Opportunity Signals row, System Health,
+     Context Tips).
+  7. Recommendation Card object implemented per reference on its host
+     surface(s).
+  8. Global shell/topbar/footer/mission-language system complete across the
+     captured surfaces.
+  9. Pipeline is excluded and not presented or captured as a representative
+     Pipeline workspace.
+  10. Fictional/demo-only data preserved; no private-data exposure.
+  11. No screenshots/images committed; no database files committed; reference
+      PNGs remain untracked.
+  12. Existing tests pass; new/updated tests cover any changed behavior; the
+      frontend build succeeds.
+  13. Leah technical re-audit accepts implementation (scope/privacy/no
+      prohibited artifacts).
+  14. Sara visual re-audit confirms reference parity against the corrected
+      reference suite for the intended capture surfaces (Pipeline excluded).
+
+  **Phase 7 Package 5C required implementation validation (for the future Anna
+  pass):**
+
+  - `git status --short --untracked-files=all`
+  - `git diff --stat`
+  - `git diff --name-only`
+  - `.\.venv\Scripts\python.exe -m pytest -q`
+  - Frontend build (e.g. `npm run build` in `frontend/`) succeeds
+  - Private-data scan for `sk-`, `OPENAI_API_KEY=`, `drive.google.com`,
+    `docs.google.com`, `C:\Users\james`, `/Users/james`, `credentials.json`,
+    `token.json` (case-insensitive)
+  - Manual runtime check of capture surfaces (Command Center, Radar,
+    Opportunity Detail, Ask Atlas, plus brand/shell) against the corrected
+    reference suite, confirming demo data stays fictional and screenshot
+    capture remains deferred
+  - Return the updated runtime/build screenshots to Ash for hand-off to Sara
+    re-review (Anna captures working images for review only; she does not
+    commit them)
+
+  **Workstreams (for the future Anna prompt; not authorized to implement in
+  this reconciliation task):**
+
+  1. Shell / brand / nav iconography / mission-language — `Sidebar.tsx`,
+     `shell.css`, shell/brand assets (P0-1, P0-7). Single owner; high conflict
+     risk; do not split.
+  2. Opportunity Signal Card object + Radar rebuild — `Radar.tsx`, `radar.css`,
+     new Signal Card component (P0-2). Sequence after Workstream 1 if it shares
+     shell files; otherwise parallelizable.
+  3. Opportunity Detail shell/header/tabs/confidence/right-panel + defects —
+     `OpportunityDetailSurface.tsx`, `opportunityDetailSurface.css` (P0-3).
+  4. Ask Atlas completed-response state — `AskAtlas.tsx`, `askAtlas.css` (P0-4).
+  5. Command Center reference layout + Recommendation Card object — Command
+     Center component/CSS, new Recommendation Card component (P0-5, P0-6).
+  6. Pipeline — excluded; no implementation work under this package.
+
+  As of this reconciliation: Phase 7 Package 5B is technically conditionally
+  acceptable (Leah) but fails visual reference parity (Sara); it is **not
+  accepted as a whole** and is **not screenshot-ready**. Phase 7 Package 5C
+  (ATLAS Visual Reference Alignment Corrective Pass) is defined; implementation
+  is authorized for a future Anna pass. Phase 7 Package 6 (screenshot capture)
+  **remains blocked** pending P7P5C implementation and a successful Leah + Sara
+  re-audit. Rin-Docs activity for captured surfaces remains blocked. Phase 7
+  Package 7 (final release gate) remains unauthorized.
+- State reference: `PROJECT_STATE.md`
+- Architecture reference: `roadmap.md` (Phase 7 section)
+- Audit references: Leah P7P5B technical/privacy/scope re-audit (CONDITIONAL
+  PASS, 1019 passed / 1 skipped); Sara P7P5B visual-governance re-audit
+  (VISUAL FAIL for reference parity against the corrected reference suite)
+- Implementation reference: commit `727ce71`
+- Reference suite (untracked working-tree inputs to Sara's audit; not
+  committed): `Reference Images/` (Ask Atlas, Command Center, Opportunity
+  Detail, Opportunity Signal Card, Pipeline, Radar, Recommendation Card,
+  Reference Image suite) and root-level `Pipeline Reference.png`
+- Follow-up work: Prompt Anna for Phase 7 Package 5C implementation per the
+  authorized scope and workstreams above. After P7P5C is implemented, run the
+  Leah technical re-audit and the Sara visual re-audit. Only after both accept
+  may Phase 7 Package 6 (screenshot capture) be defined and authorized. No
+  public release is authorized; Rin-Docs remains blocked for captured surfaces.
+
 ### Phase 7 Package 5 — Visual Governance Reconciliation: Technical Conditional Pass, Visual Screenshot Readiness Fail
 
 - Status: accepted
