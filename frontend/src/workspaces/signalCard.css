@@ -1,0 +1,323 @@
+.atlas-signal-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: 14px;
+  background: rgba(13, 18, 27, 0.82);
+  box-shadow: var(--atlas-shadow);
+  overflow: hidden;
+}
+
+.atlas-signal-card.is-selected {
+  border-color: rgba(56, 211, 196, 0.55);
+  box-shadow: 0 0 0 1px rgba(56, 211, 196, 0.3), var(--atlas-shadow);
+}
+
+.atlas-signal-card-select {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  cursor: pointer;
+}
+
+.atlas-signal-card-select:focus-visible {
+  outline: 2px solid var(--atlas-accent-strong);
+  outline-offset: -2px;
+}
+
+.atlas-signal-card-large .atlas-signal-card-select {
+  grid-template-columns: 168px 1fr;
+  align-items: start;
+  padding: 28px;
+}
+
+.atlas-signal-card-compact .atlas-signal-card-select {
+  grid-template-columns: 1fr;
+}
+
+.atlas-signal-card-compact .atlas-signal-card-sweep {
+  width: 64px;
+  height: 64px;
+}
+
+/* Radar sweep visual */
+
+.atlas-signal-card-sweep {
+  position: relative;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(56, 211, 196, 0.12) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(13, 18, 27, 0.95), rgba(13, 18, 27, 0.4));
+  box-shadow: inset 0 0 30px rgba(56, 211, 196, 0.08);
+  justify-self: center;
+}
+
+.atlas-signal-sweep-ring {
+  position: absolute;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 50%;
+}
+
+.atlas-signal-sweep-ring-outer {
+  inset: 4px;
+}
+
+.atlas-signal-sweep-ring-mid {
+  inset: 26%;
+}
+
+.atlas-signal-sweep-ring-inner {
+  inset: 42%;
+}
+
+.atlas-signal-sweep-beam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50%;
+  height: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(56, 211, 196, 0.55),
+    transparent 28%
+  );
+  transform-origin: 0% 0%;
+  animation: atlas-signal-sweep-rotate 4.5s linear infinite;
+}
+
+.atlas-signal-sweep-blip {
+  position: absolute;
+  top: 28%;
+  left: 66%;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px;
+  border-radius: 50%;
+  background: var(--atlas-accent-strong);
+  box-shadow: 0 0 12px rgba(88, 166, 255, 0.75);
+  animation: atlas-mark-blip-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes atlas-signal-sweep-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-signal-sweep-beam,
+  .atlas-signal-sweep-blip {
+    animation: none;
+  }
+}
+
+/* Card body */
+
+.atlas-signal-card-body {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.atlas-signal-card-toprow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.atlas-signal-detected-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--atlas-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.atlas-signal-detected-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--atlas-accent);
+  box-shadow: 0 0 10px rgba(56, 211, 196, 0.75);
+}
+
+.atlas-signal-indicator {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid rgba(56, 211, 196, 0.32);
+  border-radius: 999px;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.08);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.atlas-signal-card-body h3 {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.atlas-signal-card-large .atlas-signal-card-body h3 {
+  font-size: 24px;
+}
+
+.atlas-signal-card-company {
+  margin: 0;
+  color: var(--atlas-accent-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.atlas-signal-card-metarow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-signal-card-metarow li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--atlas-soft);
+  font-size: 12px;
+}
+
+.atlas-signal-card-metarow svg {
+  color: var(--atlas-muted);
+}
+
+.atlas-signal-card-summary {
+  padding: 12px 14px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.atlas-signal-card-summary-label {
+  margin: 0 0 4px;
+  color: var(--atlas-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.atlas-signal-card-summary p:last-child {
+  margin: 0;
+  color: var(--atlas-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.atlas-signal-card-infogrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0;
+}
+
+.atlas-signal-card-infogrid dt {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-signal-card-infogrid dd {
+  margin: 2px 0 0;
+  color: var(--atlas-soft);
+  font-size: 12px;
+}
+
+.atlas-signal-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 22px 14px;
+  padding: 12px 18px;
+  border-radius: var(--atlas-radius);
+  color: #06121b;
+  background: linear-gradient(120deg, var(--atlas-accent-strong), var(--atlas-accent));
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.atlas-signal-card-cta:hover {
+  filter: brightness(1.05);
+}
+
+.atlas-signal-card-link {
+  display: block;
+  margin: 0 22px 22px;
+  color: var(--atlas-muted);
+  font-size: 11px;
+  text-decoration: underline;
+  text-align: center;
+}
+
+.atlas-signal-card-link:hover {
+  color: var(--atlas-soft);
+}
+
+/* Tier accents */
+
+.atlas-signal-tier-exceptional {
+  border-color: rgba(56, 211, 196, 0.4);
+}
+
+.atlas-signal-tier-exceptional .atlas-signal-indicator {
+  color: var(--atlas-accent);
+}
+
+.atlas-signal-tier-strong {
+  border-color: rgba(88, 166, 255, 0.32);
+}
+
+.atlas-signal-tier-strong .atlas-signal-indicator {
+  color: var(--atlas-accent-strong);
+  border-color: rgba(88, 166, 255, 0.35);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.atlas-signal-tier-relevant .atlas-signal-indicator {
+  color: var(--atlas-warn);
+  border-color: rgba(245, 198, 107, 0.35);
+  background: rgba(245, 198, 107, 0.08);
+}
+
+.atlas-signal-tier-emerging .atlas-signal-indicator,
+.atlas-signal-tier-unscored .atlas-signal-indicator {
+  color: var(--atlas-muted);
+  border-color: var(--atlas-line-soft);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+@media (max-width: 980px) {
+  .atlas-signal-card-large .atlas-signal-card-select {
+    grid-template-columns: 1fr;
+  }
+
+  .atlas-signal-card-sweep {
+    width: 110px;
+    height: 110px;
+  }
+}

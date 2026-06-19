@@ -20,6 +20,24 @@ import "./askAtlas.css";
 const DEFAULT_INVESTIGATION_PROMPT =
   "Based on the fictional demo opportunities, which opportunity should I inspect first and why?";
 
+// Deterministic fictional demo investigation shown by default so the
+// Ask Atlas surface reads as a completed investigation rather than an
+// empty/ready state. This is static demo-safe copy, not a live model
+// response — a real investigation replaces it once the form is submitted.
+const DEFAULT_DEMO_INVESTIGATION: AskAtlasInvestigation = {
+  observation:
+    "Atlas Demo Infrastructure Group shows the strongest fictional signal among the currently detected demo opportunities.",
+  explanation:
+    "This fictional demo workspace currently has six source=demo opportunities and one completed demo pipeline run with no errors recorded.",
+  suggested_action:
+    "Open the Atlas Demo Infrastructure Group opportunity detail page first, then compare it against the next two strongest signals in Radar.",
+  suggested_followups: [
+    "Which fictional demo opportunity has the strongest signal?",
+    "What changed in the most recent demo pipeline run?",
+    "Which opportunities are missing stored fit context?",
+  ],
+};
+
 export default function AskAtlas() {
   const [summaryState, setSummaryState] = useState<DataState<AtlasSummary>>(idleState());
   const [pipelineState, setPipelineState] = useState<DataState<AtlasPipelineRun[]>>(
@@ -28,7 +46,7 @@ export default function AskAtlas() {
   const [prompt, setPrompt] = useState(DEFAULT_INVESTIGATION_PROMPT);
   const [investigationState, setInvestigationState] = useState<
     DataState<AskAtlasInvestigation>
-  >(idleState());
+  >(successState(DEFAULT_DEMO_INVESTIGATION));
   const investigationRequestIdRef = useRef(0);
 
   useEffect(() => {
@@ -239,15 +257,15 @@ export default function AskAtlas() {
           {investigationState.status === "success" && investigationState.data && (
             <div className="atlas-ask-result">
               <p className="atlas-ask-result-eyebrow">Atlas Investigation &middot; Fictional Demo Scope</p>
-              <section>
-                <h4>Observation</h4>
+              <section className="atlas-ask-result-card atlas-ask-result-observation">
+                <h4>Atlas Observation</h4>
                 <p>{investigationState.data.observation}</p>
               </section>
-              <section>
-                <h4>Explanation</h4>
+              <section className="atlas-ask-result-card atlas-ask-result-explanation">
+                <h4>Atlas Explanation</h4>
                 <p>{investigationState.data.explanation}</p>
               </section>
-              <section>
+              <section className="atlas-ask-result-card atlas-ask-result-path">
                 <h4>Suggested Review Path</h4>
                 <p>{investigationState.data.suggested_action}</p>
               </section>

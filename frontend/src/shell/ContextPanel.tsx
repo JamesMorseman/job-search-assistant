@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { getPipelineRuns, getSummary } from "../api/client";
 import { type DataState, idleState, loadingState, successState } from "../api/state";
@@ -8,6 +8,10 @@ import { useContextPanel } from "./ContextPanelContext";
 
 export default function ContextPanel() {
   const { preview } = useContextPanel();
+  const location = useLocation();
+  const isViewingPreviewedOpportunity =
+    preview !== null &&
+    location.pathname === `/opportunities/${encodeURIComponent(preview.jobId)}`;
   const [summaryState, setSummaryState] = useState<DataState<AtlasSummary>>(idleState());
   const [pipelineState, setPipelineState] = useState<DataState<AtlasPipelineRun[]>>(
     idleState(),
@@ -114,12 +118,18 @@ export default function ContextPanel() {
             <dd>{preview.status}</dd>
           </div>
         </dl>
-        <Link
-          className="atlas-context-preview-link"
-          to={`/opportunities/${encodeURIComponent(preview.jobId)}`}
-        >
-          Open Opportunity Detail
-        </Link>
+        {isViewingPreviewedOpportunity ? (
+          <p className="atlas-context-preview-current">
+            You are viewing this opportunity's detail page.
+          </p>
+        ) : (
+          <Link
+            className="atlas-context-preview-link"
+            to={`/opportunities/${encodeURIComponent(preview.jobId)}`}
+          >
+            Open Opportunity Detail
+          </Link>
+        )}
       </div>
     </aside>
   );

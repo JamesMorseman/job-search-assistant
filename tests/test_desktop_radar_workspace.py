@@ -20,6 +20,12 @@ from job_search.db.connection import init_db
 FRONTEND_SRC = Path(__file__).resolve().parents[1] / "frontend" / "src"
 APP_TSX = (FRONTEND_SRC / "App.tsx").read_text(encoding="utf-8")
 RADAR_TSX = (FRONTEND_SRC / "workspaces" / "Radar.tsx").read_text(encoding="utf-8")
+# Phase 7 Package 5C introduced the reusable Opportunity Signal Card
+# component; Radar now renders opportunity-detail routing through that
+# shared component rather than inline in Radar.tsx, so route/link
+# assertions below check the combined rendered source.
+SIGNAL_CARD_TSX = (FRONTEND_SRC / "workspaces" / "SignalCard.tsx").read_text(encoding="utf-8")
+RADAR_RENDERED_TSX = RADAR_TSX + SIGNAL_CARD_TSX
 CONTEXT_PANEL_TSX = (FRONTEND_SRC / "shell" / "ContextPanel.tsx").read_text(encoding="utf-8")
 CONTEXT_PANEL_CONTEXT_TSX = (
     FRONTEND_SRC / "shell" / "ContextPanelContext.tsx"
@@ -101,8 +107,8 @@ def test_context_panel_renders_preview_fields():
 
 
 def test_radar_links_to_opportunity_detail_route():
-    assert '/opportunities/${encodeURIComponent(' in RADAR_TSX
-    assert "Open Opportunity Detail" in RADAR_TSX
+    assert '/opportunities/${encodeURIComponent(' in RADAR_RENDERED_TSX
+    assert "Open Opportunity Detail" in RADAR_RENDERED_TSX
 
 
 def test_radar_renders_loading_state():

@@ -23,7 +23,22 @@ import type {
   AtlasSummary,
   FocusResolutionRecord,
 } from "../api/types";
+import RecommendationCard from "./RecommendationCard";
 import "./commandCenter.css";
+
+const ACTION_SURFACE_HREF: Record<AtlasRecommendation["action_surface"], string> = {
+  radar: "/radar",
+  pipeline: "/pipeline",
+  "opportunity-detail": "/opportunity-detail",
+  "command-center": "/command-center",
+};
+
+const ACTION_SURFACE_LABEL: Record<AtlasRecommendation["action_surface"], string> = {
+  radar: "Review in Radar",
+  pipeline: "Review in Pipeline",
+  "opportunity-detail": "Review Opportunity",
+  "command-center": "Review Here",
+};
 
 type RunStatusLabel = "Running" | "Completed" | "Failed" | "Unknown";
 
@@ -434,7 +449,7 @@ export default function CommandCenter() {
         </article>
 
         <article className="atlas-cc-panel" aria-labelledby="cc-recommendations-title">
-          <h3 id="cc-recommendations-title">Recommendations</h3>
+          <h3 id="cc-recommendations-title">Atlas Recommendations</h3>
 
           {recommendationState.status === "loading" && (
             <div className="atlas-cc-status" role="status">
@@ -461,22 +476,15 @@ export default function CommandCenter() {
             recommendationState.data.length > 0 && (
               <ul className="atlas-cc-recommendations" role="list">
                 {recommendationState.data.map((recommendation, index) => (
-                  <li
-                    className="atlas-cc-recommendation-card"
-                    role="listitem"
-                    key={`${recommendation.action_surface}-${index}`}
-                  >
-                    <div className="atlas-cc-recommendation-meta">
-                      <span
-                        className={`atlas-cc-recommendation-priority atlas-cc-recommendation-priority-${recommendation.priority}`}
-                      >
-                        {recommendationPriorityLabel(recommendation.priority)}
-                      </span>
-                      <span className="atlas-cc-recommendation-surface">
-                        {recommendation.action_surface}
-                      </span>
-                    </div>
-                    <p>{recommendation.text}</p>
+                  <li role="listitem" key={`${recommendation.action_surface}-${index}`}>
+                    <RecommendationCard
+                      text={recommendation.text}
+                      priority={recommendation.priority}
+                      priorityLabel={recommendationPriorityLabel(recommendation.priority)}
+                      actionSurface={recommendation.action_surface}
+                      actionHref={ACTION_SURFACE_HREF[recommendation.action_surface]}
+                      actionLabel={ACTION_SURFACE_LABEL[recommendation.action_surface]}
+                    />
                   </li>
                 ))}
               </ul>

@@ -10,9 +10,14 @@ export default function AppShell() {
     <ContextPanelProvider>
       <div className="atlas-shell min-h-screen">
         <Sidebar />
-        <main className="atlas-workspace" aria-label="ATLAS workspace">
-          <Outlet />
-        </main>
+        <div className="atlas-workspace-column">
+          <main className="atlas-workspace" aria-label="ATLAS workspace">
+            <Outlet />
+          </main>
+          <footer className="atlas-mission-footer" aria-label="ATLAS mission summary">
+            <p>ATLAS scans. Atlas interprets. Ask Atlas communicates. Pipeline executes.</p>
+          </footer>
+        </div>
         <ContextPanel />
       </div>
     </ContextPanelProvider>

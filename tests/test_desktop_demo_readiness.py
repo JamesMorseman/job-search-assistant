@@ -20,6 +20,11 @@ SIDEBAR_TSX = (FRONTEND_SRC / "shell" / "Sidebar.tsx").read_text(encoding="utf-8
 CONTEXT_PANEL_TSX = (FRONTEND_SRC / "shell" / "ContextPanel.tsx").read_text(encoding="utf-8")
 RADAR_TSX = (FRONTEND_SRC / "workspaces" / "Radar.tsx").read_text(encoding="utf-8")
 RADAR_CSS = (FRONTEND_SRC / "workspaces" / "radar.css").read_text(encoding="utf-8")
+# Phase 7 Package 5C factored the Opportunity Signal Card markup (including
+# the opportunity-detail route link) into a shared component; route checks
+# below look at the combined rendered source rather than Radar.tsx alone.
+SIGNAL_CARD_TSX = (FRONTEND_SRC / "workspaces" / "SignalCard.tsx").read_text(encoding="utf-8")
+RADAR_RENDERED_TSX = RADAR_TSX + SIGNAL_CARD_TSX
 ASK_ATLAS_TSX = (FRONTEND_SRC / "workspaces" / "AskAtlas.tsx").read_text(encoding="utf-8")
 
 SEED_SCRIPT = ROOT / "scripts" / "seed_demo_data.py"
@@ -72,7 +77,7 @@ def test_radar_has_conservative_scope_visual_and_detail_link():
     assert "atlas-radar-scope" in RADAR_TSX
     assert "aria-hidden" in RADAR_TSX
     assert "atlas-radar-sweep" in RADAR_TSX
-    assert "/opportunities/${encodeURIComponent(opportunity.job_id)}" in RADAR_TSX
+    assert "/opportunities/${encodeURIComponent(" in RADAR_RENDERED_TSX
     assert ".atlas-radar-scope" in RADAR_CSS
 
 

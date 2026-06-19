@@ -149,6 +149,16 @@
   line-height: 1.55;
 }
 
+.atlas-ask-result-observation {
+  border-color: rgba(56, 211, 196, 0.32);
+  background: rgba(56, 211, 196, 0.05);
+}
+
+.atlas-ask-result-explanation {
+  border-color: rgba(88, 166, 255, 0.32);
+  background: rgba(88, 166, 255, 0.05);
+}
+
 .atlas-ask-followups ul {
   display: grid;
   gap: 10px;

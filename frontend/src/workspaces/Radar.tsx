@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 
 import { AtlasApiError, getOpportunities } from "../api/client";
 import {
@@ -11,6 +10,7 @@ import {
 } from "../api/state";
 import type { AtlasOpportunitySummary } from "../api/types";
 import { useContextPanel } from "../shell/ContextPanelContext";
+import SignalCard from "./SignalCard";
 import "./radar.css";
 
 function signalLabel(score: number | null): string {
@@ -64,6 +64,18 @@ function formatTiming(opportunity: AtlasOpportunitySummary): string {
     return `Last seen ${opportunity.last_seen}`;
   }
   return "Timing unavailable";
+}
+
+function formatEmploymentType(opportunity: AtlasOpportunitySummary): string {
+  if (opportunity.remote_flag && opportunity.remote_flag.toLowerCase() !== "unknown") {
+    return opportunity.remote_flag.replace(/_/g, " ");
+  }
+  return "Type unavailable";
+}
+
+function signalSummary(opportunity: AtlasOpportunitySummary): string {
+  const tier = signalLabel(opportunity.match_score);
+  return `${tier} detected for ${opportunity.title} via ${opportunity.source}.`;
 }
 
 export default function Radar() {
@@ -123,6 +135,12 @@ export default function Radar() {
       return matchesSource && matchesQuery;
     });
   }, [opportunities, search, sourceFilter]);
+
+  const rankedFiltered = useMemo(() => {
+    return [...filtered].sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
+  }, [filtered]);
+
+  const [leadSignal, ...secondarySignals] = rankedFiltered;
 
   function handleSelect(opportunity: AtlasOpportunitySummary) {
     setSelectedJobId(opportunity.job_id);
@@ -204,66 +222,55 @@ export default function Radar() {
       )}
 
       {state.status === "success" && filtered.length > 0 && (
-        <div className="atlas-radar-grid" role="list">
-          {filtered.map((opportunity) => {
-            const isSelected = opportunity.job_id === selectedJobId;
-            const tierClass = signalTierClass(opportunity.match_score);
-            return (
-              <article
-                key={opportunity.job_id}
-                role="listitem"
-                className={`atlas-signal-card ${tierClass}${isSelected ? " is-selected" : ""}`}
-              >
-                <div
-                  className="atlas-signal-card-select"
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={isSelected}
-                  onClick={() => handleSelect(opportunity)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleSelect(opportunity);
-                    }
-                  }}
-                >
-                  <div className="atlas-signal-card-header">
-                    <span className="atlas-signal-card-blip" aria-hidden="true" />
-                    <h3>{opportunity.title}</h3>
-                    <span className="atlas-signal-indicator">
-                      {signalLabel(opportunity.match_score)}
-                    </span>
-                  </div>
-                  <p className="atlas-signal-card-company">{opportunity.company}</p>
-                  <dl className="atlas-signal-card-meta">
-                    <div>
-                      <dt>Source</dt>
-                      <dd>{opportunity.source}</dd>
-                    </div>
-                    <div>
-                      <dt>Location</dt>
-                      <dd>{formatLocation(opportunity)}</dd>
-                    </div>
-                    <div>
-                      <dt>Stage</dt>
-                      <dd>{opportunity.stage}</dd>
-                    </div>
-                    <div>
-                      <dt>Status</dt>
-                      <dd>{opportunity.status}</dd>
-                    </div>
-                  </dl>
-                  <p className="atlas-signal-card-timing">{formatTiming(opportunity)}</p>
+        <div className="atlas-radar-results">
+          {leadSignal && (
+            <div className="atlas-radar-lead" role="list">
+              <p className="atlas-radar-section-label">Strongest Signal</p>
+              <div role="listitem">
+                <SignalCard
+                  jobId={leadSignal.job_id}
+                  title={leadSignal.title}
+                  company={leadSignal.company}
+                  location={formatLocation(leadSignal)}
+                  employmentType={formatEmploymentType(leadSignal)}
+                  stage={leadSignal.stage}
+                  signalLabel={signalLabel(leadSignal.match_score)}
+                  tierClass={signalTierClass(leadSignal.match_score)}
+                  summary={signalSummary(leadSignal)}
+                  detectedLabel={formatTiming(leadSignal)}
+                  source={leadSignal.source}
+                  isSelected={leadSignal.job_id === selectedJobId}
+                  size="large"
+                  onSelect={() => handleSelect(leadSignal)}
+                />
+              </div>
+            </div>
+          )}
+
+          {secondarySignals.length > 0 && (
+            <div className="atlas-radar-grid" role="list">
+              {secondarySignals.map((opportunity) => (
+                <div key={opportunity.job_id} role="listitem">
+                  <SignalCard
+                    jobId={opportunity.job_id}
+                    title={opportunity.title}
+                    company={opportunity.company}
+                    location={formatLocation(opportunity)}
+                    employmentType={formatEmploymentType(opportunity)}
+                    stage={opportunity.stage}
+                    signalLabel={signalLabel(opportunity.match_score)}
+                    tierClass={signalTierClass(opportunity.match_score)}
+                    summary={signalSummary(opportunity)}
+                    detectedLabel={formatTiming(opportunity)}
+                    source={opportunity.source}
+                    isSelected={opportunity.job_id === selectedJobId}
+                    size="compact"
+                    onSelect={() => handleSelect(opportunity)}
+                  />
                 </div>
-                <Link
-                  className="atlas-signal-card-link"
-                  to={`/opportunities/${encodeURIComponent(opportunity.job_id)}`}
-                >
-                  Open Opportunity Detail
-                </Link>
-              </article>
-            );
-          })}
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>

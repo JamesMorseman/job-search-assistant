@@ -1,0 +1,106 @@
+.atlas-rec-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(13, 18, 27, 0.7);
+}
+
+.atlas-rec-card-high {
+  border-color: rgba(88, 166, 255, 0.32);
+  background: rgba(88, 166, 255, 0.05);
+}
+
+.atlas-rec-card-medium {
+  border-color: rgba(56, 211, 196, 0.26);
+}
+
+.atlas-rec-card-toprow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.atlas-rec-card-label {
+  color: var(--atlas-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.atlas-rec-card-confidence {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.atlas-rec-card-confidence-high {
+  color: var(--atlas-accent-strong);
+  background: rgba(88, 166, 255, 0.12);
+  border: 1px solid rgba(88, 166, 255, 0.35);
+}
+
+.atlas-rec-card-confidence-medium {
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.1);
+  border: 1px solid rgba(56, 211, 196, 0.32);
+}
+
+.atlas-rec-card-confidence-low {
+  color: var(--atlas-muted);
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid var(--atlas-line-soft);
+}
+
+.atlas-rec-card-text {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.atlas-rec-card-reasons-label {
+  margin: 0 0 6px;
+  color: var(--atlas-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.atlas-rec-card-reasons ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--atlas-soft);
+  font-size: 12px;
+  line-height: 1.6;
+  list-style: disc;
+}
+
+.atlas-rec-card-ctarow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.atlas-rec-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--atlas-radius);
+  color: #06121b;
+  background: linear-gradient(120deg, var(--atlas-accent), var(--atlas-accent-strong));
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.atlas-rec-card-cta:hover {
+  filter: brightness(1.05);
+}
