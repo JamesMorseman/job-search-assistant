@@ -66,3 +66,108 @@ export function AskAtlasIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/**
+ * Mission-strip iconography (P7P5E): small glyphs for the sidebar mission
+ * sequence so it reads as a real icon-rhythm strip rather than plain text.
+ */
+export function MissionScanIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="6.5" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M10 10 L10 3.5 A6.5 6.5 0 0 1 15.1 6.3 Z" fill="currentColor" fillOpacity="0.4" />
+    </svg>
+  );
+}
+
+export function MissionInterpretIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M2.5 12.5 6 7l3 4 2-3 6.5 5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="17.5" cy="13.5" r="1.3" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function MissionExecuteIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="3.6" cy="10" r="1.6" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="10" cy="10" r="1.6" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="16.4" cy="10" r="1.6" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M5.2 10h3.2M11.6 10h3.2" stroke="currentColor" strokeWidth="1.2" />
+    </svg>
+  );
+}
+
+/**
+ * Context-rail module iconography (P7P5E ContextPanel module system).
+ */
+export function ModuleSignalIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="10" cy="10" r="3.2" stroke="currentColor" strokeWidth="1" strokeOpacity="0.6" />
+      <path d="M10 10 L10 3 A7 7 0 0 1 15.9 6.5 Z" fill="currentColor" fillOpacity="0.4" />
+    </svg>
+  );
+}
+
+export function ModuleRelatedIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="2.5" y="3" width="6.5" height="6.5" rx="1.2" stroke="currentColor" strokeWidth="1.2" />
+      <rect x="11" y="3" width="6.5" height="6.5" rx="1.2" stroke="currentColor" strokeWidth="1.2" strokeOpacity="0.55" />
+      <rect x="2.5" y="11.5" width="6.5" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.2" strokeOpacity="0.55" />
+      <rect x="11" y="11.5" width="6.5" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.2" strokeOpacity="0.35" />
+    </svg>
+  );
+}
+
+export function ModuleContextIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M3 5.5a1.6 1.6 0 0 1 1.6-1.6h10.8A1.6 1.6 0 0 1 17 5.5v6.4a1.6 1.6 0 0 1-1.6 1.6H8.6L5 16.5v-3H4.6A1.6 1.6 0 0 1 3 11.9Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        fill="none"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ModuleFocusIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="10" cy="10" r="3.4" stroke="currentColor" strokeWidth="1.1" />
+      <circle cx="10" cy="10" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function ModuleProgressionIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M3 16 7 10l3 3 7-9" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="17" cy="4" r="1.3" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function ModuleQuickActionIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M11 2 4 11.5h5L8.5 18 16 8.5h-5Z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round" />
+    </svg>
+  );
+}

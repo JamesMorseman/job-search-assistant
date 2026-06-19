@@ -3,28 +3,6 @@
   gap: 22px;
 }
 
-.atlas-radar-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px auto;
-  align-items: center;
-  gap: 16px;
-}
-
-.atlas-radar-eyebrow {
-  margin: 0 0 6px;
-  color: var(--atlas-accent);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.atlas-radar-header h2 {
-  margin: 0;
-  color: var(--atlas-text);
-  font-size: 26px;
-}
-
 .atlas-radar-controls {
   display: flex;
   flex-wrap: wrap;
@@ -32,16 +10,19 @@
   gap: 10px;
 }
 
+/* P7P5E: the Radar hero scope grew from a small 92px corner ornament to a
+   144px dominant instrument with a brighter sweep, a third ring, and a
+   visible crosshair, rendered in the shared WorkspaceHeader visual slot. */
 .atlas-radar-scope {
   position: relative;
-  width: 92px;
-  height: 92px;
-  border: 1px solid rgba(56, 211, 196, 0.3);
+  width: 144px;
+  height: 144px;
+  border: 2px solid rgba(56, 211, 196, 0.4);
   border-radius: 50%;
   background:
-    radial-gradient(circle, rgba(56, 211, 196, 0.22) 0 2px, transparent 3px),
-    radial-gradient(circle, rgba(13, 18, 27, 0.95), rgba(13, 18, 27, 0.4));
-  box-shadow: inset 0 0 28px rgba(56, 211, 196, 0.16), var(--atlas-glow-soft);
+    radial-gradient(circle, rgba(56, 211, 196, 0.3) 0 3px, transparent 4px),
+    radial-gradient(circle, rgba(13, 18, 27, 0.97), rgba(13, 18, 27, 0.45));
+  box-shadow: inset 0 0 40px rgba(56, 211, 196, 0.24), var(--atlas-glow-hero);
   overflow: hidden;
 }
 
@@ -53,13 +34,45 @@
 }
 
 .atlas-radar-ring {
-  inset: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.26);
+  inset: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 50%;
 }
 
-.atlas-radar-ring-inner {
+.atlas-radar-ring-mid {
   inset: 30px;
+}
+
+.atlas-radar-ring-inner {
+  inset: 52px;
+}
+
+.atlas-radar-crosshair {
+  position: absolute;
+  inset: 8px;
+}
+
+.atlas-radar-crosshair::before,
+.atlas-radar-crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.atlas-radar-crosshair::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.atlas-radar-crosshair::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-50%);
 }
 
 .atlas-radar-sweep {
@@ -67,17 +80,17 @@
   top: 50%;
   width: 50%;
   height: 50%;
-  background: conic-gradient(from 0deg, rgba(56, 211, 196, 0.85), transparent 32%);
+  background: conic-gradient(from 0deg, rgba(56, 211, 196, 0.95), transparent 38%);
   transform-origin: 0% 0%;
   animation: atlas-radar-scope-rotate 4.5s linear infinite;
 }
 
 .atlas-radar-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--atlas-accent-strong);
-  box-shadow: 0 0 14px rgba(88, 166, 255, 0.78);
+  box-shadow: 0 0 16px rgba(88, 166, 255, 0.85);
 }
 
 @keyframes atlas-radar-scope-rotate {
@@ -96,18 +109,18 @@
 }
 
 .atlas-radar-dot-a {
-  left: 58px;
-  top: 24px;
+  left: 92px;
+  top: 36px;
 }
 
 .atlas-radar-dot-b {
-  left: 28px;
-  top: 54px;
+  left: 42px;
+  top: 84px;
 }
 
 .atlas-radar-dot-c {
-  left: 62px;
-  top: 64px;
+  left: 96px;
+  top: 100px;
 }
 
 .atlas-radar-search,
@@ -178,11 +191,6 @@
 }
 
 @media (max-width: 980px) {
-  .atlas-radar-header {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-
   .atlas-radar-controls {
     justify-content: flex-start;
   }

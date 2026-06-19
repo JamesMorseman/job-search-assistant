@@ -4,10 +4,20 @@ import AtlasMark from "./AtlasMark";
 import {
   AskAtlasIcon,
   CommandCenterIcon,
+  MissionExecuteIcon,
+  MissionInterpretIcon,
+  MissionScanIcon,
   OpportunityDetailIcon,
   PipelineIcon,
   RadarIcon,
 } from "./NavIcons";
+
+const missionSteps = [
+  { label: "ATLAS scans.", Icon: MissionScanIcon },
+  { label: "Atlas interprets.", Icon: MissionInterpretIcon },
+  { label: "Ask Atlas communicates.", Icon: AskAtlasIcon },
+  { label: "Pipeline executes.", Icon: MissionExecuteIcon },
+];
 
 const navGroups = [
   {
@@ -34,9 +44,12 @@ export default function Sidebar() {
         <span className="atlas-mark" aria-hidden="true">
           <AtlasMark className="atlas-mark-svg" />
         </span>
-        <div>
-          <p className="atlas-brand-wordmark">ATLAS</p>
+        <div className="atlas-brand-lockup">
+          <p className="atlas-brand-wordmark">
+            ATLAS<span className="atlas-brand-wordmark-accent">.</span>
+          </p>
           <p className="atlas-brand-kicker">Career Mission Control</p>
+          <p className="atlas-brand-subline">Signal detection &amp; opportunity intelligence</p>
         </div>
       </div>
 
@@ -60,11 +73,19 @@ export default function Sidebar() {
         </nav>
       ))}
 
-      <p className="atlas-mission-strip">
-        ATLAS scans. Atlas interprets. Ask Atlas communicates. Pipeline executes.
-      </p>
+      <ul className="atlas-mission-strip" role="list" aria-label="ATLAS mission sequence">
+        {missionSteps.map((step) => (
+          <li key={step.label} role="listitem">
+            <span className="atlas-mission-strip-icon" aria-hidden="true">
+              <step.Icon className="atlas-mission-strip-icon-svg" />
+            </span>
+            <span>{step.label}</span>
+          </li>
+        ))}
+      </ul>
 
       <div className="atlas-sidebar-footer">
+        <span className="atlas-sidebar-footer-dot" aria-hidden="true" />
         <span>ATLAS Local</span>
         <strong>Runtime Demo Ready</strong>
       </div>

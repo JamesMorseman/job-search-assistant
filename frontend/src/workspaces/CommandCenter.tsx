@@ -23,6 +23,7 @@ import type {
   AtlasSummary,
   FocusResolutionRecord,
 } from "../api/types";
+import WorkspaceHeader from "../shell/WorkspaceHeader";
 import RecommendationCard from "./RecommendationCard";
 import "./commandCenter.css";
 
@@ -242,10 +243,7 @@ export default function CommandCenter() {
 
   return (
     <section className="atlas-command-center" aria-labelledby="command-center-title">
-      <header className="atlas-cc-header">
-        <p className="atlas-cc-eyebrow">Command Center</p>
-        <h2 id="command-center-title">Operational Awareness</h2>
-      </header>
+      <WorkspaceHeader eyebrow="Command Center" title="Operational Awareness" titleId="command-center-title" />
 
       <div className="atlas-cc-grid">
         <article className="atlas-cc-panel atlas-cc-focus-panel" aria-labelledby="cc-focus-title">

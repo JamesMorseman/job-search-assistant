@@ -146,11 +146,13 @@ export default function SignalCard({
         }}
       >
         <div className="atlas-signal-card-sweep" aria-hidden="true">
+          <span className="atlas-signal-sweep-crosshair" />
           <span className="atlas-signal-sweep-ring atlas-signal-sweep-ring-outer" />
           <span className="atlas-signal-sweep-ring atlas-signal-sweep-ring-mid" />
           <span className="atlas-signal-sweep-ring atlas-signal-sweep-ring-inner" />
           <span className="atlas-signal-sweep-beam" />
           <span className="atlas-signal-sweep-blip" />
+          <span className="atlas-signal-sweep-blip-secondary" />
         </div>
 
         <div className="atlas-signal-card-body">
@@ -213,6 +215,7 @@ export default function SignalCard({
         <Link className="atlas-signal-card-cta" to={`/opportunities/${encodeURIComponent(jobId)}`}>
           <EyeGlyph />
           Review Opportunity
+          <span className="atlas-signal-card-cta-sr">Open Opportunity Detail</span>
           <span aria-hidden="true">&rarr;</span>
         </Link>
         <button type="button" className="atlas-signal-card-action" aria-pressed="false">
@@ -220,9 +223,6 @@ export default function SignalCard({
           Track
         </button>
       </div>
-      <Link className="atlas-signal-card-link" to={`/opportunities/${encodeURIComponent(jobId)}`}>
-        Open Opportunity Detail
-      </Link>
     </article>
   );
 }

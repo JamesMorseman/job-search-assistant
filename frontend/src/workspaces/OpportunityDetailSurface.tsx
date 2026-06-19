@@ -11,7 +11,14 @@ import {
   successState,
 } from "../api/state";
 import type { AtlasOpportunityDetail } from "../api/types";
+import ContextModule, { ContextModuleEmpty } from "../shell/ContextModule";
 import { useContextPanel } from "../shell/ContextPanelContext";
+import {
+  AskAtlasIcon,
+  ModuleContextIcon,
+  ModuleFocusIcon,
+  ModuleRelatedIcon,
+} from "../shell/NavIcons";
 import "./opportunityDetailSurface.css";
 
 function LocationGlyph() {
@@ -294,34 +301,40 @@ function DetailTopbar({ company }: { company: string }) {
 function RelatedAndContextRail({ opportunity }: { opportunity: AtlasOpportunityDetail }) {
   return (
     <aside className="atlas-detail-rail" aria-label="Related opportunity context">
-      <section className="atlas-detail-rail-card">
-        <p className="atlas-detail-rail-eyebrow">Related Opportunities</p>
-        <p className="atlas-detail-rail-body">
-          Radar surfaces other {opportunity.source} signals as Atlas detects them.
+      <ContextModule icon={<ModuleRelatedIcon />} label="Related Opportunities">
+        <ContextModuleEmpty
+          title="No related signals linked yet"
+          body={`Radar surfaces other ${opportunity.source} signals as Atlas detects them. None are linked to this opportunity yet.`}
+          ctaLabel="Open Radar"
+          ctaHref="/radar"
+        />
+      </ContextModule>
+
+      <ContextModule icon={<ModuleContextIcon />} label="Atlas Context" emphasis>
+        <p className="atlas-cmod-lede">
+          This page reflects stored fit context already persisted for {opportunity.company}. Atlas does
+          not create new scoring or rationale when this page is viewed.
         </p>
-      </section>
-      <section className="atlas-detail-rail-card">
-        <p className="atlas-detail-rail-eyebrow">Atlas Context</p>
-        <p className="atlas-detail-rail-body">
-          This page reflects stored fit context already persisted for {opportunity.company}. Atlas does not
-          create new scoring or rationale when this page is viewed.
-        </p>
-      </section>
-      <section className="atlas-detail-rail-card">
-        <p className="atlas-detail-rail-eyebrow">Active Focuses</p>
-        <p className="atlas-detail-rail-body">
-          Focus objects referencing this opportunity will appear here once Atlas raises one.
-        </p>
-      </section>
-      <section className="atlas-detail-rail-card atlas-detail-rail-ask">
-        <p className="atlas-detail-rail-eyebrow">Ask Atlas</p>
-        <p className="atlas-detail-rail-body">
-          Bring this opportunity into an Ask Atlas investigation to compare it against other detected signals.
+      </ContextModule>
+
+      <ContextModule icon={<ModuleFocusIcon />} label="Active Focuses">
+        <ContextModuleEmpty
+          title="No active Focus for this opportunity"
+          body="Focus objects referencing this opportunity will appear here once Atlas raises one."
+          ctaLabel="Open Command Center"
+          ctaHref="/command-center"
+        />
+      </ContextModule>
+
+      <ContextModule icon={<AskAtlasIcon />} label="Ask Atlas" emphasis>
+        <p className="atlas-cmod-lede">
+          Bring this opportunity into an Ask Atlas investigation to compare it against other detected
+          signals.
         </p>
         <Link className="atlas-detail-rail-link" to="/ask-atlas">
           Open Ask Atlas
         </Link>
-      </section>
+      </ContextModule>
     </aside>
   );
 }
@@ -350,6 +363,13 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
             <p className="atlas-detail-subline">
               {opportunity.company} • {opportunity.source}
             </p>
+            <div className="atlas-detail-badges">
+              <span className="atlas-detail-badge">{opportunity.stage}</span>
+              <span className="atlas-detail-badge">{formatRemoteFlag(opportunity.remote_flag)}</span>
+              {opportunity.stretch_category ? (
+                <span className="atlas-detail-badge">{opportunity.stretch_category}</span>
+              ) : null}
+            </div>
             {disciplineTags.length > 0 ? (
               <ul className="atlas-detail-discipline-tags" role="list">
                 {disciplineTags.map((tag, index) => (
@@ -362,20 +382,54 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
           </div>
           <ConfidenceModule opportunity={opportunity} />
         </div>
-        <div className="atlas-detail-badges">
-          <span className="atlas-detail-badge">{opportunity.stage}</span>
-          <span className="atlas-detail-badge">{formatRemoteFlag(opportunity.remote_flag)}</span>
-          {opportunity.stretch_category ? (
-            <span className="atlas-detail-badge">{opportunity.stretch_category}</span>
-          ) : null}
-        </div>
       </header>
 
       <CurrentStateStrip stage={opportunity.stage} />
       <NextStepModule stage={opportunity.stage} />
 
-      <section className="atlas-detail-section" aria-labelledby="atlas-detail-application-context">
-        <h2 id="atlas-detail-application-context">Application Context</h2>
+      {hasRationale ? (
+        <section className="atlas-detail-section atlas-detail-advisory" aria-labelledby="atlas-detail-rationale">
+          <p className="atlas-detail-advisory-eyebrow">Atlas Context</p>
+          <h2 id="atlas-detail-rationale">Stored Fit Context &middot; Existing Rationale</h2>
+          <div className="atlas-detail-meta-grid">
+            {opportunity.llm_grade ? (
+              <div>
+                <dt>LLM grade</dt>
+                <dd>{opportunity.llm_grade}</dd>
+              </div>
+            ) : null}
+            {opportunity.llm_fit_score != null ? (
+              <div>
+                <dt>LLM fit score</dt>
+                <dd>{opportunity.llm_fit_score}</dd>
+              </div>
+            ) : null}
+          </div>
+          {opportunity.llm_rationale ? (
+            <p className="atlas-detail-description">{opportunity.llm_rationale}</p>
+          ) : null}
+          {(benefitReasons.length > 0 || trajectoryReasons.length > 0) && (
+            <ul className="atlas-detail-advisory-chips" role="list">
+              {[...benefitReasons, ...trajectoryReasons].map((reason, index) => (
+                <li role="listitem" key={index}>
+                  {reason}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      <nav className="atlas-detail-segments" aria-label="Opportunity detail sections">
+        <a href="#atlas-detail-overview">Overview</a>
+        <a href="#atlas-detail-requirements">Requirements</a>
+        <a href="#atlas-detail-fit-context">Fit Context</a>
+        <a href="#atlas-detail-signal-context">Signal Context</a>
+        <a href="#atlas-detail-job-details">Job Details</a>
+      </nav>
+
+      <section className="atlas-detail-section" aria-labelledby="atlas-detail-overview">
+        <h2 id="atlas-detail-overview">Overview</h2>
         <dl className="atlas-detail-meta-grid atlas-detail-meta-grid-icons">
           <div>
             <dt><LocationGlyph /> Location</dt>
@@ -412,74 +466,8 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
         ) : null}
       </section>
 
-      {hasRationale ? (
-        <section className="atlas-detail-section atlas-detail-advisory" aria-labelledby="atlas-detail-rationale">
-          <p className="atlas-detail-advisory-eyebrow">Atlas Context</p>
-          <h2 id="atlas-detail-rationale">Stored Fit Context &middot; Existing Rationale</h2>
-          <div className="atlas-detail-meta-grid">
-            {opportunity.llm_grade ? (
-              <div>
-                <dt>LLM grade</dt>
-                <dd>{opportunity.llm_grade}</dd>
-              </div>
-            ) : null}
-            {opportunity.llm_fit_score != null ? (
-              <div>
-                <dt>LLM fit score</dt>
-                <dd>{opportunity.llm_fit_score}</dd>
-              </div>
-            ) : null}
-          </div>
-          {opportunity.llm_rationale ? (
-            <p className="atlas-detail-description">{opportunity.llm_rationale}</p>
-          ) : null}
-        </section>
-      ) : null}
-
-      <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-fit-context">
-        <h2 id="atlas-detail-fit-context">Persisted Fit Context</h2>
-        <div className="atlas-detail-stat-grid">
-          <div className="atlas-detail-stat">
-            <dt>Match score</dt>
-            <dd>{opportunity.match_score != null ? opportunity.match_score : "Not scored"}</dd>
-          </div>
-          <div className="atlas-detail-stat">
-            <dt>Salary range</dt>
-            <dd>{formatSalaryRange(opportunity.salary_min, opportunity.salary_max)}</dd>
-          </div>
-          <div className="atlas-detail-stat">
-            <dt>Benefit score</dt>
-            <dd>{opportunity.benefit_score}</dd>
-          </div>
-          <div className="atlas-detail-stat">
-            <dt>Career trajectory score</dt>
-            <dd>{opportunity.career_trajectory_score}</dd>
-          </div>
-        </div>
-        {benefitReasons.length > 0 ? (
-          <div className="atlas-detail-reasons">
-            <h3>Benefit reasons</h3>
-            <ul>
-              {benefitReasons.map((reason, index) => (
-                <li key={index}>{reason}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        {trajectoryReasons.length > 0 ? (
-          <div className="atlas-detail-reasons">
-            <h3>Trajectory reasons</h3>
-            <ul>
-              {trajectoryReasons.map((reason, index) => (
-                <li key={index}>{reason}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </section>
-
       <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-requirements">
-        <h2 id="atlas-detail-requirements">Known Requirements</h2>
+        <h2 id="atlas-detail-requirements">Requirements</h2>
         <dl className="atlas-detail-meta-grid">
           <div>
             <dt>Work authorization</dt>
@@ -508,6 +496,69 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
           <div>
             <dt>Relocation</dt>
             <dd>{opportunity.ko_relocation ?? "Not specified"}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-fit-context">
+        <h2 id="atlas-detail-fit-context">Fit Context</h2>
+        <div className="atlas-detail-stat-grid">
+          <div className="atlas-detail-stat">
+            <dt>Match score</dt>
+            <dd>{opportunity.match_score != null ? opportunity.match_score : "Not scored"}</dd>
+          </div>
+          <div className="atlas-detail-stat">
+            <dt>Salary range</dt>
+            <dd>{formatSalaryRange(opportunity.salary_min, opportunity.salary_max)}</dd>
+          </div>
+          <div className="atlas-detail-stat">
+            <dt>Benefit score</dt>
+            <dd>{opportunity.benefit_score}</dd>
+          </div>
+          <div className="atlas-detail-stat">
+            <dt>Career trajectory score</dt>
+            <dd>{opportunity.career_trajectory_score}</dd>
+          </div>
+        </div>
+      </section>
+
+      <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-signal-context">
+        <h2 id="atlas-detail-signal-context">Signal Context</h2>
+        {benefitReasons.length > 0 ? (
+          <div className="atlas-detail-reasons">
+            <h3>Benefit reasons</h3>
+            <ul>
+              {benefitReasons.map((reason, index) => (
+                <li key={index}>{reason}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {trajectoryReasons.length > 0 ? (
+          <div className="atlas-detail-reasons">
+            <h3>Trajectory reasons</h3>
+            <ul>
+              {trajectoryReasons.map((reason, index) => (
+                <li key={index}>{reason}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {benefitReasons.length === 0 && trajectoryReasons.length === 0 ? (
+          <p className="atlas-detail-description">No stored signal reasons for this opportunity yet.</p>
+        ) : null}
+      </section>
+
+      <section className="atlas-detail-section" aria-labelledby="atlas-detail-job-details">
+        <h2 id="atlas-detail-job-details">Job Details</h2>
+        <dl className="atlas-detail-meta-grid">
+          <div>
+            <dt>Source</dt>
+            <dd>{opportunity.source}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{opportunity.status}</dd>
           </div>
         </dl>
       </section>

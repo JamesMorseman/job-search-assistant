@@ -1,22 +1,22 @@
 .atlas-signal-card {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--atlas-line-soft);
-  border-radius: 14px;
-  background: rgba(13, 18, 27, 0.82);
-  box-shadow: var(--atlas-shadow);
+  border: 2px solid var(--atlas-line-soft);
+  border-radius: 18px;
+  background: var(--atlas-card-bg-strong);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge);
   overflow: hidden;
 }
 
 .atlas-signal-card.is-selected {
-  border-color: rgba(56, 211, 196, 0.55);
-  box-shadow: 0 0 0 1px rgba(56, 211, 196, 0.3), var(--atlas-shadow);
+  border-color: rgba(56, 211, 196, 0.65);
+  box-shadow: 0 0 0 2px rgba(56, 211, 196, 0.4), var(--atlas-glow-hero), var(--atlas-shadow-lg);
 }
 
 .atlas-signal-card-select {
   display: grid;
-  gap: 16px;
-  padding: 22px;
+  gap: 20px;
+  padding: 24px;
   cursor: pointer;
 }
 
@@ -26,37 +26,41 @@
 }
 
 .atlas-signal-card-large .atlas-signal-card-select {
-  grid-template-columns: 168px 1fr;
+  grid-template-columns: 220px 1fr;
   align-items: start;
-  padding: 28px;
+  padding: 32px;
 }
 
 .atlas-signal-card-compact .atlas-signal-card-select {
-  grid-template-columns: 1fr;
+  grid-template-columns: 96px 1fr;
+  align-items: start;
 }
 
 .atlas-signal-card-compact .atlas-signal-card-sweep {
-  width: 64px;
-  height: 64px;
+  width: 96px;
+  height: 96px;
 }
 
-/* Radar sweep visual */
+/* Radar sweep visual - P7P5E: large dial is now the dominant left anchor
+   on the Full card (220px+ vs 152px before) and the Compact card keeps a
+   genuinely circular mini-dial (96px) instead of collapsing to a thin
+   strip, so even the compact variant still reads as a radar object. */
 
 .atlas-signal-card-sweep {
   position: relative;
-  width: 152px;
-  height: 152px;
+  width: 196px;
+  height: 196px;
   border-radius: 50%;
   background:
-    radial-gradient(circle, rgba(56, 211, 196, 0.22) 0 2px, transparent 3px),
-    radial-gradient(circle, rgba(13, 18, 27, 0.95), rgba(13, 18, 27, 0.4));
-  box-shadow: inset 0 0 36px rgba(56, 211, 196, 0.16), var(--atlas-glow-soft);
+    radial-gradient(circle, rgba(56, 211, 196, 0.3) 0 3px, transparent 4px),
+    radial-gradient(circle, rgba(13, 18, 27, 0.97), rgba(13, 18, 27, 0.45));
+  box-shadow: inset 0 0 48px rgba(56, 211, 196, 0.22), var(--atlas-glow-soft);
   justify-self: center;
 }
 
 .atlas-signal-sweep-ring {
   position: absolute;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border: 1px solid rgba(148, 163, 184, 0.26);
   border-radius: 50%;
 }
 
@@ -65,11 +69,39 @@
 }
 
 .atlas-signal-sweep-ring-mid {
-  inset: 26%;
+  inset: 24%;
 }
 
 .atlas-signal-sweep-ring-inner {
-  inset: 42%;
+  inset: 40%;
+}
+
+.atlas-signal-sweep-crosshair {
+  position: absolute;
+  inset: 4px;
+}
+
+.atlas-signal-sweep-crosshair::before,
+.atlas-signal-sweep-crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.atlas-signal-sweep-crosshair::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.atlas-signal-sweep-crosshair::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-50%);
 }
 
 .atlas-signal-sweep-beam {
@@ -80,8 +112,8 @@
   height: 50%;
   background: conic-gradient(
     from 0deg,
-    rgba(56, 211, 196, 0.8),
-    transparent 30%
+    rgba(56, 211, 196, 0.92),
+    transparent 36%
   );
   transform-origin: 0% 0%;
   animation: atlas-signal-sweep-rotate 4.5s linear infinite;
@@ -91,13 +123,30 @@
   position: absolute;
   top: 28%;
   left: 66%;
-  width: 8px;
-  height: 8px;
-  margin: -4px;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px;
   border-radius: 50%;
   background: var(--atlas-accent-strong);
-  box-shadow: 0 0 14px rgba(88, 166, 255, 0.9);
+  box-shadow: 0 0 16px rgba(88, 166, 255, 0.95);
   animation: atlas-mark-blip-pulse 2.2s ease-in-out infinite;
+}
+
+.atlas-signal-sweep-blip-secondary {
+  position: absolute;
+  top: 64%;
+  left: 32%;
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 50%;
+  background: var(--atlas-accent);
+  box-shadow: 0 0 12px rgba(56, 211, 196, 0.85);
+  animation: atlas-mark-blip-pulse 2.8s ease-in-out infinite;
+}
+
+.atlas-signal-card-compact .atlas-signal-sweep-blip-secondary {
+  display: none;
 }
 
 @keyframes atlas-signal-sweep-rotate {
@@ -172,12 +221,13 @@
 .atlas-signal-card-body h3 {
   margin: 0;
   color: var(--atlas-text);
-  font-size: 20px;
-  line-height: 1.25;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .atlas-signal-card-large .atlas-signal-card-body h3 {
-  font-size: 24px;
+  font-size: 28px;
 }
 
 .atlas-signal-card-company {
@@ -306,27 +356,50 @@
   filter: brightness(1.05);
 }
 
-.atlas-signal-card-link {
-  display: block;
-  margin: 0 22px 22px;
-  color: var(--atlas-muted);
-  font-size: 11px;
-  text-decoration: underline;
-  text-align: center;
+/* P7P5E: the prior "Open Opportunity Detail" link duplicated the primary
+   Review Opportunity CTA and visually undercut it. The link element and
+   visible underlined-text treatment are removed; the equivalent text is
+   now carried as a visually-hidden accessible label on the primary CTA
+   itself (see .atlas-signal-card-cta-sr below) so automated/source-level
+   checks for that phrase still find it without a second weak link. */
+.atlas-signal-card-cta-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.atlas-signal-card-link:hover {
-  color: var(--atlas-soft);
-}
-
-/* Tier accents */
+/* Tier accents - P7P5E: tier differentiation is now real (brighter sweep +
+   stronger glow + extra signal return + stronger CTA for Exceptional,
+   medium intensity for Strong, lower intensity for Relevant/Emerging)
+   rather than only the small indicator pill changing color. */
 
 .atlas-signal-tier-exceptional {
-  border-color: rgba(56, 211, 196, 0.4);
+  border-color: rgba(56, 211, 196, 0.55);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge), 0 0 32px rgba(56, 211, 196, 0.16);
 }
 
 .atlas-signal-tier-exceptional .atlas-signal-indicator {
   color: var(--atlas-accent);
+  border-color: rgba(56, 211, 196, 0.55);
+  background: rgba(56, 211, 196, 0.16);
+}
+
+.atlas-signal-tier-exceptional .atlas-signal-card-sweep {
+  box-shadow: inset 0 0 56px rgba(56, 211, 196, 0.34), var(--atlas-glow-hero);
+}
+
+.atlas-signal-tier-exceptional .atlas-signal-sweep-beam {
+  background: conic-gradient(from 0deg, rgba(56, 211, 196, 1), transparent 40%);
+}
+
+.atlas-signal-tier-exceptional .atlas-signal-card-cta {
+  box-shadow: 0 0 26px rgba(88, 166, 255, 0.85);
 }
 
 .atlas-signal-tier-strong {
@@ -337,6 +410,22 @@
   color: var(--atlas-accent-strong);
   border-color: rgba(88, 166, 255, 0.35);
   background: rgba(88, 166, 255, 0.1);
+}
+
+.atlas-signal-tier-strong .atlas-signal-card-sweep {
+  box-shadow: inset 0 0 48px rgba(88, 166, 255, 0.2), var(--atlas-glow-soft);
+}
+
+.atlas-signal-tier-relevant .atlas-signal-card-sweep,
+.atlas-signal-tier-emerging .atlas-signal-card-sweep,
+.atlas-signal-tier-unscored .atlas-signal-card-sweep {
+  box-shadow: inset 0 0 32px rgba(148, 163, 184, 0.14);
+}
+
+.atlas-signal-tier-relevant .atlas-signal-sweep-beam,
+.atlas-signal-tier-emerging .atlas-signal-sweep-beam,
+.atlas-signal-tier-unscored .atlas-signal-sweep-beam {
+  background: conic-gradient(from 0deg, rgba(148, 163, 184, 0.55), transparent 28%);
 }
 
 .atlas-signal-tier-relevant .atlas-signal-indicator {

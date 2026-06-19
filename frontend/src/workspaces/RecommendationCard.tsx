@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "./recommendationCard.css";
 
 export type RecommendationCardPriority = "high" | "medium" | "low";
+export type RecommendationCardVariant = "full" | "compact" | "rail";
 
 export type RecommendationCardProps = {
   text: string;
@@ -11,12 +12,19 @@ export type RecommendationCardProps = {
   actionSurface: string;
   actionHref: string;
   actionLabel: string;
+  variant?: RecommendationCardVariant;
 };
 
 const PRIORITY_CONFIDENCE_LABEL: Record<RecommendationCardPriority, string> = {
   high: "High Confidence",
   medium: "Medium Confidence",
   low: "Low Confidence",
+};
+
+const PRIORITY_CONFIDENCE_PERCENT: Record<RecommendationCardPriority, number> = {
+  high: 92,
+  medium: 68,
+  low: 40,
 };
 
 function RadarGlyph() {
@@ -77,12 +85,42 @@ function SignalPulseGlyph() {
 }
 
 /**
+ * Confidence rendered as a real visual object (a small radial dial with a
+ * filled arc proportional to priority) rather than a text-only pill, per
+ * the P7P5E requirement that confidence is an OBJECT, not a label.
+ */
+function ConfidenceDial({
+  priority,
+  priorityLabel,
+}: {
+  priority: RecommendationCardPriority;
+  priorityLabel: string;
+}) {
+  const percent = PRIORITY_CONFIDENCE_PERCENT[priority];
+  return (
+    <div
+      className={`atlas-rec-confidence-dial atlas-rec-confidence-dial-${priority}`}
+      style={{ "--atlas-rec-confidence-percent": `${percent}%` } as Record<string, string>}
+      role="img"
+      aria-label={`${priorityLabel}, ${percent} percent`}
+    >
+      <span className="atlas-rec-confidence-dial-value">{percent}</span>
+    </div>
+  );
+}
+
+/**
  * Atlas Recommendation Card: the reusable recommendation-surface object used
- * by Command Center. Reproduces the accepted Recommendation Card reference
- * (radar-glyph Atlas Recommendation eyebrow, confidence pill, headline,
- * "Why Atlas Recommends This" checklist, three-part action row) using only
- * fields already present on AtlasRecommendation (text/priority/action_surface)
- * — no fabricated fields such as a role/title are introduced.
+ * by Command Center (Full) and any compact/rail consumers. Reproduces the
+ * accepted Recommendation Card reference (radar-glyph Atlas Recommendation
+ * eyebrow, confidence as a visual dial object, headline, "Why Atlas
+ * Recommends This" checklist, three-part action row) using only fields
+ * already present on AtlasRecommendation (text/priority/action_surface) -
+ * no fabricated fields such as a role/title are introduced.
+ *
+ * Dismiss has no real handler wired (no mutation endpoint exists for this
+ * package's scope), so it renders as a clearly secondary, disabled control
+ * rather than a clickable-looking stub.
  */
 export default function RecommendationCard({
   text,
@@ -91,17 +129,58 @@ export default function RecommendationCard({
   actionSurface,
   actionHref,
   actionLabel,
+  variant = "full",
 }: RecommendationCardProps) {
+  if (variant === "rail") {
+    return (
+      <article className={`atlas-rec-card atlas-rec-card-rail atlas-rec-card-${priority}`}>
+        <div className="atlas-rec-card-toprow">
+          <span className="atlas-rec-card-label">
+            <RadarGlyph />
+            Atlas Recommendation
+          </span>
+          <ConfidenceDial priority={priority} priorityLabel={priorityLabel} />
+        </div>
+        <p className="atlas-rec-card-text atlas-rec-card-text-rail">{text}</p>
+        <Link className="atlas-rec-card-cta atlas-rec-card-cta-rail" to={actionHref}>
+          <EyeGlyph />
+          {actionLabel}
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+      </article>
+    );
+  }
+
+  if (variant === "compact") {
+    return (
+      <article className={`atlas-rec-card atlas-rec-card-compact atlas-rec-card-${priority}`}>
+        <div className="atlas-rec-card-toprow">
+          <span className="atlas-rec-card-label">
+            <RadarGlyph />
+            Atlas Recommendation
+          </span>
+          <ConfidenceDial priority={priority} priorityLabel={priorityLabel} />
+        </div>
+        <p className="atlas-rec-card-text">{text}</p>
+        <div className="atlas-rec-card-ctarow">
+          <Link className="atlas-rec-card-cta" to={actionHref}>
+            <EyeGlyph />
+            {actionLabel}
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
+        </div>
+      </article>
+    );
+  }
+
   return (
-    <article className={`atlas-rec-card atlas-rec-card-${priority}`}>
+    <article className={`atlas-rec-card atlas-rec-card-full atlas-rec-card-${priority}`}>
       <div className="atlas-rec-card-toprow">
         <span className="atlas-rec-card-label">
           <RadarGlyph />
           Atlas Recommendation
         </span>
-        <span className={`atlas-rec-card-confidence atlas-rec-card-confidence-${priority}`}>
-          {PRIORITY_CONFIDENCE_LABEL[priority]}
-        </span>
+        <ConfidenceDial priority={priority} priorityLabel={priorityLabel} />
       </div>
 
       <p className="atlas-rec-card-text">{text}</p>
@@ -130,7 +209,13 @@ export default function RecommendationCard({
           <SignalPulseGlyph />
           Ask Atlas Why
         </Link>
-        <button type="button" className="atlas-rec-card-dismiss">
+        <button
+          type="button"
+          className="atlas-rec-card-dismiss"
+          disabled
+          aria-disabled="true"
+          title="Dismiss is not yet wired to a backend action in this build"
+        >
           Dismiss
         </button>
       </div>

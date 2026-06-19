@@ -1,37 +1,42 @@
 .atlas-ask {
   display: grid;
-  gap: 22px;
+  gap: 24px;
 }
 
-.atlas-ask-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
+/* Investigation-context card row (P7P5E): Opportunity / Stored Fit
+   Context / Progression Stage / Focus Priority, so the investigation
+   visibly states what it is grounded in before any answer is shown. */
+.atlas-ask-investigation-context {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.atlas-ask-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.atlas-ask-investigation-context-card {
+  padding: 14px 16px;
+  border: var(--atlas-card-border);
+  border-radius: var(--atlas-radius);
+  background: var(--atlas-card-bg);
+  box-shadow: var(--atlas-card-edge);
+}
+
+.atlas-ask-investigation-context-label {
   margin: 0 0 6px;
   color: var(--atlas-accent);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.atlas-ask-eyebrow svg {
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 4px rgba(56, 211, 196, 0.6));
-}
-
-.atlas-ask-header h2 {
+.atlas-ask-investigation-context-value {
   margin: 0;
   color: var(--atlas-text);
-  font-size: 26px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .atlas-ask-context-pill {
@@ -49,26 +54,58 @@
 
 .atlas-ask-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1.5fr) minmax(220px, 0.8fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.6fr);
+  gap: 20px;
+  align-items: start;
 }
 
-.atlas-ask-context,
 .atlas-ask-investigation,
 .atlas-ask-followups {
-  padding: 20px;
-  border: 1px solid var(--atlas-line-soft);
-  border-radius: var(--atlas-radius);
-  background: rgba(13, 18, 27, 0.78);
-  box-shadow: var(--atlas-shadow);
+  padding: 24px;
+  border: 2px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius-lg);
+  background: var(--atlas-card-bg-strong);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge);
 }
 
-.atlas-ask-context h3,
+.atlas-ask-rail {
+  display: grid;
+  align-content: start;
+}
+
 .atlas-ask-investigation h3,
 .atlas-ask-followups h3 {
-  margin: 0 0 14px;
+  margin: 0 0 16px;
   color: var(--atlas-text);
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* User question bubble (P7P5E): shows what was asked before showing the
+   answer, so Ask Atlas reads as a back-and-forth investigation rather
+   than a static report appearing from nowhere. */
+.atlas-ask-prompt-bubble {
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(88, 166, 255, 0.32);
+  border-radius: var(--atlas-radius);
+  background: rgba(88, 166, 255, 0.07);
+}
+
+.atlas-ask-prompt-bubble-label {
+  margin: 0 0 6px;
+  color: var(--atlas-accent-strong);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.atlas-ask-prompt-bubble p:last-child {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .atlas-ask-context-list {
@@ -136,7 +173,7 @@
 }
 
 .atlas-ask-result section {
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--atlas-line-soft);
   border-radius: var(--atlas-radius);
   background: rgba(255, 255, 255, 0.03);
@@ -166,13 +203,82 @@
 }
 
 .atlas-ask-result-observation {
-  border-color: rgba(56, 211, 196, 0.32);
-  background: rgba(56, 211, 196, 0.05);
+  border-width: 2px;
+  border-color: rgba(56, 211, 196, 0.4);
+  background: rgba(56, 211, 196, 0.07);
+  box-shadow: 0 0 24px rgba(56, 211, 196, 0.14);
+}
+
+/* Atlas Explanation split into multiple richer cards (P7P5E): Signal/Fit,
+   Timing/Stage, and Comparison/Next Review now render as three distinct
+   cards in a grid rather than one plain text block. */
+.atlas-ask-explanation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
 }
 
 .atlas-ask-result-explanation {
   border-color: rgba(88, 166, 255, 0.32);
   background: rgba(88, 166, 255, 0.05);
+}
+
+/* Suggested Review Path rendered as a real object: icon + title +
+   concise action + CTA, instead of a plain text card. */
+.atlas-ask-result-path {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  border-width: 2px;
+  border-color: rgba(56, 211, 196, 0.4);
+  background: rgba(56, 211, 196, 0.07);
+}
+
+.atlas-ask-result-path-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.14);
+  box-shadow: 0 0 14px rgba(56, 211, 196, 0.4);
+}
+
+.atlas-ask-result-path-body {
+  min-width: 0;
+}
+
+.atlas-ask-result-path-body h4 {
+  margin: 0 0 6px;
+}
+
+.atlas-ask-result-path-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: var(--atlas-radius);
+  color: #06121b;
+  background: linear-gradient(120deg, var(--atlas-accent), var(--atlas-accent-strong));
+  box-shadow: var(--atlas-glow-accent);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.atlas-ask-result-path-cta:hover {
+  filter: brightness(1.05);
+}
+
+@media (max-width: 720px) {
+  .atlas-ask-result-path {
+    grid-template-columns: 1fr;
+  }
 }
 
 .atlas-ask-followups ul {
@@ -195,10 +301,24 @@
 }
 
 .atlas-ask-followups button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 14px;
   text-align: left;
   cursor: pointer;
+}
+
+.atlas-ask-followup-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.12);
 }
 
 .atlas-ask-followups button:hover,
@@ -210,7 +330,6 @@
 .atlas-ask-shortcuts {
   display: grid;
   gap: 10px;
-  margin-top: 18px;
 }
 
 .atlas-ask-shortcuts a {
@@ -220,36 +339,46 @@
   text-decoration: none;
 }
 
+/* Stronger input bar (P7P5E): bigger padding, brighter focus ring, and a
+   glowing primary submit button so the investigation entry point reads
+   as the app's main instrument rather than a small utility form field. */
 .atlas-ask-input {
   display: grid;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid var(--atlas-line-soft);
-  border-radius: var(--atlas-radius);
-  background: rgba(13, 18, 27, 0.9);
+  gap: 10px;
+  padding: 20px;
+  border: 2px solid rgba(56, 211, 196, 0.32);
+  border-radius: var(--atlas-radius-lg);
+  background: rgba(9, 13, 20, 0.92);
+  box-shadow: var(--atlas-shadow-lg);
 }
 
 .atlas-ask-input label {
-  color: var(--atlas-muted);
+  color: var(--atlas-accent);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .atlas-ask-input div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  gap: 12px;
 }
 
 .atlas-ask-input input {
   min-width: 0;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--atlas-line-soft);
   border-radius: var(--atlas-radius);
   color: var(--atlas-text);
   background: rgba(255, 255, 255, 0.03);
+  font-size: 14px;
+}
+
+.atlas-ask-input input:focus-visible {
+  outline: 2px solid var(--atlas-accent-strong);
+  outline-offset: 1px;
 }
 
 .atlas-ask-input input::placeholder {
@@ -257,12 +386,23 @@
 }
 
 .atlas-ask-input button {
-  padding: 0 16px;
+  padding: 0 22px;
+  border: none;
+  color: #06121b;
+  background: linear-gradient(120deg, var(--atlas-accent), var(--atlas-accent-strong));
+  box-shadow: var(--atlas-glow-accent);
+  font-weight: 800;
   cursor: pointer;
+}
+
+.atlas-ask-input button:hover:not(:disabled) {
+  filter: brightness(1.05);
 }
 
 .atlas-ask-input button:disabled {
   color: var(--atlas-muted);
+  background: rgba(148, 163, 184, 0.12);
+  box-shadow: none;
   cursor: not-allowed;
   opacity: 0.55;
 }

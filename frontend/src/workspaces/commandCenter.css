@@ -24,12 +24,16 @@
   gap: 18px;
 }
 
+/* Command Center is explicitly EXCLUDED from this pass's rebuild scope
+   (see P7P5E package spec) - it receives only the shared shell/brand/
+   token inheritance below (stronger card depth tokens), not new
+   layout/markup/text cards. */
 .atlas-cc-panel {
   padding: 20px;
-  border: 1px solid var(--atlas-line-soft);
+  border: var(--atlas-card-border);
   border-radius: var(--atlas-radius);
-  background: rgba(13, 18, 27, 0.78);
-  box-shadow: var(--atlas-shadow);
+  background: var(--atlas-card-bg);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge);
 }
 
 .atlas-cc-panel h3 {

@@ -1,28 +1,29 @@
 .atlas-shell {
   display: grid;
-  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: minmax(248px, 288px) minmax(0, 1fr) minmax(260px, 320px);
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(88, 166, 255, 0.08), transparent 34%),
+    radial-gradient(circle at 14% 0%, rgba(56, 211, 196, 0.14), transparent 42%),
+    linear-gradient(180deg, rgba(88, 166, 255, 0.1), transparent 38%),
     var(--atlas-bg);
 }
 
 .atlas-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 30px;
   min-height: 100vh;
-  padding: 24px 18px;
-  background: var(--atlas-rail);
+  padding: 28px 20px;
+  background: linear-gradient(180deg, rgba(15, 22, 33, 0.98), var(--atlas-rail) 40%);
   border-right: 1px solid var(--atlas-line-soft);
 }
 
 .atlas-brand {
   display: grid;
-  grid-template-columns: 52px 1fr;
-  gap: 14px;
+  grid-template-columns: 76px 1fr;
+  gap: 16px;
   align-items: center;
-  padding-bottom: 4px;
+  padding-bottom: 22px;
   border-bottom: 1px solid var(--atlas-line-soft);
 }
 
@@ -30,14 +31,14 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 76px;
+  height: 76px;
   color: var(--atlas-accent);
   border-radius: 50%;
   background:
-    radial-gradient(circle, rgba(56, 211, 196, 0.18) 0 2px, transparent 62%),
+    radial-gradient(circle, rgba(56, 211, 196, 0.26) 0 3px, transparent 64%),
     radial-gradient(circle, rgba(13, 18, 27, 0.95), rgba(13, 18, 27, 0.55));
-  box-shadow: inset 0 0 18px rgba(56, 211, 196, 0.22), var(--atlas-glow-soft);
+  box-shadow: inset 0 0 28px rgba(56, 211, 196, 0.3), var(--atlas-glow-soft), var(--atlas-glow-hero);
 }
 
 .atlas-mark-svg {
@@ -82,22 +83,39 @@
   }
 }
 
+.atlas-brand-lockup {
+  min-width: 0;
+}
+
 .atlas-brand-wordmark {
   margin: 0;
   color: var(--atlas-text);
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  line-height: 1.1;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
+
+.atlas-brand-wordmark-accent {
+  color: var(--atlas-accent);
+  text-shadow: 0 0 14px rgba(56, 211, 196, 0.8);
 }
 
 .atlas-brand-kicker {
+  margin: 6px 0 0;
+  color: var(--atlas-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.atlas-brand-subline {
   margin: 4px 0 0;
   color: var(--atlas-muted);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .atlas-nav {
@@ -180,29 +198,73 @@
 }
 
 .atlas-mission-strip {
+  display: grid;
+  gap: 10px;
   margin: 0;
-  padding: 0 4px;
-  color: var(--atlas-muted);
-  font-size: 11px;
+  padding: 16px 14px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(56, 211, 196, 0.05);
+  list-style: none;
+}
+
+.atlas-mission-strip li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--atlas-soft);
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.atlas-mission-strip-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.12);
+  box-shadow: 0 0 10px rgba(56, 211, 196, 0.3);
+}
+
+.atlas-mission-strip-icon-svg {
+  width: 13px;
+  height: 13px;
 }
 
 .atlas-sidebar-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin-top: auto;
-  padding: 8px 12px;
-  color: var(--atlas-muted);
-  font-size: 10px;
-  opacity: 0.4;
+  padding: 12px 14px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(13, 18, 27, 0.6);
+  color: var(--atlas-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.atlas-sidebar-footer-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--atlas-success);
+  box-shadow: 0 0 10px rgba(121, 223, 157, 0.75);
 }
 
 .atlas-sidebar-footer strong {
-  display: block;
-  margin-top: 2px;
-  color: var(--atlas-muted);
+  margin-left: auto;
+  color: var(--atlas-accent);
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .atlas-workspace-column {
@@ -210,6 +272,59 @@
   flex-direction: column;
   min-width: 0;
   min-height: 100vh;
+}
+
+/* Shared WorkspaceHeader (P7P5E): eyebrow / title / subtitle / optional
+   controls so content does not start abruptly after the sidebar. */
+.atlas-workspace-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--atlas-line-soft);
+}
+
+.atlas-workspace-header-text {
+  min-width: 0;
+}
+
+.atlas-workspace-header-eyebrow {
+  margin: 0 0 8px;
+  color: var(--atlas-accent);
+  font-size: var(--atlas-type-eyebrow);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.atlas-workspace-header-title {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: var(--atlas-type-display);
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.atlas-workspace-header-subtitle {
+  max-width: 560px;
+  margin: 10px 0 0;
+  color: var(--atlas-soft);
+  font-size: var(--atlas-type-subtitle);
+  line-height: 1.5;
+}
+
+.atlas-workspace-header-visual {
+  flex-shrink: 0;
+}
+
+.atlas-workspace-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .atlas-workspace {
@@ -387,6 +502,125 @@
   background: rgba(255, 255, 255, 0.02);
   font-size: 12px;
   text-align: center;
+}
+
+/* Right-rail context module system (P7P5E): ContextModule shell used by
+   ContextPanel and reusable across the Opportunity Detail / Ask Atlas
+   rails so the right column reads as a stack of distinct labeled
+   instruments instead of one generic block of text. */
+.atlas-cmod {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border: var(--atlas-card-border);
+  border-radius: var(--atlas-radius);
+  background: var(--atlas-card-bg);
+  box-shadow: var(--atlas-card-edge);
+}
+
+.atlas-cmod:last-child {
+  margin-bottom: 0;
+}
+
+.atlas-cmod-emphasis {
+  border-color: rgba(56, 211, 196, 0.4);
+  background: rgba(56, 211, 196, 0.06);
+  box-shadow: var(--atlas-card-edge), 0 0 0 1px rgba(56, 211, 196, 0.18);
+}
+
+.atlas-cmod-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.atlas-cmod-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.12);
+}
+
+.atlas-cmod-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.atlas-cmod-label {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.atlas-cmod-chip {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid rgba(56, 211, 196, 0.35);
+  border-radius: 999px;
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.1);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.atlas-cmod-body {
+  display: grid;
+  gap: 12px;
+}
+
+.atlas-cmod-lede {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.atlas-cmod-empty {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.atlas-cmod-empty-title {
+  margin: 0;
+  color: var(--atlas-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.atlas-cmod-empty-body {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.atlas-cmod-empty-cta {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--atlas-line);
+  border-radius: var(--atlas-radius);
+  color: var(--atlas-accent-strong);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.atlas-cmod-empty-cta:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 @media (max-width: 980px) {

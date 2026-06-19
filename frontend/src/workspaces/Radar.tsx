@@ -10,6 +10,7 @@ import {
 } from "../api/state";
 import type { AtlasOpportunitySummary } from "../api/types";
 import { useContextPanel } from "../shell/ContextPanelContext";
+import WorkspaceHeader from "../shell/WorkspaceHeader";
 import SignalCard from "./SignalCard";
 import "./radar.css";
 
@@ -158,43 +159,49 @@ export default function Radar() {
 
   return (
     <section className="atlas-radar" aria-labelledby="radar-title">
-      <header className="atlas-radar-header">
-        <div>
-          <p className="atlas-radar-eyebrow">Radar</p>
-          <h2 id="radar-title">Opportunity Discovery</h2>
-        </div>
-        <div className="atlas-radar-scope" aria-hidden="true">
-          <span className="atlas-radar-ring atlas-radar-ring-outer" />
-          <span className="atlas-radar-ring atlas-radar-ring-inner" />
-          <span className="atlas-radar-sweep" />
-          <span className="atlas-radar-dot atlas-radar-dot-a" />
-          <span className="atlas-radar-dot atlas-radar-dot-b" />
-          <span className="atlas-radar-dot atlas-radar-dot-c" />
-        </div>
-        <div className="atlas-radar-controls">
-          <input
-            type="search"
-            className="atlas-radar-search"
-            placeholder="Search by title or company"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label="Search opportunities by title or company"
-          />
-          <select
-            className="atlas-radar-filter"
-            value={sourceFilter}
-            onChange={(event) => setSourceFilter(event.target.value)}
-            aria-label="Filter opportunities by source"
-          >
-            <option value="all">All sources</option>
-            {sources.map((source) => (
-              <option key={source} value={source}>
-                {source}
-              </option>
-            ))}
-          </select>
-        </div>
-      </header>
+      <WorkspaceHeader
+        eyebrow="Radar"
+        title="Opportunity Discovery"
+        titleId="radar-title"
+        subtitle="Atlas continuously scans configured sources and surfaces detected opportunity signals here, ranked by strength."
+        visual={
+          <div className="atlas-radar-scope" aria-hidden="true">
+            <span className="atlas-radar-ring atlas-radar-ring-outer" />
+            <span className="atlas-radar-ring atlas-radar-ring-mid" />
+            <span className="atlas-radar-ring atlas-radar-ring-inner" />
+            <span className="atlas-radar-crosshair" />
+            <span className="atlas-radar-sweep" />
+            <span className="atlas-radar-dot atlas-radar-dot-a" />
+            <span className="atlas-radar-dot atlas-radar-dot-b" />
+            <span className="atlas-radar-dot atlas-radar-dot-c" />
+          </div>
+        }
+        controls={
+          <>
+            <input
+              type="search"
+              className="atlas-radar-search"
+              placeholder="Search by title or company"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              aria-label="Search opportunities by title or company"
+            />
+            <select
+              className="atlas-radar-filter"
+              value={sourceFilter}
+              onChange={(event) => setSourceFilter(event.target.value)}
+              aria-label="Filter opportunities by source"
+            >
+              <option value="all">All sources</option>
+              {sources.map((source) => (
+                <option key={source} value={source}>
+                  {source}
+                </option>
+              ))}
+            </select>
+          </>
+        }
+      />
 
       {state.status === "loading" && (
         <div className="atlas-radar-status" role="status">

@@ -4,8 +4,19 @@ import { Link, useLocation } from "react-router-dom";
 import { getPipelineRuns, getSummary } from "../api/client";
 import { type DataState, idleState, loadingState, successState } from "../api/state";
 import type { AtlasPipelineRun, AtlasSummary } from "../api/types";
+import ContextModule from "./ContextModule";
 import { useContextPanel } from "./ContextPanelContext";
+import { ModuleContextIcon, ModuleProgressionIcon, ModuleSignalIcon } from "./NavIcons";
 
+/**
+ * Global right-rail context panel (P7P5E). Renders through the shared
+ * ContextModule shell so the rail reads as a stack of distinct labeled
+ * instruments rather than one generic "Local Context" block. The default
+ * (no preview) state keeps the literal "Local Context" / "Workspace
+ * context appears here" copy the demo-readiness tests depend on; the
+ * selected-opportunity state is strengthened into a real
+ * SelectedOpportunityModule + ProgressionModule pair.
+ */
 export default function ContextPanel() {
   const { preview } = useContextPanel();
   const location = useLocation();
@@ -61,43 +72,40 @@ export default function ContextPanel() {
 
     return (
       <aside className="atlas-context" aria-label="Context panel">
-        <div className="atlas-context-header">
-          <p>Local Context</p>
-          <span>ATLAS</span>
-        </div>
-        <div className="atlas-context-body">
-          <p>
+        <ContextModule icon={<ModuleContextIcon />} label="Local Context">
+          <p className="atlas-cmod-lede">
             Workspace context appears here when an opportunity is selected from Radar.
           </p>
-        </div>
 
-        {summaryState.status === "success" && summaryState.data && (
-          <dl className="atlas-context-stats">
-            <div>
-              <dt>Demo opportunities</dt>
-              <dd>{summaryState.data.total_opportunities}</dd>
-            </div>
-            <div>
-              <dt>Latest run</dt>
-              <dd>{mostRecentRun ? `#${mostRecentRun.id} ${mostRecentRun.status}` : "None yet"}</dd>
-            </div>
-          </dl>
-        )}
+          {summaryState.status === "success" && summaryState.data && (
+            <dl className="atlas-context-stats">
+              <div>
+                <dt>Demo opportunities</dt>
+                <dd>{summaryState.data.total_opportunities}</dd>
+              </div>
+              <div>
+                <dt>Latest run</dt>
+                <dd>{mostRecentRun ? `#${mostRecentRun.id} ${mostRecentRun.status}` : "None yet"}</dd>
+              </div>
+            </dl>
+          )}
 
-        <div className="atlas-context-note">
-          <p>Local demo runtime. Fictional opportunities only — no private data.</p>
-        </div>
+          <div className="atlas-context-note">
+            <p>Local demo runtime. Fictional opportunities only — no private data.</p>
+          </div>
+        </ContextModule>
       </aside>
     );
   }
 
   return (
     <aside className="atlas-context" aria-label="Context panel">
-      <div className="atlas-context-header">
-        <p>Selected Opportunity</p>
-        <span>{preview.signalLabel}</span>
-      </div>
-      <div className="atlas-context-body atlas-context-preview">
+      <ContextModule
+        icon={<ModuleSignalIcon />}
+        label="Selected Opportunity"
+        chip={preview.signalLabel}
+        emphasis
+      >
         <h3 className="atlas-context-preview-title">{preview.title}</h3>
         <p className="atlas-context-preview-company">{preview.company}</p>
         <dl className="atlas-context-preview-meta">
@@ -108,14 +116,6 @@ export default function ContextPanel() {
           <div>
             <dt>Location</dt>
             <dd>{preview.location}</dd>
-          </div>
-          <div>
-            <dt>Stage</dt>
-            <dd>{preview.stage}</dd>
-          </div>
-          <div>
-            <dt>Status</dt>
-            <dd>{preview.status}</dd>
           </div>
         </dl>
         {isViewingPreviewedOpportunity ? (
@@ -130,7 +130,20 @@ export default function ContextPanel() {
             Open Opportunity Detail
           </Link>
         )}
-      </div>
+      </ContextModule>
+
+      <ContextModule icon={<ModuleProgressionIcon />} label="Stage & Status">
+        <dl className="atlas-context-preview-meta">
+          <div>
+            <dt>Stage</dt>
+            <dd>{preview.stage}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{preview.status}</dd>
+          </div>
+        </dl>
+      </ContextModule>
     </aside>
   );
 }
