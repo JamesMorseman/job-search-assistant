@@ -17,6 +17,11 @@
   --atlas-accent-strong: #58a6ff;
   --atlas-warn: #f5c66b;
   --atlas-success: #79df9d;
+  /* Radar signal-tier color family (Radar_Workspace_Reference_v3): Strong
+     = cyan/blue (--atlas-accent/--atlas-accent-strong above), Moderate =
+     blue-violet, Emerging = violet. */
+  --atlas-violet: #9b8cf2;
+  --atlas-violet-deep: #7c6ae8;
   --atlas-radius: 8px;
   --atlas-radius-lg: 16px;
   --atlas-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);

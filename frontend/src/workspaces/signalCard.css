@@ -125,25 +125,42 @@
   transform: translateY(-50%);
 }
 
+/* P7P5G: same fix as .atlas-radar-sweep in radar.css - anchor the
+   conic-gradient explicitly at the box's corner (the dial's true center)
+   instead of letting it default to the box's own midpoint, and use the
+   NE quadrant so the bright leading edge lands at the reference's ~1
+   o'clock tail direction with a soft trailing glow back toward north. */
 .atlas-signal-sweep-beam {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 0%;
   width: 50%;
   height: 50%;
   background: conic-gradient(
-    from 0deg,
-    rgba(56, 211, 196, 0.92),
-    transparent 36%
+    from 0deg at 0% 100%,
+    transparent 0deg,
+    rgba(56, 211, 196, 0.18) 20deg,
+    rgba(56, 211, 196, 0.5) 32deg,
+    rgba(125, 234, 255, 0.92) 38deg,
+    rgba(125, 234, 255, 0.92) 40deg,
+    transparent 42deg,
+    transparent 90deg
   );
-  transform-origin: 0% 0%;
+  transform-origin: 0% 100%;
   animation: atlas-signal-sweep-rotate 4.5s linear infinite;
+  animation-delay: var(--sweep-delay, 0s);
 }
 
+/* P7P5G: top/left and animation-delay are driven by CSS custom
+   properties set per-card from a seed derived from the opportunity's
+   job_id (see SignalCard.tsx), so visible cards do not share identical
+   return placement or identical sweep phase (Radar Variation Standard,
+   Radar_Workspace_Reference_v3.md). Defaults match the pre-P7P5G fixed
+   position so cards render correctly even without the seed applied. */
 .atlas-signal-sweep-blip {
   position: absolute;
-  top: 28%;
-  left: 66%;
+  top: var(--blip-top, 28%);
+  left: var(--blip-left, 66%);
   width: 9px;
   height: 9px;
   margin: -4.5px;
@@ -151,12 +168,14 @@
   background: var(--atlas-accent-strong);
   box-shadow: 0 0 16px rgba(88, 166, 255, 0.95);
   animation: atlas-mark-blip-pulse 2.2s ease-in-out infinite;
+  animation-delay: var(--blip-delay, 0s);
 }
 
 .atlas-signal-sweep-blip-secondary {
   position: absolute;
-  top: 64%;
-  left: 32%;
+  display: var(--blip2-display, block);
+  top: var(--blip2-top, 64%);
+  left: var(--blip2-left, 32%);
   width: 6px;
   height: 6px;
   margin: -3px;
@@ -164,6 +183,7 @@
   background: var(--atlas-accent);
   box-shadow: 0 0 12px rgba(56, 211, 196, 0.85);
   animation: atlas-mark-blip-pulse 2.8s ease-in-out infinite;
+  animation-delay: var(--blip2-delay, 0s);
 }
 
 .atlas-signal-card-compact .atlas-signal-sweep-blip-secondary {
@@ -395,6 +415,12 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.atlas-signal-card-action.is-active {
+  border-color: rgba(56, 211, 196, 0.45);
+  color: var(--atlas-accent);
+  background: rgba(56, 211, 196, 0.1);
+}
+
 .atlas-signal-card-action svg {
   flex-shrink: 0;
 }
@@ -479,25 +505,68 @@
   box-shadow: inset 0 0 48px rgba(88, 166, 255, 0.2), var(--atlas-glow-soft);
 }
 
-.atlas-signal-tier-relevant .atlas-signal-card-sweep,
-.atlas-signal-tier-emerging .atlas-signal-card-sweep,
-.atlas-signal-tier-unscored .atlas-signal-card-sweep {
-  box-shadow: inset 0 0 32px rgba(148, 163, 184, 0.14);
+/* P7P5G: Radar color grammar (Radar_Workspace_Reference_v3.md) - Strong
+   Signal stays cyan/blue (exceptional/strong above), Moderate Signal
+   ("relevant" tier) is blue-violet, Emerging Signal is violet. Unscored
+   is a distinct, non-spec neutral-gray fallback for "no score computed"
+   rather than a faint signal reading. */
+.atlas-signal-tier-relevant .atlas-signal-card-sweep {
+  box-shadow: inset 0 0 32px rgba(155, 140, 242, 0.18);
 }
 
-.atlas-signal-tier-relevant .atlas-signal-sweep-beam,
-.atlas-signal-tier-emerging .atlas-signal-sweep-beam,
-.atlas-signal-tier-unscored .atlas-signal-sweep-beam {
-  background: conic-gradient(from 0deg, rgba(148, 163, 184, 0.55), transparent 28%);
+.atlas-signal-tier-relevant .atlas-signal-sweep-beam {
+  background: conic-gradient(
+    from 0deg at 0% 100%,
+    transparent 0deg,
+    rgba(155, 140, 242, 0.4) 28deg,
+    rgba(180, 168, 247, 0.78) 36deg,
+    transparent 40deg,
+    transparent 90deg
+  );
 }
 
 .atlas-signal-tier-relevant .atlas-signal-indicator {
-  color: var(--atlas-warn);
-  border-color: rgba(245, 198, 107, 0.35);
-  background: rgba(245, 198, 107, 0.08);
+  color: var(--atlas-violet);
+  border-color: rgba(155, 140, 242, 0.4);
+  background: rgba(155, 140, 242, 0.1);
 }
 
-.atlas-signal-tier-emerging .atlas-signal-indicator,
+.atlas-signal-tier-emerging .atlas-signal-card-sweep {
+  box-shadow: inset 0 0 26px rgba(124, 106, 232, 0.14);
+}
+
+.atlas-signal-tier-emerging .atlas-signal-sweep-beam {
+  background: conic-gradient(
+    from 0deg at 0% 100%,
+    transparent 0deg,
+    rgba(124, 106, 232, 0.3) 30deg,
+    rgba(155, 140, 242, 0.55) 38deg,
+    transparent 40deg,
+    transparent 90deg
+  );
+}
+
+.atlas-signal-tier-emerging .atlas-signal-indicator {
+  color: var(--atlas-violet-deep);
+  border-color: rgba(124, 106, 232, 0.35);
+  background: rgba(124, 106, 232, 0.08);
+}
+
+.atlas-signal-tier-unscored .atlas-signal-card-sweep {
+  box-shadow: inset 0 0 28px rgba(148, 163, 184, 0.12);
+}
+
+.atlas-signal-tier-unscored .atlas-signal-sweep-beam {
+  background: conic-gradient(
+    from 0deg at 0% 100%,
+    transparent 0deg,
+    rgba(148, 163, 184, 0.3) 30deg,
+    rgba(148, 163, 184, 0.5) 38deg,
+    transparent 40deg,
+    transparent 90deg
+  );
+}
+
 .atlas-signal-tier-unscored .atlas-signal-indicator {
   color: var(--atlas-muted);
   border-color: var(--atlas-line-soft);

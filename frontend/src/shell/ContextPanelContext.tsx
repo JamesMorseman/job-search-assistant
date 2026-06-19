@@ -1,5 +1,12 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
+export type RelatedOpportunity = {
+  jobId: string;
+  title: string;
+  company: string;
+  signalLabel: string;
+};
+
 export type RadarPreview = {
   jobId: string;
   title: string;
@@ -10,6 +17,7 @@ export type RadarPreview = {
   stage: string;
   status: string;
   summary?: string;
+  relatedOpportunities?: RelatedOpportunity[];
 };
 
 type ContextPanelContextValue = {

@@ -45,8 +45,14 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* P7P5G: only the sweep wedge group rotates - rings, crosshair, center
+   hub, and blips are siblings outside this group and stay fixed. Pivot
+   is the dial's exact center (32px 32px in the 64x64 viewBox). */
+.atlas-mark-sweep-group {
   animation: atlas-mark-sweep-rotate 8s linear infinite;
-  transform-origin: 50% 50%;
+  transform-origin: 32px 32px;
 }
 
 .atlas-mark-blip-dot {
@@ -74,7 +80,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atlas-mark-svg {
+  .atlas-mark-sweep-group {
     animation: none;
   }
 
@@ -528,6 +534,41 @@
   background: rgba(255, 255, 255, 0.02);
   font-size: 12px;
   text-align: center;
+}
+
+/* P7P5G: Related Objects module list (Radar right rail only). */
+.atlas-context-related-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-context-related-list a {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(255, 255, 255, 0.02);
+  text-decoration: none;
+}
+
+.atlas-context-related-list a:hover {
+  border-color: var(--atlas-line);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.atlas-context-related-title {
+  color: var(--atlas-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.atlas-context-related-meta {
+  color: var(--atlas-muted);
+  font-size: 11px;
 }
 
 /* Right-rail context module system (P7P5E): ContextModule shell used by

@@ -33,17 +33,23 @@ export default function AtlasMark({ className }: { className?: string }) {
       <line x1="32" y1="1.5" x2="32" y2="62.5" stroke="currentColor" strokeOpacity="0.26" strokeWidth="1" />
       <line x1="1.5" y1="32" x2="62.5" y2="32" stroke="currentColor" strokeOpacity="0.26" strokeWidth="1" />
 
-      {/* Bright wide sweep wedge (60 degree arc) */}
-      <path
-        d="M32 32 L32 1.5 A30.5 30.5 0 0 1 58.4 17.2 Z"
-        fill="var(--atlas-mark-sweep-fill, rgba(56, 211, 196, 0.62))"
-      />
-      <path
-        d="M32 32 L32 1.5 A30.5 30.5 0 0 1 58.4 17.2 Z"
-        fill="none"
-        stroke="var(--atlas-mark-sweep-fill, rgba(121, 230, 255, 0.85))"
-        strokeWidth="0.6"
-      />
+      {/* Bright wide sweep wedge (60 degree arc) - isolated in its own
+          group so only the wedge rotates; the rings/crosshair/blips above
+          and below stay fixed. Rotating the whole <svg> previously made
+          the entire instrument (including the static rings and crosshair)
+          appear to spin together. */}
+      <g className="atlas-mark-sweep-group">
+        <path
+          d="M32 32 L32 1.5 A30.5 30.5 0 0 1 58.4 17.2 Z"
+          fill="var(--atlas-mark-sweep-fill, rgba(56, 211, 196, 0.62))"
+        />
+        <path
+          d="M32 32 L32 1.5 A30.5 30.5 0 0 1 58.4 17.2 Z"
+          fill="none"
+          stroke="var(--atlas-mark-sweep-fill, rgba(121, 230, 255, 0.85))"
+          strokeWidth="0.6"
+        />
+      </g>
 
       {/* Center hub */}
       <circle cx="32" cy="32" r="3.4" fill="currentColor" />

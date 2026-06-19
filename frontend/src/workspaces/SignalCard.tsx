@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
 import "./signalCard.css";
@@ -18,8 +19,49 @@ export type SignalCardProps = {
   source: string;
   isSelected?: boolean;
   size?: SignalCardSize;
+  isSaved?: boolean;
+  onToggleSave?: () => void;
   onSelect: () => void;
 };
+
+/**
+ * Deterministic per-card seed from job_id so each Opportunity Signal Card
+ * renders a slightly different sweep phase and return placement instead
+ * of an identical radar composition (Radar Variation Standard,
+ * Radar_Workspace_Reference_v3.md: "No two visible Opportunity Signal
+ * Cards should share identical sweep angle, return placement, return
+ * density, or radar composition").
+ */
+function seedFromJobId(jobId: string): number {
+  let hash = 0;
+  for (let i = 0; i < jobId.length; i += 1) {
+    hash = (hash * 31 + jobId.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+function radarVariationStyle(jobId: string): CSSProperties {
+  const seed = seedFromJobId(jobId);
+  const sweepDelay = -((seed % 45) / 10); // negative offset = phase shift within the 4.5s loop
+  const blipTop = 18 + (seed % 5) * 6; // 18%-42%
+  const blipLeft = 56 + ((seed >> 3) % 6) * 5; // 56%-81%
+  const blipDelay = -((seed % 22) / 10);
+  const showSecondary = seed % 2 === 0;
+  const blip2Top = 58 + ((seed >> 5) % 5) * 5;
+  const blip2Left = 22 + ((seed >> 7) % 5) * 5;
+  const blip2Delay = -((seed % 28) / 10);
+
+  return {
+    "--sweep-delay": `${sweepDelay}s`,
+    "--blip-top": `${blipTop}%`,
+    "--blip-left": `${blipLeft}%`,
+    "--blip-delay": `${blipDelay}s`,
+    "--blip2-top": `${blip2Top}%`,
+    "--blip2-left": `${blip2Left}%`,
+    "--blip2-delay": `${blip2Delay}s`,
+    "--blip2-display": showSecondary ? "block" : "none",
+  } as CSSProperties;
+}
 
 function LocationGlyph() {
   return (
@@ -124,6 +166,8 @@ export default function SignalCard({
   source,
   isSelected = false,
   size = "compact",
+  isSaved = false,
+  onToggleSave,
   onSelect,
 }: SignalCardProps) {
   return (
@@ -145,7 +189,11 @@ export default function SignalCard({
           }
         }}
       >
-        <div className="atlas-signal-card-sweep" aria-hidden="true">
+        <div
+          className="atlas-signal-card-sweep"
+          aria-hidden="true"
+          style={radarVariationStyle(jobId)}
+        >
           <span className="atlas-signal-sweep-crosshair" />
           <span className="atlas-signal-sweep-ring atlas-signal-sweep-ring-outer" />
           <span className="atlas-signal-sweep-ring atlas-signal-sweep-ring-mid" />
@@ -208,9 +256,14 @@ export default function SignalCard({
       </div>
 
       <div className="atlas-signal-card-actions">
-        <button type="button" className="atlas-signal-card-action" aria-pressed="false">
+        <button
+          type="button"
+          className={`atlas-signal-card-action${isSaved ? " is-active" : ""}`}
+          aria-pressed={isSaved}
+          onClick={onToggleSave}
+        >
           <SaveGlyph />
-          Save
+          {isSaved ? "Saved" : "Save"}
         </button>
         <Link className="atlas-signal-card-cta" to={`/opportunities/${encodeURIComponent(jobId)}`}>
           <EyeGlyph />

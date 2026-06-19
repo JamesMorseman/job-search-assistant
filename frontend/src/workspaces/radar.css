@@ -3,13 +3,6 @@
   gap: 22px;
 }
 
-.atlas-radar-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
 /* P7P5E: the Radar hero scope grew from a small 92px corner ornament to a
    144px dominant instrument with a brighter sweep, a third ring, and a
    visible crosshair, rendered in the shared WorkspaceHeader visual slot. */
@@ -75,13 +68,34 @@
   transform: translateY(-50%);
 }
 
+/* P7P5G: the sweep box previously sat at the dial's center (left/top 50%)
+   with transform-origin 0% 0%, which correctly pivots there - but the
+   conic-gradient painted inside that box defaults to centering itself on
+   the box's own midpoint, not the box's 0%/0% corner. That mismatch made
+   the visible bright wedge render a quarter-turn away from the actual
+   pivot, reading as "detached from center." Moving the box into the NE
+   quadrant and anchoring the gradient explicitly at the box's corner
+   (which is the dial's true center) fixes both the detachment and gives
+   a single, correctly-converging sweep instead of a half-circle wedge.
+   The gradient stops build a soft trailing glow from north (0deg) up to
+   a bright leading line at ~38-40deg (the reference's ~1 o'clock tail
+   direction), then cut to transparent for the rest of the quadrant. */
 .atlas-radar-sweep {
   left: 50%;
-  top: 50%;
+  top: 0%;
   width: 50%;
   height: 50%;
-  background: conic-gradient(from 0deg, rgba(56, 211, 196, 0.95), transparent 38%);
-  transform-origin: 0% 0%;
+  background: conic-gradient(
+    from 0deg at 0% 100%,
+    transparent 0deg,
+    rgba(56, 211, 196, 0.2) 20deg,
+    rgba(56, 211, 196, 0.55) 32deg,
+    rgba(125, 234, 255, 0.95) 38deg,
+    rgba(125, 234, 255, 0.95) 40deg,
+    transparent 42deg,
+    transparent 90deg
+  );
+  transform-origin: 0% 100%;
   animation: atlas-radar-scope-rotate 4.5s linear infinite;
 }
 
@@ -123,6 +137,15 @@
   top: 100px;
 }
 
+/* P7P5G: corrected Radar reference layout skeleton - a full filter row
+   (role/type, location, signal strength, sources, search) above a signal
+   summary/status strip, replacing the prior two-control header slot. */
+.atlas-radar-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .atlas-radar-search,
 .atlas-radar-filter {
   padding: 10px 14px;
@@ -133,11 +156,66 @@
 }
 
 .atlas-radar-search {
-  min-width: 240px;
+  flex: 1 1 240px;
+  min-width: 200px;
 }
 
 .atlas-radar-search::placeholder {
   color: var(--atlas-muted);
+}
+
+.atlas-radar-statusstrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius-lg);
+  background: var(--atlas-card-bg);
+  box-shadow: var(--atlas-card-edge);
+}
+
+.atlas-radar-statusstrip-total {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.atlas-radar-statuschips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-radar-statuschip {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.atlas-radar-statuschip-value {
+  color: var(--atlas-accent-strong);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.atlas-radar-statuschip-strong .atlas-radar-statuschip-value {
+  color: var(--atlas-accent);
+}
+
+.atlas-radar-statuschip-label {
+  color: var(--atlas-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .atlas-radar-status {
@@ -159,43 +237,35 @@
   font-size: 13px;
 }
 
-.atlas-radar-results {
-  display: grid;
-  gap: 26px;
-}
-
-.atlas-radar-section-label {
-  margin: 0 0 12px;
-  color: var(--atlas-muted);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.atlas-radar-lead {
-  display: grid;
-}
-
-.atlas-radar-lead [role="listitem"] {
-  display: grid;
-}
-
+/* P7P5G: corrected reference layout is a 3x2 opportunity grid, not a
+   hero card + compact-row pattern. Cards expand evenly to fill the main
+   canvas width at desktop viewports and drop to fewer columns rather
+   than clipping on narrower ones. */
 .atlas-radar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, minmax(300px, 1fr));
   gap: 18px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+@media (max-width: 1280px) {
+  .atlas-radar-grid {
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+  }
+}
+
 @media (max-width: 980px) {
-  .atlas-radar-controls {
-    justify-content: flex-start;
+  .atlas-radar-grid {
+    grid-template-columns: 1fr;
   }
 
   .atlas-radar-scope {
     display: none;
+  }
+
+  .atlas-radar-statusstrip {
+    align-items: flex-start;
   }
 }
