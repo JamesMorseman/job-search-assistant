@@ -11,6 +11,7 @@ import {
   successState,
 } from "../api/state";
 import type { AtlasOpportunityDetail } from "../api/types";
+import { useContextPanel } from "../shell/ContextPanelContext";
 import "./opportunityDetailSurface.css";
 
 function formatLocation(opportunity: AtlasOpportunityDetail): string {
@@ -18,6 +19,22 @@ function formatLocation(opportunity: AtlasOpportunityDetail): string {
     Boolean
   );
   return parts.length > 0 ? parts.join(", ") : "Location not specified";
+}
+
+function detailSignalLabel(score: number | null): string {
+  if (score === null) {
+    return "Unscored";
+  }
+  if (score >= 0.85) {
+    return "Exceptional Match";
+  }
+  if (score >= 0.7) {
+    return "Strong Signal";
+  }
+  if (score >= 0.5) {
+    return "Relevant Signal";
+  }
+  return "Emerging Signal";
 }
 
 function formatRemoteFlag(remoteFlag: string): string {
@@ -54,6 +71,65 @@ function formatReasons(reasons: unknown[]): string[] {
     }
     return String(reason);
   });
+}
+
+const STATE_PROGRESSION = [
+  "discovered",
+  "presented",
+  "selected",
+  "applied",
+  "acknowledged",
+  "screen",
+  "interview",
+  "offer",
+] as const;
+
+const STATE_LABELS: Record<string, string> = {
+  discovered: "Detected",
+  presented: "Presented",
+  selected: "Saved",
+  applied: "Applied",
+  acknowledged: "Acknowledged",
+  screen: "Screening",
+  interview: "Interview",
+  offer: "Offer",
+  rejected: "Rejected",
+  ghosted: "Ghosted",
+};
+
+function stateLabel(stage: string): string {
+  return STATE_LABELS[stage] ?? stage;
+}
+
+function CurrentStateStrip({ stage }: { stage: string }) {
+  const terminal = stage === "rejected" || stage === "ghosted";
+  const currentIndex = STATE_PROGRESSION.indexOf(stage as (typeof STATE_PROGRESSION)[number]);
+
+  return (
+    <div className="atlas-detail-state-strip" aria-label="Current state">
+      <ol className="atlas-detail-state-steps" role="list">
+        {STATE_PROGRESSION.map((step, index) => {
+          const isCurrent = !terminal && step === stage;
+          const isPast = !terminal && currentIndex >= 0 && index < currentIndex;
+          return (
+            <li
+              key={step}
+              role="listitem"
+              className={`atlas-detail-state-step${isCurrent ? " is-current" : ""}${
+                isPast ? " is-past" : ""
+              }`}
+            >
+              <span className="atlas-detail-state-dot" aria-hidden="true" />
+              <span>{stateLabel(step)}</span>
+            </li>
+          );
+        })}
+      </ol>
+      {terminal && (
+        <p className="atlas-detail-state-terminal">Stored state: {stateLabel(stage)}</p>
+      )}
+    </div>
+  );
 }
 
 function LoadingView() {
@@ -105,6 +181,8 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
         </div>
       </header>
 
+      <CurrentStateStrip stage={opportunity.stage} />
+
       <section className="atlas-detail-section" aria-labelledby="atlas-detail-application-context">
         <h2 id="atlas-detail-application-context">Application Context</h2>
         <dl className="atlas-detail-meta-grid">
@@ -145,7 +223,8 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
 
       {hasRationale ? (
         <section className="atlas-detail-section atlas-detail-advisory" aria-labelledby="atlas-detail-rationale">
-          <h2 id="atlas-detail-rationale">Existing Rationale</h2>
+          <p className="atlas-detail-advisory-eyebrow">Atlas Context</p>
+          <h2 id="atlas-detail-rationale">Stored Fit Context &middot; Existing Rationale</h2>
           <div className="atlas-detail-meta-grid">
             {opportunity.llm_grade ? (
               <div>
@@ -248,6 +327,7 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
 export default function OpportunityDetailSurface() {
   const { jobId } = useParams<{ jobId: string }>();
   const [state, setState] = useState<DataState<AtlasOpportunityDetail>>(idleState());
+  const { setPreview } = useContextPanel();
 
   useEffect(() => {
     if (!jobId) {
@@ -280,6 +360,28 @@ export default function OpportunityDetailSurface() {
       cancelled = true;
     };
   }, [jobId]);
+
+  useEffect(() => {
+    if (state.status === "success" && state.data) {
+      const opportunity = state.data;
+      setPreview({
+        jobId: opportunity.job_id,
+        title: opportunity.title,
+        company: opportunity.company,
+        source: opportunity.source,
+        location: formatLocation(opportunity),
+        signalLabel: detailSignalLabel(opportunity.match_score),
+        stage: opportunity.stage,
+        status: opportunity.status,
+      });
+    }
+  }, [setPreview, state]);
+
+  useEffect(() => {
+    return () => {
+      setPreview(null);
+    };
+  }, [setPreview]);
 
   if (state.status === "loading" || state.status === "idle") {
     return <LoadingView />;

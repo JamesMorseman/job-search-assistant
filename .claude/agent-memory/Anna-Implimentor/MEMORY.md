@@ -1,0 +1,2 @@
+- [P7P5B visual corrective pass context](project_jsa_p7p5b_visual_corrective_pass.md) — files changed, no-logo-asset finding, frontend test-coupling gotchas, dist/ build-artifact diff note
+- [Anna governance workflow with James](user_governance_workflow_anna.md) — package-scoped work, read DECISION_LOG live, never self-accept, structured final report not a .md file

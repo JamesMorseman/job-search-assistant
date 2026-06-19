@@ -238,6 +238,7 @@ export default function AskAtlas() {
 
           {investigationState.status === "success" && investigationState.data && (
             <div className="atlas-ask-result">
+              <p className="atlas-ask-result-eyebrow">Atlas Investigation &middot; Fictional Demo Scope</p>
               <section>
                 <h4>Observation</h4>
                 <p>{investigationState.data.observation}</p>
@@ -247,7 +248,7 @@ export default function AskAtlas() {
                 <p>{investigationState.data.explanation}</p>
               </section>
               <section>
-                <h4>Suggested Action</h4>
+                <h4>Suggested Review Path</h4>
                 <p>{investigationState.data.suggested_action}</p>
               </section>
             </div>

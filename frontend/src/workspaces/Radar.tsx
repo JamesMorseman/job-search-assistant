@@ -29,6 +29,22 @@ function signalLabel(score: number | null): string {
   return "Emerging Signal";
 }
 
+function signalTierClass(score: number | null): string {
+  if (score === null) {
+    return "atlas-signal-tier-unscored";
+  }
+  if (score >= 0.85) {
+    return "atlas-signal-tier-exceptional";
+  }
+  if (score >= 0.7) {
+    return "atlas-signal-tier-strong";
+  }
+  if (score >= 0.5) {
+    return "atlas-signal-tier-relevant";
+  }
+  return "atlas-signal-tier-emerging";
+}
+
 function formatLocation(opportunity: AtlasOpportunitySummary): string {
   const parts = [opportunity.location_city, opportunity.location_state].filter(Boolean);
   if (parts.length > 0) {
@@ -191,11 +207,12 @@ export default function Radar() {
         <div className="atlas-radar-grid" role="list">
           {filtered.map((opportunity) => {
             const isSelected = opportunity.job_id === selectedJobId;
+            const tierClass = signalTierClass(opportunity.match_score);
             return (
               <article
                 key={opportunity.job_id}
                 role="listitem"
-                className={`atlas-signal-card${isSelected ? " is-selected" : ""}`}
+                className={`atlas-signal-card ${tierClass}${isSelected ? " is-selected" : ""}`}
               >
                 <div
                   className="atlas-signal-card-select"
@@ -211,6 +228,7 @@ export default function Radar() {
                   }}
                 >
                   <div className="atlas-signal-card-header">
+                    <span className="atlas-signal-card-blip" aria-hidden="true" />
                     <h3>{opportunity.title}</h3>
                     <span className="atlas-signal-indicator">
                       {signalLabel(opportunity.match_score)}

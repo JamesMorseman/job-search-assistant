@@ -154,6 +154,43 @@
   box-shadow: 0 0 0 1px rgba(56, 211, 196, 0.3), var(--atlas-shadow);
 }
 
+.atlas-signal-tier-exceptional {
+  border-color: rgba(56, 211, 196, 0.4);
+}
+
+.atlas-signal-tier-exceptional .atlas-signal-card-blip {
+  background: var(--atlas-accent);
+  box-shadow: 0 0 12px rgba(56, 211, 196, 0.75);
+}
+
+.atlas-signal-tier-strong {
+  border-color: rgba(88, 166, 255, 0.32);
+}
+
+.atlas-signal-tier-strong .atlas-signal-card-blip {
+  background: var(--atlas-accent-strong);
+  box-shadow: 0 0 10px rgba(88, 166, 255, 0.6);
+}
+
+.atlas-signal-tier-relevant .atlas-signal-card-blip {
+  background: var(--atlas-warn);
+  box-shadow: 0 0 8px rgba(245, 198, 107, 0.5);
+}
+
+.atlas-signal-tier-emerging .atlas-signal-card-blip,
+.atlas-signal-tier-unscored .atlas-signal-card-blip {
+  background: var(--atlas-muted);
+  box-shadow: none;
+}
+
+.atlas-signal-card-blip {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+}
+
 .atlas-signal-card-select {
   display: flex;
   flex-direction: column;
@@ -175,6 +212,7 @@
 }
 
 .atlas-signal-card-header h3 {
+  flex: 1 1 auto;
   margin: 0;
   color: var(--atlas-text);
   font-size: 17px;

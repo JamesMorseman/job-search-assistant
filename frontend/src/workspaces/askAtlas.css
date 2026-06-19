@@ -117,6 +117,15 @@
   gap: 16px;
 }
 
+.atlas-ask-result-eyebrow {
+  margin: 0;
+  color: var(--atlas-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .atlas-ask-result section {
   padding: 14px;
   border: 1px solid var(--atlas-line-soft);
