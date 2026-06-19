@@ -108,6 +108,9 @@ export default function ContextPanel() {
       >
         <h3 className="atlas-context-preview-title">{preview.title}</h3>
         <p className="atlas-context-preview-company">{preview.company}</p>
+        {preview.summary ? (
+          <p className="atlas-context-preview-why">{preview.summary}</p>
+        ) : null}
         <dl className="atlas-context-preview-meta">
           <div>
             <dt>Source</dt>
@@ -124,10 +127,12 @@ export default function ContextPanel() {
           </p>
         ) : (
           <Link
-            className="atlas-context-preview-link"
+            className="atlas-context-preview-cta"
             to={`/opportunities/${encodeURIComponent(preview.jobId)}`}
           >
-            Open Opportunity Detail
+            Review Opportunity
+            <span className="atlas-context-preview-link-sr">Open Opportunity Detail</span>
+            <span aria-hidden="true">&rarr;</span>
           </Link>
         )}
       </ContextModule>

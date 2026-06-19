@@ -9,6 +9,7 @@ export type RadarPreview = {
   signalLabel: string;
   stage: string;
   status: string;
+  summary?: string;
 };
 
 type ContextPanelContextValue = {

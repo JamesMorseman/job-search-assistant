@@ -86,19 +86,32 @@
   gap: 22px;
 }
 
+/* P7P5F: company identity tile gets a brighter edge + ring accent (CSS
+   only, no new image asset) so it reads as a deliberate identity object
+   rather than a plain flat initials tile. */
 .atlas-detail-company-tile {
+  position: relative;
   display: grid;
   place-items: center;
   width: 84px;
   height: 84px;
-  border: 1px solid var(--atlas-line);
+  border: 1px solid rgba(56, 211, 196, 0.4);
   border-radius: 18px;
-  background: linear-gradient(160deg, rgba(56, 211, 196, 0.22), rgba(88, 166, 255, 0.14));
-  box-shadow: inset 0 0 22px rgba(56, 211, 196, 0.18);
+  background: linear-gradient(160deg, rgba(56, 211, 196, 0.26), rgba(88, 166, 255, 0.16));
+  box-shadow: inset 0 0 22px rgba(56, 211, 196, 0.2), 0 0 18px rgba(56, 211, 196, 0.14);
   color: var(--atlas-text);
   font-size: 22px;
   font-weight: 800;
   letter-spacing: 0.02em;
+}
+
+.atlas-detail-company-tile::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  pointer-events: none;
 }
 
 .atlas-detail-hero-heading {
@@ -216,6 +229,18 @@
   font-size: 12px;
   font-weight: 700;
   text-transform: capitalize;
+}
+
+/* P7P5F: Current State, Next Step, and the Stored Fit advisory are
+   grouped into one "Mission Status" hierarchy with a single connecting
+   left rail accent, so the page reads as confidence -> current state ->
+   next step -> advisory rationale in one visual unit instead of three
+   independently stacked cards. */
+.atlas-detail-mission-status {
+  display: grid;
+  gap: 14px;
+  padding: 18px 0 0 18px;
+  border-left: 2px solid rgba(56, 211, 196, 0.28);
 }
 
 .atlas-detail-state-strip {
@@ -390,13 +415,17 @@
    Details read as a deliberately segmented structure rather than one
    long undifferentiated scroll. */
 .atlas-detail-segments {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   padding: 6px;
   border: 1px solid var(--atlas-line-soft);
   border-radius: var(--atlas-radius);
-  background: rgba(13, 18, 27, 0.6);
+  background: rgba(9, 13, 20, 0.92);
+  backdrop-filter: blur(6px);
 }
 
 .atlas-detail-segments a {
@@ -413,8 +442,16 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* P7P5F: lower metrics sections previously repeated the exact same
+   border/background treatment as every other section, which is what
+   reads as an undifferentiated "data stack" by the time the page
+   reaches Requirements/Fit Context/Signal Context/Job Details. Each
+   metrics section now uses a lighter, borderless background so the
+   visual weight tapers off below the hero/advisory/segmented-nav
+   hierarchy instead of staying flat throughout. */
 .atlas-detail-metrics {
-  background: rgba(255, 255, 255, 0.02);
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .atlas-detail-stat-grid {

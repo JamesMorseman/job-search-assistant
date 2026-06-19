@@ -476,21 +476,47 @@
   text-transform: capitalize;
 }
 
-.atlas-context-preview-link {
-  display: block;
-  padding: 10px 14px;
-  border: 1px solid var(--atlas-line);
+/* P7P5F: the rail's "go to detail" action is upgraded from a plain
+   text link to a real Review CTA (matching the SignalCard's primary
+   action language) so the selected-signal rail reads as an instrument
+   with an action, not just a metadata dump. */
+.atlas-context-preview-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
   border-radius: var(--atlas-radius);
-  color: var(--atlas-accent-strong);
-  background: rgba(255, 255, 255, 0.02);
+  color: #06121b;
+  background: linear-gradient(120deg, var(--atlas-accent-strong), var(--atlas-accent));
+  box-shadow: var(--atlas-glow-accent);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   text-align: center;
   text-decoration: none;
 }
 
-.atlas-context-preview-link:hover {
-  background: rgba(255, 255, 255, 0.05);
+.atlas-context-preview-cta:hover {
+  filter: brightness(1.05);
+}
+
+.atlas-context-preview-why {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.atlas-context-preview-link-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .atlas-context-preview-current {
@@ -589,6 +615,25 @@
   display: grid;
   gap: 8px;
   justify-items: start;
+}
+
+/* P7P5F: designed empty states get a small icon badge above the title so
+   "no data yet" rail modules read as a deliberate designed state rather
+   than a dead/blank text block. */
+.atlas-cmod-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  color: var(--atlas-muted);
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.atlas-cmod-empty-icon svg {
+  width: 15px;
+  height: 15px;
 }
 
 .atlas-cmod-empty-title {

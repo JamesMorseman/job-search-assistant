@@ -34,11 +34,32 @@
 .atlas-signal-card-compact .atlas-signal-card-select {
   grid-template-columns: 96px 1fr;
   align-items: start;
+  padding: 20px;
+  gap: 16px;
 }
 
 .atlas-signal-card-compact .atlas-signal-card-sweep {
   width: 96px;
   height: 96px;
+}
+
+/* P7P5F: the compact card previously rendered the same full content set
+   (toprow + h3 + company + 3-item metarow + summary block + 3-col
+   infogrid) as the large card inside a narrower column, which overflowed
+   and clipped. The compact body now carries a deliberately reduced
+   content set - clamped title/summary, a tightened 2-item meta row, and
+   no infogrid (its Detected/Signal Strength/Source facts are already
+   covered by the toprow chip and meta row) - so nothing is cut off. */
+.atlas-signal-card-compact .atlas-signal-card-body {
+  gap: 8px;
+}
+
+.atlas-signal-card-compact .atlas-signal-card-infogrid {
+  display: none;
+}
+
+.atlas-signal-card-compact .atlas-signal-card-summary {
+  padding: 10px 12px;
 }
 
 /* Radar sweep visual - P7P5E: large dial is now the dominant left anchor
@@ -230,11 +251,29 @@
   font-size: 28px;
 }
 
+/* P7P5F: clamp the compact title to 2 lines instead of letting long
+   titles push/overflow the narrow column. */
+.atlas-signal-card-compact .atlas-signal-card-body h3 {
+  font-size: 17px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
 .atlas-signal-card-company {
   margin: 0;
   color: var(--atlas-accent-strong);
   font-size: 14px;
   font-weight: 600;
+}
+
+.atlas-signal-card-compact .atlas-signal-card-company {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .atlas-signal-card-metarow {
@@ -258,6 +297,18 @@
   color: var(--atlas-muted);
 }
 
+/* P7P5F: compact meta row drops to a tighter single line and hides the
+   third (employment-type) item, which is already implied by the stage
+   badge context, so two short facts (location + stage) fit cleanly. */
+.atlas-signal-card-compact .atlas-signal-card-metarow {
+  gap: 10px;
+  font-size: 11px;
+}
+
+.atlas-signal-card-compact .atlas-signal-card-metarow li:nth-child(3) {
+  display: none;
+}
+
 .atlas-signal-card-summary {
   padding: 12px 14px;
   border: 1px solid var(--atlas-line-soft);
@@ -279,6 +330,18 @@
   color: var(--atlas-soft);
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* P7P5F: clamp the compact summary to 2 lines so a long fictional demo
+   summary string cannot push the card taller than its siblings or
+   overflow the narrow column. */
+.atlas-signal-card-compact .atlas-signal-card-summary p:last-child {
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .atlas-signal-card-infogrid {

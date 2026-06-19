@@ -310,6 +310,17 @@
   cursor: pointer;
 }
 
+/* P7P5F: clamp long follow-up prompt text to 2 lines so the follow-up
+   list stays a consistent, screenshot-readable height instead of one
+   long prompt stretching its row much taller than its siblings. */
+.atlas-ask-followup-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
 .atlas-ask-followup-icon {
   display: grid;
   place-items: center;
@@ -325,6 +336,48 @@
 .atlas-ask-input button:hover:not(:disabled),
 .atlas-ask-shortcuts a:hover {
   background: rgba(255, 255, 255, 0.05);
+}
+
+/* P7P5F: when the default demo investigation is showing, the rail's
+   Related Opportunity module names the same opportunity the investigation
+   names, instead of always rendering the contradictory "No opportunity
+   attached" empty state. */
+.atlas-ask-related-opportunity {
+  display: grid;
+  gap: 8px;
+}
+
+.atlas-ask-related-opportunity-title {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.atlas-ask-related-opportunity-note {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.atlas-ask-related-opportunity-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 9px 12px;
+  border-radius: var(--atlas-radius);
+  color: var(--atlas-accent-strong);
+  background: rgba(56, 211, 196, 0.08);
+  border: 1px solid rgba(56, 211, 196, 0.32);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.atlas-ask-related-opportunity-cta:hover {
+  background: rgba(56, 211, 196, 0.14);
 }
 
 .atlas-ask-shortcuts {

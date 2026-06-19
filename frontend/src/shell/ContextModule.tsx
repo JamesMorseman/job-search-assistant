@@ -38,11 +38,13 @@ export default function ContextModule({
 }
 
 export function ContextModuleEmpty({
+  icon,
   title,
   body,
   ctaLabel,
   ctaHref,
 }: {
+  icon?: ReactNode;
   title: string;
   body: string;
   ctaLabel?: string;
@@ -50,6 +52,11 @@ export function ContextModuleEmpty({
 }) {
   return (
     <div className="atlas-cmod-empty">
+      {icon ? (
+        <span className="atlas-cmod-empty-icon" aria-hidden="true">
+          {icon}
+        </span>
+      ) : null}
       <p className="atlas-cmod-empty-title">{title}</p>
       <p className="atlas-cmod-empty-body">{body}</p>
       {ctaLabel && ctaHref ? (

@@ -88,17 +88,29 @@ function CompareGlyph() {
 const DEFAULT_INVESTIGATION_PROMPT =
   "Based on the fictional demo opportunities, which opportunity should I inspect first and why?";
 
+// Single shared descriptor for the fictional demo opportunity that the
+// default investigation below names. Both DEFAULT_DEMO_INVESTIGATION's
+// copy and the rail's "Related Opportunity" module read from this same
+// object, so the main investigation content and the rail can never name
+// different opportunities (the P7P5E/P7P5F rail-contradiction root
+// cause). This is static demo-safe descriptive data, not a live lookup.
+const DEFAULT_DEMO_OPPORTUNITY = {
+  title: "Atlas Demo Infrastructure Group",
+  signalLabel: "Strong Signal",
+  note: "Surfaced by the default investigation as the strongest fictional demo signal.",
+};
+
 // Deterministic fictional demo investigation shown by default so the
 // Ask Atlas surface reads as a completed investigation rather than an
 // empty/ready state. This is static demo-safe copy, not a live model
 // response — a real investigation replaces it once the form is submitted.
 const DEFAULT_DEMO_INVESTIGATION: AskAtlasInvestigation = {
   observation:
-    "Atlas Demo Infrastructure Group shows the strongest fictional signal among the currently detected demo opportunities.",
+    `${DEFAULT_DEMO_OPPORTUNITY.title} shows the strongest fictional signal among the currently detected demo opportunities.`,
   explanation:
     "This fictional demo workspace currently has six source=demo opportunities and one completed demo pipeline run with no errors recorded.",
   suggested_action:
-    "Open the Atlas Demo Infrastructure Group opportunity detail page first, then compare it against the next two strongest signals in Radar.",
+    `Open the ${DEFAULT_DEMO_OPPORTUNITY.title} opportunity detail page first, then compare it against the next two strongest signals in Radar.`,
   suggested_followups: [
     "Which fictional demo opportunity has the strongest signal?",
     "What changed in the most recent demo pipeline run?",
@@ -176,6 +188,19 @@ export default function AskAtlas() {
     pipelineState.status === "success" &&
     summaryState.data?.total_opportunities === 0 &&
     !mostRecentRun;
+
+  // The rail's "Related Opportunity" module must never contradict the
+  // main investigation. The only opportunity this surface currently
+  // names is the one baked into DEFAULT_DEMO_INVESTIGATION (Ask Atlas
+  // does not track an opportunity reference for submitted investigations
+  // — AskAtlasInvestigation only stores observation/explanation/
+  // suggested_action/suggested_followups strings), so the rail shows the
+  // attached demo opportunity only while that default investigation is
+  // still the one displayed, and falls back to the honest empty state
+  // once a different investigation has been run.
+  const isShowingDefaultInvestigation =
+    investigationState.status === "success" &&
+    investigationState.data === DEFAULT_DEMO_INVESTIGATION;
 
   const attachedContextLabel = useMemo(() => {
     if (summaryState.status === "loading" || pipelineState.status === "loading") {
@@ -421,17 +446,34 @@ export default function AskAtlas() {
             )}
           </ContextModule>
 
-          <ContextModule icon={<ModuleRelatedIcon />} label="Related Opportunity">
-            <ContextModuleEmpty
-              title="No opportunity attached"
-              body="Open an opportunity from Radar to bring it into this investigation."
-              ctaLabel="Open Radar"
-              ctaHref="/radar"
-            />
+          <ContextModule
+            icon={<ModuleRelatedIcon />}
+            label="Related Opportunity"
+            chip={isShowingDefaultInvestigation ? DEFAULT_DEMO_OPPORTUNITY.signalLabel : undefined}
+          >
+            {isShowingDefaultInvestigation ? (
+              <div className="atlas-ask-related-opportunity">
+                <p className="atlas-ask-related-opportunity-title">{DEFAULT_DEMO_OPPORTUNITY.title}</p>
+                <p className="atlas-ask-related-opportunity-note">{DEFAULT_DEMO_OPPORTUNITY.note}</p>
+                <Link className="atlas-ask-related-opportunity-cta" to="/radar">
+                  Review in Radar
+                  <span aria-hidden="true">&rarr;</span>
+                </Link>
+              </div>
+            ) : (
+              <ContextModuleEmpty
+                icon={<ModuleRelatedIcon />}
+                title="No opportunity attached"
+                body="Open an opportunity from Radar to bring it into this investigation."
+                ctaLabel="Open Radar"
+                ctaHref="/radar"
+              />
+            )}
           </ContextModule>
 
           <ContextModule icon={<ModuleFocusIcon />} label="Active Focuses">
             <ContextModuleEmpty
+              icon={<ModuleFocusIcon />}
               title="No active Focus"
               body="Focus objects relevant to this investigation will appear here once Atlas raises one."
               ctaLabel="Open Command Center"
@@ -461,7 +503,7 @@ export default function AskAtlas() {
                   <span className="atlas-ask-followup-icon" aria-hidden="true">
                     <PathGlyph />
                   </span>
-                  {followup}
+                  <span className="atlas-ask-followup-text">{followup}</span>
                 </button>
               </li>
             ))}

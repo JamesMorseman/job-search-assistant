@@ -154,6 +154,7 @@ export default function Radar() {
       signalLabel: signalLabel(opportunity.match_score),
       stage: opportunity.stage,
       status: opportunity.status,
+      summary: signalSummary(opportunity),
     });
   }
 

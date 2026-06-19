@@ -303,6 +303,7 @@ function RelatedAndContextRail({ opportunity }: { opportunity: AtlasOpportunityD
     <aside className="atlas-detail-rail" aria-label="Related opportunity context">
       <ContextModule icon={<ModuleRelatedIcon />} label="Related Opportunities">
         <ContextModuleEmpty
+          icon={<ModuleRelatedIcon />}
           title="No related signals linked yet"
           body={`Radar surfaces other ${opportunity.source} signals as Atlas detects them. None are linked to this opportunity yet.`}
           ctaLabel="Open Radar"
@@ -319,6 +320,7 @@ function RelatedAndContextRail({ opportunity }: { opportunity: AtlasOpportunityD
 
       <ContextModule icon={<ModuleFocusIcon />} label="Active Focuses">
         <ContextModuleEmpty
+          icon={<ModuleFocusIcon />}
           title="No active Focus for this opportunity"
           body="Focus objects referencing this opportunity will appear here once Atlas raises one."
           ctaLabel="Open Command Center"
@@ -384,41 +386,47 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
         </div>
       </header>
 
-      <CurrentStateStrip stage={opportunity.stage} />
-      <NextStepModule stage={opportunity.stage} />
+      {/* P7P5F: Current State, Next Step, and the Stored Fit advisory are
+          grouped into a single "Mission Status" hierarchy directly under
+          the hero (instead of three independently-stacked blocks) so
+          confidence + advisory + progression read as one coherent unit. */}
+      <section className="atlas-detail-mission-status" aria-label="Mission status">
+        <CurrentStateStrip stage={opportunity.stage} />
+        <NextStepModule stage={opportunity.stage} />
 
-      {hasRationale ? (
-        <section className="atlas-detail-section atlas-detail-advisory" aria-labelledby="atlas-detail-rationale">
-          <p className="atlas-detail-advisory-eyebrow">Atlas Context</p>
-          <h2 id="atlas-detail-rationale">Stored Fit Context &middot; Existing Rationale</h2>
-          <div className="atlas-detail-meta-grid">
-            {opportunity.llm_grade ? (
-              <div>
-                <dt>LLM grade</dt>
-                <dd>{opportunity.llm_grade}</dd>
-              </div>
+        {hasRationale ? (
+          <section className="atlas-detail-section atlas-detail-advisory" aria-labelledby="atlas-detail-rationale">
+            <p className="atlas-detail-advisory-eyebrow">Atlas Context</p>
+            <h2 id="atlas-detail-rationale">Stored Fit Context &middot; Existing Rationale</h2>
+            <div className="atlas-detail-meta-grid">
+              {opportunity.llm_grade ? (
+                <div>
+                  <dt>LLM grade</dt>
+                  <dd>{opportunity.llm_grade}</dd>
+                </div>
+              ) : null}
+              {opportunity.llm_fit_score != null ? (
+                <div>
+                  <dt>LLM fit score</dt>
+                  <dd>{opportunity.llm_fit_score}</dd>
+                </div>
+              ) : null}
+            </div>
+            {opportunity.llm_rationale ? (
+              <p className="atlas-detail-description">{opportunity.llm_rationale}</p>
             ) : null}
-            {opportunity.llm_fit_score != null ? (
-              <div>
-                <dt>LLM fit score</dt>
-                <dd>{opportunity.llm_fit_score}</dd>
-              </div>
-            ) : null}
-          </div>
-          {opportunity.llm_rationale ? (
-            <p className="atlas-detail-description">{opportunity.llm_rationale}</p>
-          ) : null}
-          {(benefitReasons.length > 0 || trajectoryReasons.length > 0) && (
-            <ul className="atlas-detail-advisory-chips" role="list">
-              {[...benefitReasons, ...trajectoryReasons].map((reason, index) => (
-                <li role="listitem" key={index}>
-                  {reason}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ) : null}
+            {(benefitReasons.length > 0 || trajectoryReasons.length > 0) && (
+              <ul className="atlas-detail-advisory-chips" role="list">
+                {[...benefitReasons, ...trajectoryReasons].map((reason, index) => (
+                  <li role="listitem" key={index}>
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+      </section>
 
       <nav className="atlas-detail-segments" aria-label="Opportunity detail sections">
         <a href="#atlas-detail-overview">Overview</a>
@@ -618,6 +626,7 @@ export default function OpportunityDetailSurface() {
         signalLabel: detailSignalLabel(opportunity.match_score),
         stage: opportunity.stage,
         status: opportunity.status,
+        summary: `${detailSignalLabel(opportunity.match_score)} detected for ${opportunity.title} via ${opportunity.source}.`,
       });
     }
   }, [setPreview, state]);
