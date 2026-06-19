@@ -654,8 +654,9 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
 | 2 — Portfolio Documentation Skeleton | **Complete** — commit `65cf0a7`; Leah ACCEPT FOR COMMIT | README.md reframed; 6 `docs/Public/` files created (ATLAS_OVERVIEW, TECHNICAL_ARCHITECTURE, RECRUITER_BRIEF, PRIVACY_AND_REDACTION, FEATURE_SUMMARY, SCREENSHOTS); docs-only; not a public release authorization |
 | 3 — Local Launch Experience | **Complete** — commit `38314f2`; Leah ACCEPT FOR COMMIT | `scripts/start-atlas.ps1` (PowerShell launcher; `.venv` executables; `jsa check` pre-flight; uvicorn factory on 127.0.0.1:8000; Ctrl+C stop) + `docs/Runbooks/LOCAL_LAUNCH.md`; scripts/docs-only; 3 files; no code changes |
 | 4 — Demo Data, Screenshot, and Redaction Readiness | **Complete** — commit `2227265`; Leah ACCEPT WITH MINOR NOTES | `docs/Public/SCREENSHOTS.md` (updated) + `docs/Public/PRIVACY_AND_REDACTION.md` (updated) + `docs/Runbooks/DEMO_CAPTURE.md` (new) + `docs/Runbooks/DEMO_DATA.md` (new); docs/runbooks-only; no screenshots; no code changes; not a public release authorization |
-| 5 — Runtime Demo Hardening and Screenshot Readiness | **Definition accepted** — implementation authorized | Compact demo/runtime readiness package: repeatable fictional demo seed path, current-schema demo records, pipeline counter alignment, Radar card -> Opportunity Detail selected-state, Ask Atlas fictional investigation response, and removal/hiding of visible development-shell artifacts. No screenshots/images, database files, real data, public release, Tauri/Electron, native desktop claim, or production/external-user-ready claim authorized |
-| 6 — Demo Artifact Capture and Screenshot Review | **Deferred** — future definition required | Renumbered screenshot capture package. May be defined only after Package 5 is accepted. No screenshot/image commits authorized yet |
+| 5 — Runtime Demo Hardening and Screenshot Readiness | **Implemented `9645f2a`; technical CONDITIONAL PASS (Leah), VISUAL FAIL for screenshot readiness (Sara); conditionally accepted as internal runtime evidence only — screenshot readiness explicitly excluded, visual acceptance deferred; NOT screenshot-ready** | Leah: 1019 passed, 1 skipped; scope/privacy/prohibited-artifact clean. Sara: broad mismatch vs accepted ATLAS Desktop v1 references (logo/shell/Context-Panel stub/`Desktop Shell / Package 1` scaffolding/object language). See `DECISION_LOG.md` "Phase 7 Package 5 — Visual Governance Reconciliation" |
+| 5B — ATLAS Visual Alignment Corrective Pass | **Definition accepted** — implementation authorized (future Anna pass) | Narrow visual-alignment package (NOT a redesign). P0: restore accepted ATLAS logo/brand lockup (remove square "A" tile); remove Context Panel "Stub"; remove/replace `Desktop Shell / Package 1`; move global shell toward Desktop Shell Reference v1. P1: Opportunity Detail advisory/structure; Radar Opportunity Signal Card object; Ask Atlas investigation styling (consider "Suggested Review Path"); Sidebar grouping. **Pipeline decision: Option A — exclude Pipeline from P7P6 capture.** Denied: public release, screenshot capture/commits, images, DB commits, real data, credentials, Gmail/Drive, Tauri/Electron, broad redesign, Pipeline v5 zone implementation |
+| 6 — Demo Artifact Capture and Screenshot Review | **Deferred / BLOCKED** — future definition required | Screenshot capture package. May be defined only after Package 5B is implemented and both the Leah technical re-audit and the Sara visual re-audit accept. No screenshot/image commits authorized yet |
 | 7 — Final Portfolio/Public Release Gate | **Deferred** — future definition required | Final public release, repository-public, publication, and external-user-ready decisions remain unauthorized |
 
 ### Objectives
@@ -725,6 +726,11 @@ not Chat Surface"; Package 8 implementation is authorized within that boundary.
    Package 4 (Demo Data, Screenshot, and Redaction Readiness) complete
    (commit `2227265`; Leah ACCEPT WITH MINOR NOTES).
 8. Phase 7 Package 5 (Runtime Demo Hardening and Screenshot Readiness)
-   definition accepted; implementation authorized. Screenshot capture is
-   deferred to Package 6 and final public release gate is deferred to Package 7.
+   implemented (commit `9645f2a`): Leah technical CONDITIONAL PASS, Sara
+   VISUAL FAIL for screenshot readiness; conditionally accepted as internal
+   runtime evidence only (screenshot readiness excluded, visual acceptance
+   deferred). Phase 7 Package 5B (ATLAS Visual Alignment Corrective Pass)
+   definition accepted; implementation authorized. Screenshot capture
+   (Package 6) remains blocked pending P7P5B implementation and Leah + Sara
+   re-audit; final public release gate (Package 7) remains unauthorized.
 9. Treat Phase 7 as optional, human-reviewed extensions.

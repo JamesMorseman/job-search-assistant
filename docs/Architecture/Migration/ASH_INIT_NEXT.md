@@ -1,6 +1,6 @@
 ﻿# Ash Initialization Package — Project Master (NEXT)
 
-**Version:** June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 runtime demo hardening definition accepted; Desktop Packages 1-11 complete
+**Version:** June 2026 - Phase 6 complete (all 5 packages); Phase 7 Packages 1-4 complete; Phase 7 Package 5 (Runtime Demo Hardening) implemented `9645f2a` — Leah technical CONDITIONAL PASS, Sara VISUAL FAIL for screenshot readiness; conditionally accepted as internal runtime evidence only (NOT screenshot-ready); Phase 7 Package 5B (ATLAS Visual Alignment Corrective Pass) defined, implementation authorized; Phase 7 Package 6 screenshot capture BLOCKED; Desktop Packages 1-11 complete
 
 **Use:** Load this document plus `PROJECT_STATE.md`, `DECISION_LOG.md`, and
 `roadmap.md` to initialize the replacement Project Master chat without prior
@@ -88,7 +88,7 @@ explicit PM authorization):**
 | 4 — Dashboard Service Layer | Complete (June 2026; Package 5 reassigned to Phase 6) |
 | 5 — Dashboard UI | **MVP Complete** (Packages 1–6 + Package 8 done; 7 gated on sync implementation; 9a/9b/9c gated on Phase 6) |
 | 6 — Analytics & Pipeline Runs | **Active** — Packages 1+2+3 complete; Package 4 definition entry required |
-| 7 — Future Enhancements | **Active** — Package 1 complete `1d02117`; Package 2 complete `65cf0a7`; Package 3 complete `38314f2`; Package 4 complete `2227265`; Package 5 Runtime Demo Hardening and Screenshot Readiness definition accepted; implementation authorized; Package 6 screenshot capture and Package 7 final release gate deferred |
+| 7 — Future Enhancements | **Active** — Package 1 complete `1d02117`; Package 2 complete `65cf0a7`; Package 3 complete `38314f2`; Package 4 complete `2227265`; Package 5 (Runtime Demo Hardening) implemented `9645f2a` — Leah technical CONDITIONAL PASS, Sara VISUAL FAIL for screenshot readiness; conditionally accepted as internal runtime evidence only (NOT screenshot-ready); Package 5B (ATLAS Visual Alignment Corrective Pass) definition accepted, implementation authorized; Package 6 screenshot capture BLOCKED pending P7P5B + Leah/Sara re-audit; Package 7 final release gate unauthorized |
 
 ### Phase 6 Package Status (revised numbering — authoritative)
 
@@ -570,42 +570,70 @@ Run `git status --short --untracked-files=all` and `git log --oneline -8`.
 Confirm repo state matches §2 and §4. Identify any contradictions or
 ambiguities before proceeding.
 
-### Step 2 — Prompt Phase 7 Package 5 implementation
+### Step 2 — Prompt Phase 7 Package 5B implementation
 
-**Phase 7 Package 5 — Runtime Demo Hardening and Screenshot Readiness is
-defined and implementation is authorized.** See `DECISION_LOG.md` "Phase 7
-Governance Correction — Runtime Demo Hardening Before Screenshot Capture."
+**Phase 7 Package 5 (Runtime Demo Hardening) is implemented (commit
+`9645f2a`).** Leah technical/runtime audit = CONDITIONAL PASS; Sara
+visual-governance audit = VISUAL FAIL for screenshot readiness. Disposition:
+conditionally accepted as internal runtime evidence only — screenshot
+readiness explicitly excluded, visual acceptance deferred; NOT screenshot-ready.
+See `DECISION_LOG.md` "Phase 7 Package 5 — Visual Governance Reconciliation."
 
-Issue Anna a compact implementation prompt. Objective: make the live ATLAS
-runtime screenshot-ready by adding repeatable fictional demo-state tooling,
-fixing demo surface behavior, aligning demo counters, validating Radar card ->
-Opportunity Detail selected-state, enabling a fictional Ask Atlas investigation
-response, and removing or hiding visible development-shell artifacts such as
-`Desktop Shell / Package 1`.
+**Phase 7 Package 5B — ATLAS Visual Alignment Corrective Pass is defined and
+implementation is authorized.** This is the next implementation step. Screenshot
+capture (Package 6) remains BLOCKED until P7P5B is implemented and both the
+Leah technical re-audit and the Sara visual re-audit accept.
 
-Authorized evaluation surface:
-- `scripts/seed-demo-data.ps1`
-- `scripts/seed_demo_data.py`
-- `docs/Runbooks/DEMO_CAPTURE.md`
-- `docs/Runbooks/DEMO_DATA.md`
-- `frontend/src/*`
-- `job_search/dashboard/routes/atlas_api.py`
-- `job_search/services/*`
-- `tests/test_desktop_demo_readiness.py`
-- `tests/test_desktop_opportunity_detail.py`
-- `tests/test_demo_seed.py`
+Issue Anna a compact implementation prompt. Objective: bring the live ATLAS
+runtime into acceptable alignment with the accepted ATLAS Desktop v1 visual
+references on the surfaces intended for capture — narrow visual-alignment scope
+only, NOT a broad redesign and NOT new visual concepts.
 
-Do not authorize screenshots/images, `docs/Artifacts/Images/*`, database file
-commits, real job data, generated resumes or cover letters, Gmail/Drive
-content, credential values, fixture JSON with real data, Tauri/Electron,
-installer work, native desktop claims, production-ready claims,
-external-user-ready claims, public-release-ready claims, public release, or a
-major redesign.
+**P0 (hard blockers):** restore accepted ATLAS logo/brand lockup (remove square
+"A" tile); remove Context Panel "Stub" copy (replace with intentional
+local/demo context or hide in capture mode); remove/replace `Desktop Shell /
+Package 1` scaffolding with a neutral local label; move global shell materially
+closer to Desktop Shell Reference v1; preserve fictional/demo-only data.
+**P1:** Opportunity Detail passive Current State strip + advisory block +
+section/tab structure + meaningful context panel; Radar Opportunity Signal Card
+object with tier differentiation (only if Radar remains a capture target); Ask
+Atlas investigation-object styling (consider "Suggested Review Path" relabel);
+Sidebar icon/grouping hierarchy. **P2 (optional, only if it fits scope):**
+Command Center empty-space reduction; Atlas Focus / Recommendation Card object
+strengthening; mission-footer language; Ask Atlas wording.
 
-Required validation for Anna: pytest, private-data search, fresh DB creation,
-demo seed, launcher `jsa check`, Command Center/Radar/Pipeline/Opportunity
-Detail/Ask Atlas runtime checks, and confirmation that screenshot capture
+**Pipeline decision: Option A — exclude Pipeline from P7P6 capture.** Do not
+build Pipeline v5 zones under this package.
+
+Suggested workstreams (confirm disjoint file ownership before any parallel
+issue): (1) Shell/brand/Context Panel — `Sidebar.tsx`, `ContextPanel.tsx`,
+shell/layout, global CSS (single owner, high conflict risk, do not split);
+(2) Opportunity Detail — route/page + CSS (after WS1); (3) Radar — `Radar.tsx`,
+`radar.css`, new signal-card component (parallel with WS2 only if no shared
+shell files); (4) Pipeline — Option A, no work; (5) Ask Atlas — `AskAtlas.tsx`
++ CSS (after WS1).
+
+Do not authorize: public release, screenshot capture/commits, image files,
+`docs/Artifacts/Images/*`, database file commits, seeded data files committed,
+fixture JSON with real data, real job/application data, credential values,
+Gmail/Drive content, real generated resumes/cover letters, Tauri/Electron,
+installer work, native desktop claims, production-ready / external-user-ready /
+public-release-ready claims, broad redesign, new visual concepts outside
+accepted ATLAS visual governance, or implementing Pipeline v5 zones.
+
+Required validation for Anna: `git status --short --untracked-files=all`,
+`git diff --stat`, `git diff --name-only`, pytest, private-data scan, and a
+manual runtime check of capture surfaces (Command Center, Radar, Opportunity
+Detail, Ask Atlas) confirming P0 artifacts are gone and screenshot capture
 remains deferred.
+
+### Step 2b — Re-audit and screenshot-capture gate
+
+After P7P5B is implemented: run the Leah technical re-audit (scope/privacy/no
+prohibited artifacts) and the Sara visual re-audit (accepted-reference parity
+for the intended capture surfaces). Only after both accept may Phase 7
+Package 6 (Demo Artifact Capture and Screenshot Review) be defined and
+authorized.
 
 ### Step 3 — Deferred content comparison (CLOSED)
 
