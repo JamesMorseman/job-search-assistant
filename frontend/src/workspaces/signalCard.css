@@ -32,26 +32,25 @@
 }
 
 .atlas-signal-card-compact .atlas-signal-card-select {
-  grid-template-columns: 96px 1fr;
+  grid-template-columns: 124px 1fr;
   align-items: start;
-  padding: 20px;
-  gap: 16px;
+  padding: 24px;
+  gap: 20px;
 }
 
 .atlas-signal-card-compact .atlas-signal-card-sweep {
-  width: 96px;
-  height: 96px;
+  width: 124px;
+  height: 124px;
 }
 
-/* P7P5F: the compact card previously rendered the same full content set
-   (toprow + h3 + company + 3-item metarow + summary block + 3-col
-   infogrid) as the large card inside a narrower column, which overflowed
-   and clipped. The compact body now carries a deliberately reduced
-   content set - clamped title/summary, a tightened 2-item meta row, and
-   no infogrid (its Detected/Signal Strength/Source facts are already
-   covered by the toprow chip and meta row) - so nothing is cut off. */
+/* P7P5H: the corrected Radar reference reads as taller, less-compressed
+   cards, not a dense data row, so the compact card grew (wider dial,
+   more padding) and keeps the full 3-item meta row. The infogrid stays
+   hidden because its Detected/Signal Strength/Source facts are already
+   covered by the toprow chip and meta row, not because of space
+   pressure. */
 .atlas-signal-card-compact .atlas-signal-card-body {
-  gap: 8px;
+  gap: 12px;
 }
 
 .atlas-signal-card-compact .atlas-signal-card-infogrid {
@@ -59,151 +58,21 @@
 }
 
 .atlas-signal-card-compact .atlas-signal-card-summary {
-  padding: 10px 12px;
+  padding: 12px 14px;
 }
 
-/* Radar sweep visual - P7P5E: large dial is now the dominant left anchor
-   on the Full card (220px+ vs 152px before) and the Compact card keeps a
-   genuinely circular mini-dial (96px) instead of collapsing to a thin
-   strip, so even the compact variant still reads as a radar object. */
+/* Radar mark - P7P5H: renders through the canonical RadarSweepMark
+   primitive (shell/RadarSweepMark.tsx + radarSweepMark.css); this rule
+   only reserves/sizes the dial area inside the card layout. The Full
+   card keeps the dominant left-anchor dial (196px) and the Compact card
+   keeps a genuinely circular mini-dial (96px, set below) instead of
+   collapsing to a thin strip, so even the compact variant still reads
+   as a radar object. */
 
 .atlas-signal-card-sweep {
-  position: relative;
   width: 196px;
   height: 196px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, rgba(56, 211, 196, 0.3) 0 3px, transparent 4px),
-    radial-gradient(circle, rgba(13, 18, 27, 0.97), rgba(13, 18, 27, 0.45));
-  box-shadow: inset 0 0 48px rgba(56, 211, 196, 0.22), var(--atlas-glow-soft);
   justify-self: center;
-}
-
-.atlas-signal-sweep-ring {
-  position: absolute;
-  border: 1px solid rgba(148, 163, 184, 0.26);
-  border-radius: 50%;
-}
-
-.atlas-signal-sweep-ring-outer {
-  inset: 4px;
-}
-
-.atlas-signal-sweep-ring-mid {
-  inset: 24%;
-}
-
-.atlas-signal-sweep-ring-inner {
-  inset: 40%;
-}
-
-.atlas-signal-sweep-crosshair {
-  position: absolute;
-  inset: 4px;
-}
-
-.atlas-signal-sweep-crosshair::before,
-.atlas-signal-sweep-crosshair::after {
-  content: "";
-  position: absolute;
-  background: rgba(148, 163, 184, 0.2);
-}
-
-.atlas-signal-sweep-crosshair::before {
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  transform: translateX(-50%);
-}
-
-.atlas-signal-sweep-crosshair::after {
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  transform: translateY(-50%);
-}
-
-/* P7P5G: same fix as .atlas-radar-sweep in radar.css - anchor the
-   conic-gradient explicitly at the box's corner (the dial's true center)
-   instead of letting it default to the box's own midpoint, and use the
-   NE quadrant so the bright leading edge lands at the reference's ~1
-   o'clock tail direction with a soft trailing glow back toward north. */
-.atlas-signal-sweep-beam {
-  position: absolute;
-  left: 50%;
-  top: 0%;
-  width: 50%;
-  height: 50%;
-  background: conic-gradient(
-    from 0deg at 0% 100%,
-    transparent 0deg,
-    rgba(56, 211, 196, 0.18) 20deg,
-    rgba(56, 211, 196, 0.5) 32deg,
-    rgba(125, 234, 255, 0.92) 38deg,
-    rgba(125, 234, 255, 0.92) 40deg,
-    transparent 42deg,
-    transparent 90deg
-  );
-  transform-origin: 0% 100%;
-  animation: atlas-signal-sweep-rotate 4.5s linear infinite;
-  animation-delay: var(--sweep-delay, 0s);
-}
-
-/* P7P5G: top/left and animation-delay are driven by CSS custom
-   properties set per-card from a seed derived from the opportunity's
-   job_id (see SignalCard.tsx), so visible cards do not share identical
-   return placement or identical sweep phase (Radar Variation Standard,
-   Radar_Workspace_Reference_v3.md). Defaults match the pre-P7P5G fixed
-   position so cards render correctly even without the seed applied. */
-.atlas-signal-sweep-blip {
-  position: absolute;
-  top: var(--blip-top, 28%);
-  left: var(--blip-left, 66%);
-  width: 9px;
-  height: 9px;
-  margin: -4.5px;
-  border-radius: 50%;
-  background: var(--atlas-accent-strong);
-  box-shadow: 0 0 16px rgba(88, 166, 255, 0.95);
-  animation: atlas-mark-blip-pulse 2.2s ease-in-out infinite;
-  animation-delay: var(--blip-delay, 0s);
-}
-
-.atlas-signal-sweep-blip-secondary {
-  position: absolute;
-  display: var(--blip2-display, block);
-  top: var(--blip2-top, 64%);
-  left: var(--blip2-left, 32%);
-  width: 6px;
-  height: 6px;
-  margin: -3px;
-  border-radius: 50%;
-  background: var(--atlas-accent);
-  box-shadow: 0 0 12px rgba(56, 211, 196, 0.85);
-  animation: atlas-mark-blip-pulse 2.8s ease-in-out infinite;
-  animation-delay: var(--blip2-delay, 0s);
-}
-
-.atlas-signal-card-compact .atlas-signal-sweep-blip-secondary {
-  display: none;
-}
-
-@keyframes atlas-signal-sweep-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .atlas-signal-sweep-beam,
-  .atlas-signal-sweep-blip {
-    animation: none;
-  }
 }
 
 /* Card body */
@@ -317,16 +186,9 @@
   color: var(--atlas-muted);
 }
 
-/* P7P5F: compact meta row drops to a tighter single line and hides the
-   third (employment-type) item, which is already implied by the stage
-   badge context, so two short facts (location + stage) fit cleanly. */
 .atlas-signal-card-compact .atlas-signal-card-metarow {
   gap: 10px;
   font-size: 11px;
-}
-
-.atlas-signal-card-compact .atlas-signal-card-metarow li:nth-child(3) {
-  display: none;
 }
 
 .atlas-signal-card-summary {
@@ -352,15 +214,14 @@
   line-height: 1.5;
 }
 
-/* P7P5F: clamp the compact summary to 2 lines so a long fictional demo
-   summary string cannot push the card taller than its siblings or
-   overflow the narrow column. */
+/* P7P5H: cards grew taller, so the summary gets a third line of
+   breathing room before clamping instead of cutting off at two. */
 .atlas-signal-card-compact .atlas-signal-card-summary p:last-child {
   font-size: 12px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
 }
 
@@ -386,9 +247,12 @@
   font-size: 12px;
 }
 
+/* P7P5H: Track removed (duplicated Save's conceptual action with no
+   distinct progression-tracking behavior) - two actions remain: the
+   Save toggle and the primary Review Opportunity CTA. */
 .atlas-signal-card-actions {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 10px;
   margin: 0 22px 10px;
@@ -463,10 +327,11 @@
   border: 0;
 }
 
-/* Tier accents - P7P5E: tier differentiation is now real (brighter sweep +
-   stronger glow + extra signal return + stronger CTA for Exceptional,
-   medium intensity for Strong, lower intensity for Relevant/Emerging)
-   rather than only the small indicator pill changing color. */
+/* Tier accents - P7P5H: the radar mark's own color/glow per tier now
+   lives entirely in shell/radarSweepMark.css (.atlas-sweepmark-<tier>),
+   shared by every surface that renders RadarSweepMark. This block only
+   carries the card-level accents (border, indicator pill, CTA) that are
+   not part of the mark itself. */
 
 .atlas-signal-tier-exceptional {
   border-color: rgba(56, 211, 196, 0.55);
@@ -477,14 +342,6 @@
   color: var(--atlas-accent);
   border-color: rgba(56, 211, 196, 0.55);
   background: rgba(56, 211, 196, 0.16);
-}
-
-.atlas-signal-tier-exceptional .atlas-signal-card-sweep {
-  box-shadow: inset 0 0 56px rgba(56, 211, 196, 0.34), var(--atlas-glow-hero);
-}
-
-.atlas-signal-tier-exceptional .atlas-signal-sweep-beam {
-  background: conic-gradient(from 0deg, rgba(56, 211, 196, 1), transparent 40%);
 }
 
 .atlas-signal-tier-exceptional .atlas-signal-card-cta {
@@ -501,70 +358,21 @@
   background: rgba(88, 166, 255, 0.1);
 }
 
-.atlas-signal-tier-strong .atlas-signal-card-sweep {
-  box-shadow: inset 0 0 48px rgba(88, 166, 255, 0.2), var(--atlas-glow-soft);
-}
-
 /* P7P5G: Radar color grammar (Radar_Workspace_Reference_v3.md) - Strong
    Signal stays cyan/blue (exceptional/strong above), Moderate Signal
    ("relevant" tier) is blue-violet, Emerging Signal is violet. Unscored
    is a distinct, non-spec neutral-gray fallback for "no score computed"
    rather than a faint signal reading. */
-.atlas-signal-tier-relevant .atlas-signal-card-sweep {
-  box-shadow: inset 0 0 32px rgba(155, 140, 242, 0.18);
-}
-
-.atlas-signal-tier-relevant .atlas-signal-sweep-beam {
-  background: conic-gradient(
-    from 0deg at 0% 100%,
-    transparent 0deg,
-    rgba(155, 140, 242, 0.4) 28deg,
-    rgba(180, 168, 247, 0.78) 36deg,
-    transparent 40deg,
-    transparent 90deg
-  );
-}
-
 .atlas-signal-tier-relevant .atlas-signal-indicator {
   color: var(--atlas-violet);
   border-color: rgba(155, 140, 242, 0.4);
   background: rgba(155, 140, 242, 0.1);
 }
 
-.atlas-signal-tier-emerging .atlas-signal-card-sweep {
-  box-shadow: inset 0 0 26px rgba(124, 106, 232, 0.14);
-}
-
-.atlas-signal-tier-emerging .atlas-signal-sweep-beam {
-  background: conic-gradient(
-    from 0deg at 0% 100%,
-    transparent 0deg,
-    rgba(124, 106, 232, 0.3) 30deg,
-    rgba(155, 140, 242, 0.55) 38deg,
-    transparent 40deg,
-    transparent 90deg
-  );
-}
-
 .atlas-signal-tier-emerging .atlas-signal-indicator {
   color: var(--atlas-violet-deep);
   border-color: rgba(124, 106, 232, 0.35);
   background: rgba(124, 106, 232, 0.08);
-}
-
-.atlas-signal-tier-unscored .atlas-signal-card-sweep {
-  box-shadow: inset 0 0 28px rgba(148, 163, 184, 0.12);
-}
-
-.atlas-signal-tier-unscored .atlas-signal-sweep-beam {
-  background: conic-gradient(
-    from 0deg at 0% 100%,
-    transparent 0deg,
-    rgba(148, 163, 184, 0.3) 30deg,
-    rgba(148, 163, 184, 0.5) 38deg,
-    transparent 40deg,
-    transparent 90deg
-  );
 }
 
 .atlas-signal-tier-unscored .atlas-signal-indicator {

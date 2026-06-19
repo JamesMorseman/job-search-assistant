@@ -3,138 +3,14 @@
   gap: 22px;
 }
 
-/* P7P5E: the Radar hero scope grew from a small 92px corner ornament to a
-   144px dominant instrument with a brighter sweep, a third ring, and a
-   visible crosshair, rendered in the shared WorkspaceHeader visual slot. */
+/* P7P5H: the header instrument now renders through the canonical
+   RadarSweepMark primitive (shell/RadarSweepMark.tsx + radarSweepMark.css)
+   instead of bespoke ring/sweep/dot markup, so this rule only sizes the
+   dial inside the shared WorkspaceHeader visual slot. */
 .atlas-radar-scope {
-  position: relative;
+  display: block;
   width: 144px;
   height: 144px;
-  border: 2px solid rgba(56, 211, 196, 0.4);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, rgba(56, 211, 196, 0.3) 0 3px, transparent 4px),
-    radial-gradient(circle, rgba(13, 18, 27, 0.97), rgba(13, 18, 27, 0.45));
-  box-shadow: inset 0 0 40px rgba(56, 211, 196, 0.24), var(--atlas-glow-hero);
-  overflow: hidden;
-}
-
-.atlas-radar-ring,
-.atlas-radar-sweep,
-.atlas-radar-dot {
-  position: absolute;
-  display: block;
-}
-
-.atlas-radar-ring {
-  inset: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 50%;
-}
-
-.atlas-radar-ring-mid {
-  inset: 30px;
-}
-
-.atlas-radar-ring-inner {
-  inset: 52px;
-}
-
-.atlas-radar-crosshair {
-  position: absolute;
-  inset: 8px;
-}
-
-.atlas-radar-crosshair::before,
-.atlas-radar-crosshair::after {
-  content: "";
-  position: absolute;
-  background: rgba(148, 163, 184, 0.22);
-}
-
-.atlas-radar-crosshair::before {
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  transform: translateX(-50%);
-}
-
-.atlas-radar-crosshair::after {
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  transform: translateY(-50%);
-}
-
-/* P7P5G: the sweep box previously sat at the dial's center (left/top 50%)
-   with transform-origin 0% 0%, which correctly pivots there - but the
-   conic-gradient painted inside that box defaults to centering itself on
-   the box's own midpoint, not the box's 0%/0% corner. That mismatch made
-   the visible bright wedge render a quarter-turn away from the actual
-   pivot, reading as "detached from center." Moving the box into the NE
-   quadrant and anchoring the gradient explicitly at the box's corner
-   (which is the dial's true center) fixes both the detachment and gives
-   a single, correctly-converging sweep instead of a half-circle wedge.
-   The gradient stops build a soft trailing glow from north (0deg) up to
-   a bright leading line at ~38-40deg (the reference's ~1 o'clock tail
-   direction), then cut to transparent for the rest of the quadrant. */
-.atlas-radar-sweep {
-  left: 50%;
-  top: 0%;
-  width: 50%;
-  height: 50%;
-  background: conic-gradient(
-    from 0deg at 0% 100%,
-    transparent 0deg,
-    rgba(56, 211, 196, 0.2) 20deg,
-    rgba(56, 211, 196, 0.55) 32deg,
-    rgba(125, 234, 255, 0.95) 38deg,
-    rgba(125, 234, 255, 0.95) 40deg,
-    transparent 42deg,
-    transparent 90deg
-  );
-  transform-origin: 0% 100%;
-  animation: atlas-radar-scope-rotate 4.5s linear infinite;
-}
-
-.atlas-radar-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--atlas-accent-strong);
-  box-shadow: 0 0 16px rgba(88, 166, 255, 0.85);
-}
-
-@keyframes atlas-radar-scope-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .atlas-radar-sweep {
-    animation: none;
-  }
-}
-
-.atlas-radar-dot-a {
-  left: 92px;
-  top: 36px;
-}
-
-.atlas-radar-dot-b {
-  left: 42px;
-  top: 84px;
-}
-
-.atlas-radar-dot-c {
-  left: 96px;
-  top: 100px;
 }
 
 /* P7P5G: corrected Radar reference layout skeleton - a full filter row
@@ -164,13 +40,18 @@
   color: var(--atlas-muted);
 }
 
+/* P7P5H: the strip carries real operational-summary value (counts that
+   change Radar's read at a glance), so each chip is sized to read at a
+   distance instead of as microtext - larger value digits, a labeled dot
+   per chip for consistent status grammar, and enough vertical padding
+   that the band feels like an instrument readout, not a caption line. */
 .atlas-radar-statusstrip {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 20px;
+  gap: 18px;
+  padding: 20px 24px;
   border: 1px solid var(--atlas-line-soft);
   border-radius: var(--atlas-radius-lg);
   background: var(--atlas-card-bg);
@@ -180,7 +61,7 @@
 .atlas-radar-statusstrip-total {
   margin: 0;
   color: var(--atlas-text);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -188,7 +69,7 @@
 .atlas-radar-statuschips {
   display: flex;
   flex-wrap: wrap;
-  gap: 22px;
+  gap: 28px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -196,14 +77,36 @@
 
 .atlas-radar-statuschip {
   display: flex;
-  align-items: baseline;
-  gap: 7px;
+  align-items: center;
+  gap: 9px;
+  min-width: 78px;
+}
+
+.atlas-radar-statuschip-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--atlas-accent-strong);
+  box-shadow: 0 0 10px rgba(88, 166, 255, 0.7);
+}
+
+.atlas-radar-statuschip-strong .atlas-radar-statuschip-dot {
+  background: var(--atlas-accent);
+  box-shadow: 0 0 10px rgba(56, 211, 196, 0.75);
+}
+
+.atlas-radar-statuschip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .atlas-radar-statuschip-value {
   color: var(--atlas-accent-strong);
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
+  line-height: 1.1;
 }
 
 .atlas-radar-statuschip-strong .atlas-radar-statuschip-value {
@@ -243,7 +146,7 @@
    than clipping on narrower ones. */
 .atlas-radar-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, minmax(330px, 1fr));
   gap: 18px;
   margin: 0;
   padding: 0;

@@ -1,0 +1,126 @@
+/* Canonical ATLAS radar sweep primitive styling (P7P5H). One geometry
+   system shared by the shell brand mark, the Radar workspace header
+   scope, and every Opportunity Signal Card dial - tier/selected/motion
+   variants change color and animation only, never the underlying SVG
+   geometry built in RadarSweepMark.tsx. */
+
+.atlas-sweepmark {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13, 18, 27, 0.97), rgba(13, 18, 27, 0.4));
+  overflow: hidden;
+}
+
+.atlas-sweepmark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.atlas-sweepmark-ring {
+  color: inherit;
+}
+
+/* Only this group moves. Pivot is the dial's exact center (50px 50px in
+   the 100x100 viewBox) so rings/crosshair/hub/blips never appear to spin
+   even though they share the same coordinate space. */
+.atlas-sweepmark-rotor {
+  transform-origin: 50px 50px;
+  transform: rotate(var(--atlas-sweep-rest, 35deg));
+}
+
+.atlas-sweepmark-rotor[data-motion="periodic"] {
+  animation: atlas-sweepmark-periodic 20s ease-in-out infinite;
+  animation-delay: var(--atlas-sweep-delay, 0s);
+}
+
+/* Mostly-static hold with one full, slow revolution near the end of each
+   20s cycle (~1.6s of visible motion) - "Active Monitoring Sweep" in the
+   ATLAS Motion Specification: subtle, periodic refresh only, not a
+   continuously spinning dial. Because the keyframe ends a full 360deg
+   past the resting angle, the loop restarts visually seamlessly. */
+@keyframes atlas-sweepmark-periodic {
+  0%,
+  92% {
+    transform: rotate(var(--atlas-sweep-rest, 35deg));
+  }
+  100% {
+    transform: rotate(calc(var(--atlas-sweep-rest, 35deg) + 360deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-sweepmark-rotor[data-motion="periodic"] {
+    animation: none;
+  }
+}
+
+.atlas-sweepmark-band {
+  color: inherit;
+}
+
+.atlas-sweepmark-ray {
+  filter: drop-shadow(0 0 3px currentColor);
+}
+
+.atlas-sweepmark-hub {
+  filter: drop-shadow(0 0 2px currentColor);
+}
+
+.atlas-sweepmark-blip {
+  filter: drop-shadow(0 0 2.5px currentColor);
+}
+
+/* Tier color grammar (ATLAS hierarchy): Signal Cyan = scan/detection
+   primary, Atlas Blue = action/selection/brand, violet family = signal
+   tier semantics, neutral = unscored fallback. */
+
+.atlas-sweepmark-brand {
+  color: var(--atlas-accent-strong);
+}
+
+.atlas-sweepmark-header {
+  color: var(--atlas-accent);
+  box-shadow: inset 0 0 28px rgba(56, 211, 196, 0.22);
+}
+
+.atlas-sweepmark-exceptional {
+  color: var(--atlas-accent);
+  box-shadow: inset 0 0 32px rgba(56, 211, 196, 0.3);
+}
+
+.atlas-sweepmark-strong {
+  color: var(--atlas-accent-strong);
+  box-shadow: inset 0 0 24px rgba(88, 166, 255, 0.22);
+}
+
+.atlas-sweepmark-relevant {
+  color: var(--atlas-violet);
+  box-shadow: inset 0 0 22px rgba(155, 140, 242, 0.18);
+}
+
+.atlas-sweepmark-emerging {
+  color: var(--atlas-violet-deep);
+  box-shadow: inset 0 0 18px rgba(124, 106, 232, 0.14);
+}
+
+.atlas-sweepmark-unscored {
+  color: var(--atlas-muted);
+  box-shadow: inset 0 0 16px rgba(148, 163, 184, 0.12);
+}
+
+.atlas-sweepmark.is-selected {
+  box-shadow: inset 0 0 36px rgba(56, 211, 196, 0.4), 0 0 0 2px rgba(56, 211, 196, 0.35);
+}
+
+/* ATLAS Logo System Prohibited Modifications: no outline/glow on the
+   primary logo. The brand tier is the only RadarSweepMark usage that
+   renders the actual ATLAS identity mark, so it opts out of the glow
+   filters every other (product/workspace) tier uses. */
+.atlas-sweepmark-brand .atlas-sweepmark-ray,
+.atlas-sweepmark-brand .atlas-sweepmark-hub,
+.atlas-sweepmark-brand .atlas-sweepmark-blip {
+  filter: none;
+}

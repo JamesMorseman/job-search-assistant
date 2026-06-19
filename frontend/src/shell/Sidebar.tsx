@@ -41,9 +41,9 @@ export default function Sidebar() {
   return (
     <aside className="atlas-sidebar" aria-label="ATLAS navigation">
       <div className="atlas-brand">
-        <span className="atlas-mark" aria-hidden="true">
+        <div className="atlas-mark" aria-hidden="true">
           <AtlasMark className="atlas-mark-svg" />
-        </span>
+        </div>
         <div className="atlas-brand-lockup">
           <p className="atlas-brand-wordmark">
             ATLAS<span className="atlas-brand-wordmark-accent">.</span>

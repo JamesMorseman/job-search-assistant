@@ -10,6 +10,7 @@ import {
 } from "../api/state";
 import type { AtlasOpportunitySummary } from "../api/types";
 import { useContextPanel } from "../shell/ContextPanelContext";
+import RadarSweepMark from "../shell/RadarSweepMark";
 import WorkspaceHeader from "../shell/WorkspaceHeader";
 import SignalCard from "./SignalCard";
 import "./radar.css";
@@ -32,20 +33,26 @@ function signalLabel(score: number | null): string {
   return "Emerging Signal";
 }
 
-function signalTierClass(score: number | null): string {
+type SignalTier = "exceptional" | "strong" | "relevant" | "emerging" | "unscored";
+
+function signalTier(score: number | null): SignalTier {
   if (score === null) {
-    return "atlas-signal-tier-unscored";
+    return "unscored";
   }
   if (score >= 0.85) {
-    return "atlas-signal-tier-exceptional";
+    return "exceptional";
   }
   if (score >= 0.7) {
-    return "atlas-signal-tier-strong";
+    return "strong";
   }
   if (score >= 0.5) {
-    return "atlas-signal-tier-relevant";
+    return "relevant";
   }
-  return "atlas-signal-tier-emerging";
+  return "emerging";
+}
+
+function signalTierClass(score: number | null): string {
+  return `atlas-signal-tier-${signalTier(score)}`;
 }
 
 function formatLocation(opportunity: AtlasOpportunitySummary): string {
@@ -272,15 +279,13 @@ export default function Radar() {
         titleId="radar-title"
         subtitle="Atlas continuously scans configured sources and surfaces detected opportunity signals here, ranked by strength."
         visual={
-          <div className="atlas-radar-scope" aria-hidden="true">
-            <span className="atlas-radar-ring atlas-radar-ring-outer" />
-            <span className="atlas-radar-ring atlas-radar-ring-mid" />
-            <span className="atlas-radar-ring atlas-radar-ring-inner" />
-            <span className="atlas-radar-crosshair" />
-            <span className="atlas-radar-sweep" />
-            <span className="atlas-radar-dot atlas-radar-dot-a" />
-            <span className="atlas-radar-dot atlas-radar-dot-b" />
-            <span className="atlas-radar-dot atlas-radar-dot-c" />
+          <div aria-hidden="true">
+            <RadarSweepMark
+              tier="header"
+              motion="periodic"
+              className="atlas-radar-scope"
+              sweepClassName="atlas-radar-sweep"
+            />
           </div>
         }
       />
@@ -355,24 +360,39 @@ export default function Radar() {
           </p>
           <ul className="atlas-radar-statuschips" role="list">
             <li className="atlas-radar-statuschip">
-              <span className="atlas-radar-statuschip-value">{newTodayCount}</span>
-              <span className="atlas-radar-statuschip-label">New Today</span>
+              <span className="atlas-radar-statuschip-dot" aria-hidden="true" />
+              <span className="atlas-radar-statuschip-text">
+                <span className="atlas-radar-statuschip-value">{newTodayCount}</span>
+                <span className="atlas-radar-statuschip-label">New Today</span>
+              </span>
             </li>
             <li className="atlas-radar-statuschip">
-              <span className="atlas-radar-statuschip-value">{trendingCount}</span>
-              <span className="atlas-radar-statuschip-label">Trending</span>
+              <span className="atlas-radar-statuschip-dot" aria-hidden="true" />
+              <span className="atlas-radar-statuschip-text">
+                <span className="atlas-radar-statuschip-value">{trendingCount}</span>
+                <span className="atlas-radar-statuschip-label">Trending</span>
+              </span>
             </li>
             <li className="atlas-radar-statuschip atlas-radar-statuschip-strong">
-              <span className="atlas-radar-statuschip-value">{strongSignalCount}</span>
-              <span className="atlas-radar-statuschip-label">Strong Signals</span>
+              <span className="atlas-radar-statuschip-dot" aria-hidden="true" />
+              <span className="atlas-radar-statuschip-text">
+                <span className="atlas-radar-statuschip-value">{strongSignalCount}</span>
+                <span className="atlas-radar-statuschip-label">Strong Signals</span>
+              </span>
             </li>
             <li className="atlas-radar-statuschip">
-              <span className="atlas-radar-statuschip-value">{savedIds.size}</span>
-              <span className="atlas-radar-statuschip-label">Watchlist</span>
+              <span className="atlas-radar-statuschip-dot" aria-hidden="true" />
+              <span className="atlas-radar-statuschip-text">
+                <span className="atlas-radar-statuschip-value">{savedIds.size}</span>
+                <span className="atlas-radar-statuschip-label">Watchlist</span>
+              </span>
             </li>
             <li className="atlas-radar-statuschip">
-              <span className="atlas-radar-statuschip-value">{sources.length}</span>
-              <span className="atlas-radar-statuschip-label">Signal Map</span>
+              <span className="atlas-radar-statuschip-dot" aria-hidden="true" />
+              <span className="atlas-radar-statuschip-text">
+                <span className="atlas-radar-statuschip-value">{sources.length}</span>
+                <span className="atlas-radar-statuschip-label">Signal Map</span>
+              </span>
             </li>
           </ul>
         </div>
@@ -416,6 +436,7 @@ export default function Radar() {
                 stage={opportunity.stage}
                 signalLabel={signalLabel(opportunity.match_score)}
                 tierClass={signalTierClass(opportunity.match_score)}
+                tier={signalTier(opportunity.match_score)}
                 summary={signalSummary(opportunity)}
                 detectedLabel={formatTiming(opportunity)}
                 source={opportunity.source}

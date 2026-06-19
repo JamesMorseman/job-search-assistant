@@ -47,47 +47,10 @@
   height: 100%;
 }
 
-/* P7P5G: only the sweep wedge group rotates - rings, crosshair, center
-   hub, and blips are siblings outside this group and stay fixed. Pivot
-   is the dial's exact center (32px 32px in the 64x64 viewBox). */
-.atlas-mark-sweep-group {
-  animation: atlas-mark-sweep-rotate 8s linear infinite;
-  transform-origin: 32px 32px;
-}
-
-.atlas-mark-blip-dot {
-  animation: atlas-mark-blip-pulse 2.4s ease-in-out infinite;
-  transform-origin: 31px 13.5px;
-}
-
-@keyframes atlas-mark-sweep-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes atlas-mark-blip-pulse {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .atlas-mark-sweep-group {
-    animation: none;
-  }
-
-  .atlas-mark-blip-dot {
-    animation: none;
-  }
-}
+/* P7P5H: the brand mark now renders through the canonical
+   RadarSweepMark primitive (shell/RadarSweepMark.tsx +
+   radarSweepMark.css) with motion="static", so AtlasMark no longer
+   needs its own sweep/blip animation rules here. */
 
 .atlas-brand-lockup {
   min-width: 0;
