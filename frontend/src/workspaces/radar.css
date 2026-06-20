@@ -3,6 +3,16 @@
   gap: 22px;
 }
 
+/* P7P5J: pin the shared WorkspaceHeader's rendered height to the
+   Workspace_Machine_Build_Spec.md S6.1 115-140px atmospheric band when
+   used inside Radar specifically. Scoped to .atlas-radar so Ask Atlas
+   and Opportunity Detail (which also render WorkspaceHeader) are not
+   affected - this is a Radar-local override, not a shared-shell rule
+   change. */
+.atlas-radar .atlas-workspace-header {
+  min-height: 126px;
+}
+
 /* P7P5H: the header instrument now renders through the canonical
    RadarSweepMark primitive (shell/RadarSweepMark.tsx + radarSweepMark.css)
    instead of bespoke ring/sweep/dot markup, so this rule only sizes the
@@ -13,13 +23,17 @@
   height: 144px;
 }
 
-/* P7P5G: corrected Radar reference layout skeleton - a full filter row
-   (role/type, location, signal strength, sources, search) above a signal
-   summary/status strip, replacing the prior two-control header slot. */
+/* P7P5G/P7P5J: corrected Radar reference layout skeleton - a full filter
+   row (role/type, location, signal strength, sources, search) above a
+   signal summary/status strip, replacing the prior two-control header
+   slot. P7P5J pins the row to the Workspace_Machine_Build_Spec.md S6.2
+   44-52px band (previously height was implicit/padding-only). */
 .atlas-radar-filterbar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
+  min-height: 48px;
 }
 
 .atlas-radar-search,
@@ -40,17 +54,22 @@
   color: var(--atlas-muted);
 }
 
-/* P7P5H: the strip carries real operational-summary value (counts that
-   change Radar's read at a glance), so each chip is sized to read at a
-   distance instead of as microtext - larger value digits, a labeled dot
-   per chip for consistent status grammar, and enough vertical padding
-   that the band feels like an instrument readout, not a caption line. */
+/* P7P5H/P7P5J: the strip carries real operational-summary value (counts
+   that change Radar's read at a glance), so each chip is sized to read
+   at a distance instead of as microtext - larger value digits, a
+   labeled dot per chip for consistent status grammar, and enough
+   vertical padding that the band feels like an instrument readout, not
+   a caption line. P7P5J pins an explicit min-height (Workspace_Machine_
+   Build_Spec.md S6.3, 56-72px) - previously the strip only carried
+   padding with no enforced height, so it could render thinner than the
+   instrument-band silhouette the reference requires (ledger R4/P1-3). */
 .atlas-radar-statusstrip {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  min-height: 64px;
   padding: 20px 24px;
   border: 1px solid var(--atlas-line-soft);
   border-radius: var(--atlas-radius-lg);
@@ -140,22 +159,33 @@
   font-size: 13px;
 }
 
-/* P7P5G: corrected reference layout is a 3x2 opportunity grid, not a
-   hero card + compact-row pattern. Cards expand evenly to fill the main
-   canvas width at desktop viewports and drop to fewer columns rather
-   than clipping on narrower ones. */
+/* P7P5J: corrected reference layout is a 3x2 opportunity grid of TALL
+   tiles, not a hero card + compact-row pattern. Radar_Workspace_Machine_
+   Build_Spec.md S7 sets a hard 390px card-width anatomy floor and
+   forbids preserving 3 columns by collapsing below it (ledger R5/P0-1) -
+   raised from the prior 330px floor, which let cards shrink below the
+   anatomy floor while still claiming 3 columns. Cards stretch to fill
+   row height (align-items: stretch) so rows fill via card min-height
+   before any bottom dead space appears (Workspace spec S4/S8). */
 .atlas-radar-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(330px, 1fr));
+  grid-template-columns: repeat(3, minmax(390px, 1fr));
   gap: 18px;
   margin: 0;
   padding: 0;
   list-style: none;
+  align-items: stretch;
 }
 
-@media (max-width: 1280px) {
+/* P7P5J: 2-column fallback once the sidebar (~288px) + widened right
+   rail (~360px, shell.css) no longer leave room for three 390px-floor
+   columns at common desktop/laptop widths. This breakpoint is an
+   implementation estimate (sidebar + rail + 3x390px cards + 2x18px gap
+   requires roughly 2030px+ of viewport), not a literal spec px value -
+   the spec states the column-floor RULE, not an exact breakpoint. */
+@media (max-width: 1400px) {
   .atlas-radar-grid {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, minmax(360px, 1fr));
   }
 }
 

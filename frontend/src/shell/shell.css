@@ -1,6 +1,14 @@
 .atlas-shell {
   display: grid;
-  grid-template-columns: minmax(248px, 288px) minmax(0, 1fr) minmax(260px, 320px);
+  /* P7P5J: right rail widened from minmax(260px,320px) to the
+     Radar_Workspace_Machine_Build_Spec.md clamp(300px,18vw,360px) so the
+     Opportunity Context rail reads as a substantial intelligence panel
+     (Sara 3.1 / ledger R11 / Workspace spec S9), not a narrow utility
+     mini-rail. Applies shell-wide (every workspace), not Radar-only,
+     since the rail column lives in the shared shell grid - reported per
+     P7P5J Implementation Scope J (shared shell changes allowed when
+     required for Radar, must be reported). */
+  grid-template-columns: minmax(248px, 288px) minmax(0, 1fr) clamp(300px, 18vw, 360px);
   min-height: 100vh;
   background:
     radial-gradient(circle at 14% 0%, rgba(56, 211, 196, 0.14), transparent 42%),

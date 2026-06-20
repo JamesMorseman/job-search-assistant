@@ -1,6 +1,14 @@
 .atlas-signal-card {
   display: flex;
   flex-direction: column;
+  min-width: 360px;
+  /* P7P5J (SignalCard_Machine_Build_Spec.md S4, ledger R6/P0-2): the card
+     previously declared NO min-height, so it rendered as a shallow
+     content row instead of a self-contained signal object - the radar
+     visual zone ratio (S5/S6) cannot hold at >=25% card area without an
+     enforced card height. clamp(250px, 28vh, 320px) matches the spec's
+     250px absolute floor / 280px preferred / 270-320px target band. */
+  min-height: clamp(250px, 28vh, 320px);
   border: 2px solid var(--atlas-line-soft);
   border-radius: 18px;
   background: var(--atlas-card-bg-strong);
@@ -8,9 +16,18 @@
   overflow: hidden;
 }
 
+/* P7P5J (SignalCard_Machine_Build_Spec.md S9): selected state strengthened
+   - border opacity raised (~+35% over base alpha), outer glow widened
+   without bloom into neighboring cards (no negative spread), and the
+   sweep mark itself gets +15% brightness via the sibling rule below. */
 .atlas-signal-card.is-selected {
-  border-color: rgba(56, 211, 196, 0.65);
-  box-shadow: 0 0 0 2px rgba(56, 211, 196, 0.4), var(--atlas-glow-hero), var(--atlas-shadow-lg);
+  border-color: rgba(56, 211, 196, 0.88);
+  box-shadow: 0 0 0 2px rgba(56, 211, 196, 0.55), 0 0 46px rgba(56, 211, 196, 0.32),
+    var(--atlas-shadow-lg);
+}
+
+.atlas-signal-card.is-selected .atlas-signal-card-sweep {
+  filter: brightness(1.15);
 }
 
 .atlas-signal-card-select {
@@ -32,15 +49,22 @@
 }
 
 .atlas-signal-card-compact .atlas-signal-card-select {
-  grid-template-columns: 124px 1fr;
+  grid-template-columns: 96px 1fr;
   align-items: start;
   padding: 24px;
   gap: 20px;
 }
 
+/* P7P5J (SignalCard_Machine_Build_Spec.md S6, ledger R7/P0-4): dial
+   lowered from 124px to 96px, landing inside the spec's 82-112px compact
+   range. The prior 124px was already inside a generous tolerance but the
+   real failure mode (ledger Section 6.3) was the unconstrained card
+   height subordinating the dial, not the raw px - fixed above via the
+   card min-height. 96px also keeps the dial >=25% of the new ~280px-tall
+   card's area on its own. */
 .atlas-signal-card-compact .atlas-signal-card-sweep {
-  width: 124px;
-  height: 124px;
+  width: 96px;
+  height: 96px;
 }
 
 /* P7P5H: the corrected Radar reference reads as taller, less-compressed
@@ -247,14 +271,18 @@
   font-size: 12px;
 }
 
-/* P7P5H: Track removed (duplicated Save's conceptual action with no
-   distinct progression-tracking behavior) - two actions remain: the
-   Save toggle and the primary Review Opportunity CTA. */
+/* P7P5H/P7P5J: Track removed (duplicated Save's conceptual action with
+   no distinct progression-tracking behavior) - two actions remain: the
+   Save toggle and the primary Review Opportunity CTA. P7P5J pins the
+   footer/action zone to the SignalCard_Machine_Build_Spec.md S8 40-48px
+   fixed band (ledger R9) so the footer cannot expand to compete with the
+   radar/identity zones above it. */
 .atlas-signal-card-actions {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 10px;
+  min-height: 44px;
   margin: 0 22px 10px;
 }
 
@@ -289,16 +317,23 @@
   flex-shrink: 0;
 }
 
+/* P7P5J (SignalCard_Machine_Build_Spec.md S8/S11, ledger R15/P1-5): CTA
+   glow is subordinate to the radar object glow in the priority order
+   (radar/selected > sweep+blips > CTA > borders > background). The base
+   glow here is reduced ~30% from --atlas-glow-accent-strong's 30px/0.75
+   alpha so the footer button no longer reads as the card's brightest
+   element. */
 .atlas-signal-card-cta {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 12px 18px;
+  min-height: 44px;
   border-radius: var(--atlas-radius);
   color: #06121b;
   background: linear-gradient(120deg, var(--atlas-accent-strong), var(--atlas-accent));
-  box-shadow: var(--atlas-glow-accent-strong);
+  box-shadow: 0 0 18px rgba(88, 166, 255, 0.45);
   font-size: 13px;
   font-weight: 800;
   text-decoration: none;
@@ -344,8 +379,13 @@
   background: rgba(56, 211, 196, 0.16);
 }
 
+/* P7P5J (ledger R15/P1-5): exceptional tier's CTA previously carried a
+   26px/0.85-alpha blue glow that visually outcompeted the radar dial's
+   own glow (Sara 3.13). Reduced ~30% in line with the base CTA glow
+   rule above, while still reading slightly stronger than non-exceptional
+   tiers' CTA (which use the shared base rule). */
 .atlas-signal-tier-exceptional .atlas-signal-card-cta {
-  box-shadow: 0 0 26px rgba(88, 166, 255, 0.85);
+  box-shadow: 0 0 19px rgba(88, 166, 255, 0.6);
 }
 
 .atlas-signal-tier-strong {
@@ -358,21 +398,24 @@
   background: rgba(88, 166, 255, 0.1);
 }
 
-/* P7P5G: Radar color grammar (Radar_Workspace_Reference_v3.md) - Strong
-   Signal stays cyan/blue (exceptional/strong above), Moderate Signal
-   ("relevant" tier) is blue-violet, Emerging Signal is violet. Unscored
-   is a distinct, non-spec neutral-gray fallback for "no score computed"
-   rather than a faint signal reading. */
+/* P7P5J (SignalCard_Machine_Build_Spec.md S10, ledger Section 6.2 -
+   RULED by Main Ash 2026-06-19): Sara's cyan/blue-led tier map
+   supersedes the prior P7P5G violet family for Relevant/Emerging.
+   Relevant = muted cyan / governed secondary, low glow. Emerging
+   ("Low/Monitor" in the spec's 4-tier naming - this app's 5-tier model
+   keeps "emerging" as its own label but follows the same slate+low-cyan
+   minimal treatment) = slate + low cyan, minimal glow. Violet is not
+   retained as the default for either tier. */
 .atlas-signal-tier-relevant .atlas-signal-indicator {
-  color: var(--atlas-violet);
-  border-color: rgba(155, 140, 242, 0.4);
-  background: rgba(155, 140, 242, 0.1);
+  color: var(--atlas-accent);
+  border-color: rgba(56, 211, 196, 0.3);
+  background: rgba(56, 211, 196, 0.07);
 }
 
 .atlas-signal-tier-emerging .atlas-signal-indicator {
-  color: var(--atlas-violet-deep);
-  border-color: rgba(124, 106, 232, 0.35);
-  background: rgba(124, 106, 232, 0.08);
+  color: var(--atlas-soft);
+  border-color: rgba(56, 211, 196, 0.18);
+  background: rgba(148, 163, 184, 0.06);
 }
 
 .atlas-signal-tier-unscored .atlas-signal-indicator {

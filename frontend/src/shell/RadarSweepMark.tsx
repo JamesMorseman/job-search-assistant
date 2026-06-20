@@ -33,7 +33,15 @@ export type RadarSweepTier =
   | "emerging"
   | "unscored";
 
-export type RadarSweepMotion = "static" | "periodic";
+/**
+ * P7P5J (RadarSweep_Motion_Spec.md S2/S4): "periodic" (20s mostly-static
+ * hold) is the REJECTED P7P5H motion model, kept only as a type/keyframe
+ * for any future non-Radar surface that might still need a brief refresh
+ * sweep. Radar workspace SignalCards use "continuous" - an uninterrupted
+ * 7.5s linear revolution with a deterministic per-card phase offset, the
+ * Option C model Sara/Main Ash chose to replace the rejected hold.
+ */
+export type RadarSweepMotion = "static" | "periodic" | "continuous";
 
 export type RadarSweepMarkProps = {
   tier?: RadarSweepTier;
@@ -41,8 +49,16 @@ export type RadarSweepMarkProps = {
   /** Per-instance seed (e.g. job_id) so repeated marks do not share an
    * identical sweep phase or blip placement (Radar Variation Standard,
    * Radar_Workspace_Reference_v3.md). Omit for a fixed default mark
-   * (brand logo, workspace header scope). */
+   * (brand logo, workspace header scope). Still used for blip placement
+   * under "continuous" motion; the sweep phase itself uses phaseIndex
+   * instead (RadarSweep_Motion_Spec.md S6 requires phase to be
+   * deterministic by card index, not by seed hash). */
   seed?: string | number;
+  /** Deterministic card position (0-5, wraps via % 6) used only by
+   * motion="continuous" to select one of the six fixed phase offsets
+   * (RadarSweep_Motion_Spec.md S6: 0/57/114/171/228/285deg). Omit for
+   * non-Radar-grid usage (header scope, brand mark). */
+  phaseIndex?: number;
   selected?: boolean;
   className?: string;
   /** Extra class applied to the rotating sweep group, kept for source-
@@ -53,6 +69,14 @@ export type RadarSweepMarkProps = {
 const CENTER = 50;
 const SWEEP_WIDTH_DEG = 36;
 const REST_ANGLE_DEG = 35; // resting leading-edge direction, ~1 o'clock
+
+/* P7P5J (RadarSweep_Motion_Spec.md S6): deterministic phase offsets for
+ * six Radar grid cards, by cardIndex % 6 - both as angles (used for the
+ * reduced-motion/static freeze) and as negative animation-delays at
+ * 7.5s/360deg = 0.0208333s per degree (used to desynchronize the
+ * running animation so cards do not appear to sweep in lockstep). */
+const CONTINUOUS_PHASE_ANGLES_DEG = [0, 57, 114, 171, 228, 285];
+const CONTINUOUS_PHASE_DELAYS_S = [0, -1.1875, -2.375, -3.5625, -4.75, -5.9375];
 const BAND_COUNT = 6;
 const BAND_OPACITIES = [0.05, 0.11, 0.2, 0.34, 0.56, 0.95];
 
@@ -106,12 +130,16 @@ export default function RadarSweepMark({
   tier = "header",
   motion = "periodic",
   seed,
+  phaseIndex,
   selected = false,
   className,
   sweepClassName,
 }: RadarSweepMarkProps) {
   const gradientId = useId();
   const phase = useMemo(() => phaseFrom(seed), [seed]);
+  const continuousSlot = ((phaseIndex ?? 0) % 6 + 6) % 6;
+  const continuousAngleDeg = CONTINUOUS_PHASE_ANGLES_DEG[continuousSlot];
+  const continuousDelayS = CONTINUOUS_PHASE_DELAYS_S[continuousSlot];
 
   const bands = useMemo(() => {
     const step = SWEEP_WIDTH_DEG / BAND_COUNT;
@@ -126,10 +154,27 @@ export default function RadarSweepMark({
   const [blip1X, blip1Y] = toPoint(phase.blip1.angle, phase.blip1.radius);
   const [blip2X, blip2Y] = toPoint(phase.blip2.angle, phase.blip2.radius);
 
-  const rotorStyle =
-    motion === "periodic"
-      ? ({ "--atlas-sweep-rest": `${REST_ANGLE_DEG}deg`, "--atlas-sweep-delay": `${phase.delay}s` } as CSSProperties)
-      : ({ "--atlas-sweep-rest": `${REST_ANGLE_DEG}deg` } as CSSProperties);
+  // P7P5J: "continuous" exposes both the negative animation-delay (so the
+  // running 7.5s linear keyframe is desynchronized per card,
+  // RadarSweep_Motion_Spec.md S6) and the same slot's fixed angle as
+  // --atlas-sweep-phase-deg, which the reduced-motion media rule in
+  // radarSweepMark.css uses to freeze the rotor at its deterministic
+  // phase instead of every card resting at one shared angle (S8/S9).
+  let rotorStyle: CSSProperties;
+  if (motion === "continuous") {
+    rotorStyle = {
+      "--atlas-sweep-rest": `${REST_ANGLE_DEG}deg`,
+      "--atlas-sweep-continuous-delay": `${continuousDelayS}s`,
+      "--atlas-sweep-phase-deg": `${continuousAngleDeg}deg`,
+    } as CSSProperties;
+  } else if (motion === "periodic") {
+    rotorStyle = {
+      "--atlas-sweep-rest": `${REST_ANGLE_DEG}deg`,
+      "--atlas-sweep-delay": `${phase.delay}s`,
+    } as CSSProperties;
+  } else {
+    rotorStyle = { "--atlas-sweep-rest": `${REST_ANGLE_DEG}deg` } as CSSProperties;
+  }
 
   return (
     <div

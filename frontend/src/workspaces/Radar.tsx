@@ -425,7 +425,7 @@ export default function Radar() {
 
       {state.status === "success" && rankedFiltered.length > 0 && (
         <div className="atlas-radar-grid" role="list">
-          {rankedFiltered.map((opportunity) => (
+          {rankedFiltered.map((opportunity, index) => (
             <div key={opportunity.job_id} role="listitem">
               <SignalCard
                 jobId={opportunity.job_id}
@@ -445,6 +445,7 @@ export default function Radar() {
                 onToggleSave={() => toggleSave(opportunity.job_id)}
                 size="compact"
                 onSelect={() => handleSelect(opportunity)}
+                phaseIndex={index % 6}
               />
             </div>
           ))}

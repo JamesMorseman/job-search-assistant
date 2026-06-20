@@ -40,7 +40,12 @@
    20s cycle (~1.6s of visible motion) - "Active Monitoring Sweep" in the
    ATLAS Motion Specification: subtle, periodic refresh only, not a
    continuously spinning dial. Because the keyframe ends a full 360deg
-   past the resting angle, the loop restarts visually seamlessly. */
+   past the resting angle, the loop restarts visually seamlessly.
+   RETAINED ONLY as a non-Radar fallback primitive; P7P5J replaces this
+   model for Radar workspace SignalCards with the continuous mode below
+   (RadarSweep_Motion_Spec.md S4: Option B/periodic-hold is the REJECTED
+   model - "feels asleep"). No Radar surface should select motion=
+   "periodic" after this package. */
 @keyframes atlas-sweepmark-periodic {
   0%,
   92% {
@@ -51,9 +56,47 @@
   }
 }
 
+/* P7P5J (RadarSweep_Motion_Spec.md S5/S6/S7): the accepted Radar-only
+   continuous-motion exception. Uninterrupted 7.5s linear revolution -
+   constant angular velocity, no ease, no static hold - desynchronized
+   per card via a negative animation-delay so the six-card grid always
+   shows six different ray angles at any instant (S12 storyboard). This
+   is a SCOPED exception to the ATLAS Motion & Interaction Specification
+   (which otherwise forbids continuous decorative looping); it applies
+   only to .atlas-sweepmark-rotor instances explicitly given
+   data-motion="continuous" (i.e. Radar grid SignalCard dials), never to
+   the AtlasMark brand mark or any other workspace. */
+.atlas-sweepmark-rotor[data-motion="continuous"] {
+  animation: atlas-sweepmark-continuous 7.5s linear infinite;
+  animation-delay: var(--atlas-sweep-continuous-delay, 0s);
+}
+
+@keyframes atlas-sweepmark-continuous {
+  from {
+    transform: rotate(var(--atlas-sweep-rest, 35deg));
+  }
+  to {
+    transform: rotate(calc(var(--atlas-sweep-rest, 35deg) + 360deg));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .atlas-sweepmark-rotor[data-motion="periodic"] {
     animation: none;
+  }
+
+  /* P7P5J (RadarSweep_Motion_Spec.md S8): reduced-motion disables the
+     continuous animation and rests the rotor at its OWN deterministic
+     phase offset (--atlas-sweep-phase-deg, one of 0/57/114/171/228/285deg
+     per card slot) rather than a single shared resting angle, so the
+     frozen field still reads as differentiated/live rather than six
+     identical static dials. This same frozen state is also the
+     documented screenshot/static capture path (S9) - no separate static-
+     mode flag exists; capture evidence with prefers-reduced-motion
+     enabled to get the deterministic per-card freeze. */
+  .atlas-sweepmark-rotor[data-motion="continuous"] {
+    animation: none;
+    transform: rotate(var(--atlas-sweep-phase-deg, 0deg));
   }
 }
 
@@ -96,14 +139,20 @@
   box-shadow: inset 0 0 24px rgba(88, 166, 255, 0.22);
 }
 
+/* P7P5J (RadarSweep_Motion_Spec.md tier color rule / SignalCard spec S10,
+   ledger Section 6.2 - RULED by Main Ash 2026-06-19): cyan/blue-led tier
+   map supersedes the prior violet family for relevant/emerging. Relevant
+   = muted cyan / governed secondary, low glow. Emerging = slate + low
+   cyan, minimal glow. Color only - geometry is untouched, per the
+   canonical-primitive rule (RadarSweep_Motion_Spec.md S10). */
 .atlas-sweepmark-relevant {
-  color: var(--atlas-violet);
-  box-shadow: inset 0 0 22px rgba(155, 140, 242, 0.18);
+  color: var(--atlas-accent);
+  box-shadow: inset 0 0 18px rgba(56, 211, 196, 0.16);
 }
 
 .atlas-sweepmark-emerging {
-  color: var(--atlas-violet-deep);
-  box-shadow: inset 0 0 18px rgba(124, 106, 232, 0.14);
+  color: var(--atlas-muted);
+  box-shadow: inset 0 0 14px rgba(148, 163, 184, 0.12);
 }
 
 .atlas-sweepmark-unscored {

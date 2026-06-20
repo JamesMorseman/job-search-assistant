@@ -23,6 +23,12 @@ export type SignalCardProps = {
   isSaved?: boolean;
   onToggleSave?: () => void;
   onSelect: () => void;
+  /** P7P5J: this card's position in the Radar grid (0-5, wraps via % 6),
+   * forwarded to RadarSweepMark so its continuous sweep uses a
+   * deterministic per-card phase offset (RadarSweep_Motion_Spec.md S6)
+   * instead of every dial sweeping in lockstep. Omit to fall back to the
+   * primitive's own default slot. */
+  phaseIndex?: number;
 };
 
 function LocationGlyph() {
@@ -123,6 +129,7 @@ export default function SignalCard({
   isSaved = false,
   onToggleSave,
   onSelect,
+  phaseIndex,
 }: SignalCardProps) {
   return (
     <article
@@ -144,7 +151,13 @@ export default function SignalCard({
         }}
       >
         <div className="atlas-signal-card-sweep" aria-hidden="true">
-          <RadarSweepMark tier={tier} motion="periodic" seed={jobId} selected={isSelected} />
+          <RadarSweepMark
+            tier={tier}
+            motion="continuous"
+            seed={jobId}
+            phaseIndex={phaseIndex}
+            selected={isSelected}
+          />
         </div>
 
         <div className="atlas-signal-card-body">
