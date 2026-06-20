@@ -103,13 +103,14 @@ CTA glow: LOWER priority than radar object glow (Sara 3.13) — reduce CTA glow
           25-40% if it competes with the dial.
 ```
 
-### Track action (UNRESOLVED — see ledger Section 6)
+### Track action (RULED by Main Ash 2026-06-19 — see ledger Section 6)
 ```text
 The hero reference REF-CARD-A shows THREE actions: Save / Review Opportunity / Track.
 The Sara audit + governing rule say "Track is forbidden unless distinct from Save."
 P7P5H code removed Track.
-DEFAULT FOR P7P5J: keep Track REMOVED unless Main Ash/Sara rule that the reference's
-Track is a distinct progression action. Do not silently re-add it.
+RULING FOR P7P5J: keep Track REMOVED. The reference image showing Track does not
+override Sara's semantic blocker. Do not re-add it unless Donut/Main Ash later
+defines a distinct tracking workflow that justifies a separate action from Save.
 ```
 
 ## 9. Selected state rules (R10)
@@ -133,9 +134,10 @@ right rail selected title MUST equal this card's title exactly
 
 ```text
 RULE: no ad hoc per-card colors.
-NOTE: current code uses a violet family for relevant/emerging tiers. P7P5J must
-reconcile against this map (default: follow this map unless a violet tier token is
-governance-approved). See ledger Section 6.2.
+RULED by Main Ash 2026-06-19: current code's violet family for relevant/emerging
+tiers is superseded. P7P5J follows this cyan/blue-led map; violet is not retained
+as default unless a specific stage/status semantic requires a distinct token. See
+ledger Section 6.2.
 ```
 
 ## 11. CTA hierarchy
@@ -154,7 +156,7 @@ do not let the footer bar carry the card's visual weight.
 
 ```text
 Save:  toggle, becomes "Saved" when active (is-active state)
-Track: FORBIDDEN unless distinct from Save (see Section 8 unresolved item)
+Track: FORBIDDEN unless distinct from Save — RULED removed, see Section 8
 no second weak duplicate link (e.g. prior "Open Opportunity Detail" — already removed)
 ```
 
@@ -179,4 +181,4 @@ no second weak duplicate link (e.g. prior "Open Opportunity Detail" — already 
 | radar zone ratio | >=25% area | subordinated by shallow card | P0 |
 | tier colors | cyan/blue-led | violet-led drift | P1 |
 | CTA glow | subordinate | competes (exceptional CTA 26px glow) | P1 |
-| Track | shown in ref / removed in code | removed | unresolved |
+| Track | shown in ref / removed in code | removed | ruled — stays removed |

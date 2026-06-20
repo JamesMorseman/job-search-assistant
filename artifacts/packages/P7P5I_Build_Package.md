@@ -118,8 +118,8 @@ before editing and output the seven pre-edit artifacts (Section 13).
 ```text
 - Stop if the agent cannot output the 7 pre-edit artifacts (Section 13).
 - Stop if implementing would require backend/API/schema/data/public/export changes.
-- Stop if the Track or tier-color ambiguities (ledger S6) are unresolved AND the
-  agent would otherwise make an irreversible product decision — escalate to Main Ash.
+- Track and tier-color (ledger S6) are RULED, not open: Track stays removed;
+  tiers follow Sara's cyan/blue-led map. Do not relitigate either in P7P5J.
 - Stop if a change would require committing reference images without Main Ash approval.
 ```
 
@@ -134,17 +134,19 @@ before editing and output the seven pre-edit artifacts (Section 13).
    screenshot mode.                                            DONE
 5. Specs avoid placeholders and generic language.              DONE
 6. A repo builder could implement from the docs without Sara reinterpreting "make it
-   more like the reference."                                   YES (conditional on
-   Main Ash ruling the two ambiguities in ledger S6).
+   more like the reference."                                   YES. Main Ash has
+   ruled both ledger S6 decisions (Track removed; cyan/blue tier map); no
+   outstanding product ambiguities block implementation.
 ```
 
 ## 11. Whether P7P5I is ready for Main Ash review
 
-YES. All five required artifacts exist with measurable targets. Two product
-ambiguities (Track action; tier color family) are surfaced for Main Ash/Sara ruling
-but do not block authoring or P7P5J planning. Recommended: Main Ash accept P7P5I, rule
-the two ambiguities, then authorize P7P5J. Recommended: Sara review P7P5I specs before
-P7P5J implementation begins.
+YES, and Main Ash has reviewed and ruled both Section 6 decisions (2026-06-19):
+Track stays removed (the reference image's Track does not override Sara's
+semantic blocker, absent a Donut-defined distinct tracking workflow); tiers
+follow Sara's cyan/blue-led map (violet is not retained as default for
+relevant/emerging tiers absent a specific stage/status semantic). Recommended:
+Sara review P7P5I specs before P7P5J implementation begins.
 
 ---
 
@@ -249,6 +251,6 @@ strip are recognizably the corrected Radar reference?
 
 Answer: YES — enough to attempt P7P5J. The composition is decomposed into measurable
 regions, every P0 maps to a px/ratio/timing correction, and the motion model is fully
-specified with a storyboard. Residual risk is confined to two product-decision
-ambiguities (Track action; tier color family) which are surfaced for Main Ash/Sara,
-not visual-language ambiguities.
+specified with a storyboard. The two product-decision points (Track action; tier
+color family) have been ruled by Main Ash (ledger S6, 2026-06-19) and no longer
+carry residual ambiguity.

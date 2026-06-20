@@ -285,21 +285,21 @@ measurable build constraint / P7P5J implication / severity.
 
 ---
 
-## 6. Unresolved reference ambiguities (for Main Ash / Sara)
+## 6. Reference ambiguities — RULED by Main Ash (2026-06-19)
 
-1. TRACK ACTION. The hero SignalCard reference (REF-CARD-A/B) clearly shows THREE
-   footer actions: `Save`, `Review Opportunity`, `Track`. The Sara P7P5H audit and
-   this package's default rule say "Track is forbidden unless distinct from Save,"
-   and P7P5H code removed Track. This is a direct conflict between the reference
-   image and the governing audit. DEFAULT FOR P7P5J: keep Track removed (follow the
-   audit) UNLESS Main Ash/Sara rule that the reference's Track is a distinct
-   progression action. Flagged, not silently resolved.
+1. TRACK ACTION — RULED: keep Track removed for P7P5J. The hero SignalCard
+   reference (REF-CARD-A/B) shows THREE footer actions (`Save`, `Review
+   Opportunity`, `Track`), conflicting with the Sara P7P5H audit's removal of
+   Track. Main Ash ruling: the reference image showing Track is not sufficient
+   to override Sara's semantic blocker. Track stays removed unless Donut/Main
+   Ash later defines a distinct tracking workflow that justifies reintroducing
+   it as a separate action from Save. Not an open ambiguity for P7P5J.
 
-2. TIER COLOR FAMILY. Current code uses a violet family for "relevant"/"emerging"
-   tiers (P7P5G "Radar color grammar"), while Sara's tier map is cyan/blue-led with
-   muted-cyan/slate for lower tiers and warns against ad hoc purple/amber. P7P5J
-   must reconcile. DEFAULT: follow Sara's tier map unless an explicit violet tier
-   token is governance-approved.
+2. TIER COLOR FAMILY — RULED: follow Sara's cyan/blue-led tier map for P7P5J.
+   Current code's violet family for "relevant"/"emerging" tiers (P7P5G "Radar
+   color grammar") is superseded. Violet must not remain the default for
+   relevant/emerging tiers unless a specific stage/status semantic (not yet
+   identified) requires a distinct token. Not an open ambiguity for P7P5J.
 
 3. CARD DIAL SIZE. Reference reads ~96–112px; current compact dial is declared
    124px. Within tolerance but P7P5J should re-measure against the live render; the
@@ -340,6 +340,6 @@ must re-measure the live build before editing.
 
 Conditional YES, pending Main Ash governance acceptance of P7P5I. The corrected
 Radar reference exists, is unambiguous in composition, and is decomposed into
-measurable regions. The Track and tier-color ambiguities (Section 6) should be ruled
-by Main Ash/Sara before or during P7P5J. The missing crops are helpful but not
-blocking because the specs encode ratios and px ranges directly.
+measurable regions. The Track and tier-color decisions (Section 6) have been
+ruled by Main Ash and are no longer open ambiguities. The missing crops are
+helpful but not blocking because the specs encode ratios and px ranges directly.
