@@ -1,13 +1,21 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# MASTER PROFILE TEMPLATE — James
+# MASTER PROFILE TEMPLATE
 #
 # THIS FILE IS A TEMPLATE. Do not edit in place — copy it first:
 #   cp profile/james_profile.example.yaml profile/james_profile.yaml
 # Then edit the copy. The real file is gitignored to keep PII out of the repo.
 #
+# Using a different filename? Set PROFILE_PATH and PROFILE_TEMPLATE_PATH in
+# .env to match (see job_search/config.py) — no source changes required.
+#
 # This file is the single source of truth for all resume and cover-letter
 # generation. Every claim in any generated document MUST trace to a field here.
 # Fill in ALL sections before running the pipeline for the first time.
+#
+# The discipline/software/experience content below is illustrative — it shows
+# the expected shape and level of detail for a civil-engineering candidate
+# profile. Replace it entirely with your own facts; nothing here needs to
+# match your background or field.
 # ─────────────────────────────────────────────────────────────────────────────
 
 identity:

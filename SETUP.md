@@ -23,19 +23,29 @@ cp .env.example .env
 
 | Key | Cost | Where to get it | What it powers |
 |---|---|---|---|
-| `USAJOBS_API_KEY` | Free | https://developer.usajobs.gov/apirequest/ (instant approval) | Federal civil engineering postings (Army Corps, Reclamation, FHWA, etc.) |
-| `USAJOBS_EMAIL` | — | Your email | USAJOBS requires it in the `User-Agent` header |
 | `OPENAI_API_KEY` | Pay-as-you-go | https://platform.openai.com/api-keys | Default OpenAI LLM provider for resume generation, cover letters, and fit grading |
 
-### Required for full pipeline
+The minimum to run `jsa ingest` and see results is one LLM key plus a filled-in
+profile YAML (`jsa preflight` will tell you exactly what's missing). Everything
+below is recommended, not required — `jsa preflight` reports each item's
+severity (`required` / `recommended` / `optional`) so you can see at a glance
+which sources and integrations are active for your configuration.
+
+### Recommended for broader source coverage
 
 | Key | Cost | Where to get it | What it powers |
 |---|---|---|---|
-| `ADZUNA_APP_ID` + `ADZUNA_API_KEY` | Free tier (1000 calls/mo) | https://developer.adzuna.com/ | Aggregator postings — broad civil coverage |
+| `USAJOBS_API_KEY` | Free | https://developer.usajobs.gov/apirequest/ (instant approval) | US federal postings (Army Corps, Reclamation, FHWA, etc.) — skip if you don't need federal sources |
+| `USAJOBS_EMAIL` | — | Your email | Required in the `User-Agent` header, only if `USAJOBS_API_KEY` is set |
+| `ADZUNA_APP_ID` + `ADZUNA_API_KEY` | Free tier (1000 calls/mo) | https://developer.adzuna.com/ | Aggregator postings — broad coverage across many disciplines |
 | `GOOGLE_CREDENTIALS_PATH` | Free | Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID → Desktop app | Sheets + Drive + Gmail OAuth |
 | `TRACKER_SHEET_ID` | Free | Create a blank Google Sheet, copy ID from URL (`/d/{ID}/edit`) | Application tracker mirror |
 | `DRIVE_ROOT_FOLDER_ID` | Free | Create a Drive folder, copy ID from URL | Per-application resume/cover snapshots |
-| `GMAIL_ALERT_LABEL` | — | Default `job-alerts`; create the label in Gmail and route LinkedIn/Indeed alerts to it | Email-alert ingestion |
+| `GMAIL_ALERT_LABEL` | — | Default `job-alerts`; create the label in Gmail and route job-alert emails to it | Email-alert ingestion |
+
+The Google integration (Sheets/Drive/Gmail) is the highest-friction setup
+step and is entirely optional — the core ingest/score/generate pipeline works
+without it. Skip section 3 below if you don't need a Sheets-based tracker.
 
 ### Optional now / important later
 
@@ -66,7 +76,15 @@ cp profile/james_profile.example.yaml profile/james_profile.yaml
 nano profile/james_profile.yaml
 ```
 
-Every `# FILL IN` must be resolved. Don't commit this file — `.gitignore` already protects it.
+The template filename above matches the current default `PROFILE_PATH` /
+`PROFILE_TEMPLATE_PATH` in `job_search/config.py`. If you'd rather use a
+non-personalized filename (e.g. `profile/profile.yaml`), copy the template to
+that name instead and set `PROFILE_PATH` / `PROFILE_TEMPLATE_PATH` in `.env`
+to match — no source changes required.
+
+Every `# FILL IN` must be resolved. Don't commit your real profile file —
+`.gitignore` already protects any `profile/*_profile.yaml` file other than
+the `.example` template.
 
 ## 5. Preflight check
 
@@ -74,7 +92,11 @@ Every `# FILL IN` must be resolved. Don't commit this file — `.gitignore` alre
 jsa preflight
 ```
 
-This validates every key is set and every required file exists. Green across the board = safe to run `jsa ingest`.
+This validates every key and file the pipeline needs, grouped by severity
+(`required` / `recommended` / `optional`), and tells you exactly what's
+missing and how to fix it. All `required` checks passing is the minimum bar
+for `jsa ingest`; `recommended` checks unlock additional sources and
+integrations but are not blocking.
 
 ## 6. Seed the employer registry
 
