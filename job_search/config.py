@@ -54,7 +54,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     DRY_RUN: bool = False
 
-    # Profile — real file is gitignored; copy from .example template
+    # Profile — real file is gitignored; copy from .example template.
+    # The filename below is this deployment's current default and is not
+    # load-bearing for other operators: override PROFILE_PATH /
+    # PROFILE_TEMPLATE_PATH in .env to point at your own profile file
+    # (e.g. profile/profile.yaml) instead of renaming files in place.
     PROFILE_PATH: str = "profile/james_profile.yaml"
     PROFILE_TEMPLATE_PATH: str = "profile/james_profile.example.yaml"
 

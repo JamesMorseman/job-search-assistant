@@ -42,8 +42,11 @@ def run_preflight() -> PreflightReport:
     report = PreflightReport()
 
     # ── API keys ──────────────────────────────────────────────────────────────
-    report.checks.append(_check_key("USAJOBS_API_KEY", "required", "Federal civil-eng postings; free instant approval"))
-    report.checks.append(_check_key("USAJOBS_EMAIL", "required", "Required in USAJOBS User-Agent header"))
+    # USAJOBS is recommended, not required: it only covers US federal postings,
+    # so operators targeting other sources (Adzuna, ATS adapters, email alerts)
+    # should not be blocked by its absence.
+    report.checks.append(_check_key("USAJOBS_API_KEY", "recommended", "US federal postings; free instant approval"))
+    report.checks.append(_check_key("USAJOBS_EMAIL", "recommended", "Required in USAJOBS User-Agent header if USAJOBS is used"))
     report.checks.extend(_llm_provider_checks())
     report.checks.append(_check_key("ADZUNA_APP_ID", "recommended", "Broad aggregator; free tier"))
     report.checks.append(_check_key("ADZUNA_API_KEY", "recommended", "Broad aggregator; free tier"))
@@ -71,12 +74,12 @@ def run_preflight() -> PreflightReport:
     profile_path = Path(settings.PROFILE_PATH)
     profile_exists = profile_path.exists()
     report.checks.append(Check(
-        name="profile/james_profile.yaml",
+        name="candidate profile",
         ok=profile_exists,
         detail=(
             f"{profile_path} present"
             if profile_exists
-            else f"Run: cp {settings.PROFILE_TEMPLATE_PATH} {profile_path}, then fill in"
+            else f"NOT FOUND — run: cp {settings.PROFILE_TEMPLATE_PATH} {profile_path}, then fill in"
         ),
         severity="required",
     ))

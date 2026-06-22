@@ -77,6 +77,7 @@ cp profile/james_profile.example.yaml profile/james_profile.yaml
 # 3. Initialize and inspect local configuration
 jsa init-db
 jsa check
+jsa preflight
 
 # 4. Run local workflows
 jsa ingest --dry-run
