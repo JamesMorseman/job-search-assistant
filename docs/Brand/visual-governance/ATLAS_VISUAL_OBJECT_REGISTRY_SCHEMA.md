@@ -170,3 +170,22 @@ signal_card
 
 These objects define the first registry foundation for the Radar surface and
 its two primary visual object families.
+
+## Panel/badge/control expansion object set
+
+A later, separate data-only package (W4-VISUAL-REGISTRY-EXPANSION-01) extends
+the registry foundation above with panel, badge, and control object families.
+These objects remain `candidate` status and stay data-only, with no render,
+CSS, layout, or motion runtime changes:
+
+```text
+panel_surface
+tier_badge
+status_badge
+action_button
+icon_button
+```
+
+These objects reuse the existing variant axis vocabulary and token namespace
+established by the first E3 object set. No new axis values, raw literals, or
+schema structure changes were introduced for this expansion.

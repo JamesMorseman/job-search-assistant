@@ -99,6 +99,11 @@ test("schema doc describes the required registry structure", () => {
   assert.match(schemaDoc, /radar_workspace/);
   assert.match(schemaDoc, /radar_sweep_mark/);
   assert.match(schemaDoc, /signal_card/);
+  assert.match(schemaDoc, /panel_surface/);
+  assert.match(schemaDoc, /tier_badge/);
+  assert.match(schemaDoc, /status_badge/);
+  assert.match(schemaDoc, /action_button/);
+  assert.match(schemaDoc, /icon_button/);
 });
 
 test("registry schema is well-formed", () => {
@@ -109,12 +114,21 @@ test("registry schema is well-formed", () => {
   assert.equal(schema.required.includes("screen_instances"), true);
 });
 
-test("registry has the three required objects", () => {
+test("registry has the required foundation and expansion objects", () => {
   assert.equal(registry.schema_version, "ATLAS_VISUAL_OBJECT_REGISTRY_V1");
   assert.equal(registry.registry_status, "candidate_registry_foundation");
   assert.deepEqual(
     registry.objects.map((entry: any) => entry.object_id).sort(),
-    ["radar_sweep_mark", "radar_workspace", "signal_card"],
+    [
+      "action_button",
+      "icon_button",
+      "panel_surface",
+      "radar_sweep_mark",
+      "radar_workspace",
+      "signal_card",
+      "status_badge",
+      "tier_badge",
+    ],
   );
 });
 

@@ -94,6 +94,159 @@
           "notes": "Registry target only; no import in this first E3."
         }
       ]
+    },
+    {
+      "object_id": "panel_surface",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "reusable visual object",
+      "variant_axes": ["size", "density", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "surface_border": "token.border.soft",
+        "surface_glow": "token.glow.moderate",
+        "text": "token.color.text.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "panel_surface.registry.symbolic_tokens",
+          "statement": "Panel surface bindings stay symbolic and do not introduce raw hex, px, or duration literals."
+        },
+        {
+          "id": "panel_surface.registry.variant_coverage",
+          "statement": "The registry covers standard and compact panel surface variants across shell and dark panel contexts."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/PanelSurface.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "object_id": "tier_badge",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "reusable visual object",
+      "variant_axes": ["size", "tier", "state", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "label": "token.color.text.primary",
+        "tier_relevant": "token.color.tier.relevant",
+        "tier_emerging": "token.color.tier.emerging",
+        "tier_neutral": "token.color.tier.neutral",
+        "tier_warning": "token.color.tier.warning"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "tier_badge.registry.symbolic_tokens",
+          "statement": "Tier badge bindings stay symbolic and do not introduce raw hex, px, or duration literals."
+        },
+        {
+          "id": "tier_badge.registry.variant_coverage",
+          "statement": "The registry covers compact and standard tier badge variants across the relevant, emerging, neutral, and warning tiers."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/TierBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "object_id": "status_badge",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "reusable visual object",
+      "variant_axes": ["size", "tier", "state", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "label": "token.color.text.primary",
+        "status_relevant": "token.color.tier.relevant",
+        "status_emerging": "token.color.tier.emerging",
+        "status_neutral": "token.color.tier.neutral",
+        "status_warning": "token.color.tier.warning"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "status_badge.registry.symbolic_tokens",
+          "statement": "Status badge bindings stay symbolic and do not introduce raw hex, px, or duration literals."
+        },
+        {
+          "id": "status_badge.registry.variant_coverage",
+          "statement": "The registry covers default and loading status badge variants across the neutral and warning tiers."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/StatusBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "object_id": "action_button",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "reusable visual object",
+      "variant_axes": ["size", "density", "state", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "surface_border": "token.border.soft",
+        "label": "token.color.accent.primary",
+        "label_disabled": "token.color.text.muted"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "action_button.registry.symbolic_tokens",
+          "statement": "Action button bindings stay symbolic and do not introduce raw hex, px, or duration literals."
+        },
+        {
+          "id": "action_button.registry.variant_coverage",
+          "statement": "The registry covers standard and compact action button variants including hover and disabled states."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/ActionButton.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "object_id": "icon_button",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "reusable visual object",
+      "variant_axes": ["size", "state", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "icon": "token.color.accent.primary",
+        "icon_disabled": "token.color.text.muted"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "icon_button.registry.symbolic_tokens",
+          "statement": "Icon button bindings stay symbolic and do not introduce raw hex, px, or duration literals."
+        },
+        {
+          "id": "icon_button.registry.variant_coverage",
+          "statement": "The registry covers compact and standard icon button variants including hover and disabled states."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/IconButton.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
     }
   ],
   "variants": [
@@ -349,6 +502,282 @@
           "notes": "Registry target only; no import in this first E3."
         }
       ]
+    },
+    {
+      "variant_ref": "panel_surface.standard.neutral.default",
+      "object_id": "panel_surface",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "surface_border": "token.border.soft",
+        "text": "token.color.text.primary"
+      },
+      "state_overrides": {
+        "selected": "token.border.selected"
+      },
+      "acceptance_criteria_refs": [
+        "panel_surface.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/PanelSurface.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "panel_surface.compact.neutral.default",
+      "object_id": "panel_surface",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "low"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "surface_border": "token.border.soft",
+        "text": "token.color.text.primary"
+      },
+      "state_overrides": {
+        "selected": "token.border.selected"
+      },
+      "acceptance_criteria_refs": [
+        "panel_surface.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/PanelSurface.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "tier_badge.compact.relevant.default",
+      "object_id": "tier_badge",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "relevant",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "label": "token.color.tier.relevant"
+      },
+      "state_overrides": {
+        "selected": "token.color.accent.primary"
+      },
+      "acceptance_criteria_refs": [
+        "tier_badge.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/TierBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "tier_badge.compact.emerging.default",
+      "object_id": "tier_badge",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "emerging",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "low"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "label": "token.color.tier.emerging"
+      },
+      "state_overrides": {
+        "selected": "token.color.accent.secondary"
+      },
+      "acceptance_criteria_refs": [
+        "tier_badge.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/TierBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "status_badge.standard.neutral.default",
+      "object_id": "status_badge",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "low"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "label": "token.color.tier.neutral"
+      },
+      "state_overrides": {
+        "loading": "token.motion.loading"
+      },
+      "acceptance_criteria_refs": [
+        "status_badge.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/StatusBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "status_badge.standard.warning.loading",
+      "object_id": "status_badge",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "warning",
+        "motion": "periodic_hold",
+        "state": "loading",
+        "surface": "dark_panel",
+        "emphasis": "high"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "label": "token.color.tier.warning"
+      },
+      "state_overrides": {
+        "loading": "token.motion.loading"
+      },
+      "acceptance_criteria_refs": [
+        "status_badge.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/StatusBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "action_button.standard.neutral.default",
+      "object_id": "action_button",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "surface_border": "token.border.soft",
+        "label": "token.color.accent.primary"
+      },
+      "state_overrides": {
+        "hover": "token.glow.moderate",
+        "disabled": "token.color.text.muted"
+      },
+      "acceptance_criteria_refs": [
+        "action_button.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/ActionButton.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "action_button.compact.neutral.disabled",
+      "object_id": "action_button",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "disabled",
+        "surface": "dark_panel",
+        "emphasis": "low"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "surface_border": "token.border.soft",
+        "label": "token.color.text.muted"
+      },
+      "state_overrides": {
+        "disabled": "token.color.text.muted"
+      },
+      "acceptance_criteria_refs": [
+        "action_button.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/ActionButton.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "variant_ref": "icon_button.compact.neutral.default",
+      "object_id": "icon_button",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "low"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "icon": "token.color.accent.primary"
+      },
+      "state_overrides": {
+        "hover": "token.glow.moderate",
+        "disabled": "token.color.text.muted"
+      },
+      "acceptance_criteria_refs": [
+        "icon_button.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/IconButton.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
     }
   ],
   "screen_instances": [
@@ -403,6 +832,96 @@
           "target": "frontend/src/workspaces/SignalCard.tsx",
           "kind": "future-implementation-map",
           "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.radar.primary_workspace.panel_surface",
+      "object_id": "panel_surface",
+      "variant_ref": "panel_surface.standard.neutral.default",
+      "surface": "dark_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "panel_surface.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/PanelSurface.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.radar.primary_workspace.signal_card.tier_badge",
+      "object_id": "tier_badge",
+      "variant_ref": "tier_badge.compact.relevant.default",
+      "surface": "dark_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "tier_badge.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/TierBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.radar.primary_workspace.signal_card.status_badge",
+      "object_id": "status_badge",
+      "variant_ref": "status_badge.standard.neutral.default",
+      "surface": "dark_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "status_badge.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/StatusBadge.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.radar.primary_workspace.signal_card.action_button",
+      "object_id": "action_button",
+      "variant_ref": "action_button.standard.neutral.default",
+      "surface": "dark_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "action_button.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/ActionButton.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.radar.primary_workspace.signal_card.icon_button",
+      "object_id": "icon_button",
+      "variant_ref": "icon_button.compact.neutral.default",
+      "surface": "dark_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "icon_button.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/IconButton.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this package."
         }
       ]
     }
