@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Firm Repository — Job Search Assistant{% endblock %}
+
+{% block content %}
+<h2>Firm Repository</h2>
+
+<p data-testid="firm-review-queue-note">
+    The draft Firm Review Queue (unapproved firm profiles) is not yet available.
+    Only approved firms are shown below.
+</p>
+
+{% if firms %}
+<table data-testid="firms-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>ATS Tier</th>
+            <th>Manual Priority</th>
+            <th>Employee Count</th>
+            <th>ENR Rank</th>
+            <th>Disciplines</th>
+            <th>Known Benefits</th>
+            <th>Open Jobs</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for firm in firms %}
+        <tr data-testid="firm-row">
+            <td>
+                <a data-testid="firm-link" href="/dashboard/firms/{{ firm.firm_id }}">{{ firm.name }}</a>
+            </td>
+            <td data-testid="firm-ats-tier">{{ firm.ats_tier }}</td>
+            <td data-testid="firm-manual-priority">{{ firm.manual_priority }}</td>
+            <td data-testid="firm-employee-count">{{ firm.employee_count or "—" }}</td>
+            <td data-testid="firm-enr-rank">{{ firm.enr_rank if firm.enr_rank is not none else "—" }}</td>
+            <td data-testid="firm-disciplines">
+                {% if firm.disciplines %}{{ firm.disciplines | join(", ") }}{% else %}—{% endif %}
+            </td>
+            <td data-testid="firm-known-benefit-count">{{ firm.known_benefit_count }}</td>
+            <td data-testid="firm-open-job-count">{{ firm.open_job_count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p data-testid="no-firms-recorded">No firms recorded</p>
+{% endif %}
+{% endblock %}

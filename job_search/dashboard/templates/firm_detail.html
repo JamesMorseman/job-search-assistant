@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}{{ firm.name }} — Firm Repository — Job Search Assistant{% endblock %}
+{% block content %}
+<p><a href="/dashboard/firms">&larr; Back to Firm Repository</a></p>
+
+<h2 data-testid="firm-name">{{ firm.name }}</h2>
+
+<p data-testid="firm-review-queue-note">
+    The draft Firm Review Queue (unapproved firm profiles) is not yet available.
+</p>
+
+<section data-testid="firm-identity">
+    <h3>Identity</h3>
+    <dl>
+        <dt>Website</dt>
+        <dd data-testid="firm-website">
+            {% if firm.website %}<a href="{{ firm.website }}" target="_blank" rel="noopener">{{ firm.website }}</a>{% else %}Not stated{% endif %}
+        </dd>
+
+        <dt>Careers URL</dt>
+        <dd data-testid="firm-careers-url">
+            {% if firm.careers_url %}<a href="{{ firm.careers_url }}" target="_blank" rel="noopener">{{ firm.careers_url }}</a>{% else %}Not stated{% endif %}
+        </dd>
+
+        <dt>Aliases</dt>
+        <dd data-testid="firm-aliases">
+            {% if firm.aliases %}{{ firm.aliases | join(", ") }}{% else %}None recorded{% endif %}
+        </dd>
+    </dl>
+</section>
+
+<section data-testid="firm-ats-config">
+    <h3>ATS Configuration</h3>
+    <dl>
+        <dt>ATS Type</dt>
+        <dd data-testid="firm-ats-type">{{ firm.ats_type or "Not stated" }}</dd>
+
+        <dt>ATS Tier</dt>
+        <dd data-testid="firm-ats-tier">{{ firm.ats_tier }}</dd>
+    </dl>
+</section>
+
+<section data-testid="firm-intelligence">
+    <h3>Firm Intelligence</h3>
+    <dl>
+        <dt>ENR Rank</dt>
+        <dd data-testid="firm-enr-rank">{{ firm.enr_rank if firm.enr_rank is not none else "Not stated" }}</dd>
+
+        <dt>Employee Count</dt>
+        <dd data-testid="firm-employee-count">{{ firm.employee_count or "Not stated" }}</dd>
+
+        <dt>Disciplines</dt>
+        <dd data-testid="firm-disciplines">
+            {% if firm.disciplines %}{{ firm.disciplines | join(", ") }}{% else %}None recorded{% endif %}
+        </dd>
+
+        <dt>Manual Priority</dt>
+        <dd data-testid="firm-manual-priority">{{ firm.manual_priority }}</dd>
+
+        <dt>Reputation Notes</dt>
+        <dd data-testid="firm-reputation-notes">{{ firm.reputation_notes or "None recorded" }}</dd>
+
+        <dt>Last Verified</dt>
+        <dd data-testid="firm-last-verified">{{ firm.last_verified or "Never" }}</dd>
+    </dl>
+</section>
+
+<section data-testid="firm-benefits">
+    <h3>Benefits</h3>
+    {% if firm.benefits %}
+    <ul>
+        {% for key, value in firm.benefits.items() %}
+        <li>{{ key }}: {{ value }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p data-testid="no-benefits-recorded">No benefits recorded.</p>
+    {% endif %}
+</section>
+
+<section data-testid="firm-trajectory">
+    <h3>Trajectory</h3>
+    {% if firm.trajectory %}
+    <ul>
+        {% for key, value in firm.trajectory.items() %}
+        <li>{{ key }}: {{ value }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p data-testid="no-trajectory-recorded">No trajectory data recorded.</p>
+    {% endif %}
+</section>
+
+<section data-testid="firm-status">
+    <h3>ATS Reliability Status</h3>
+    <dl>
+        <dt>Circuit State</dt>
+        <dd data-testid="firm-circuit-state">{{ firm.status.circuit_state }}</dd>
+
+        <dt>Quarantine Until</dt>
+        <dd data-testid="firm-quarantine-until">{{ firm.status.quarantine_until or "Not quarantined" }}</dd>
+
+        <dt>Consecutive Failures</dt>
+        <dd data-testid="firm-consecutive-failures">{{ firm.status.consecutive_failures }}</dd>
+
+        <dt>Last Successful Fetch</dt>
+        <dd data-testid="firm-last-successful-fetch">{{ firm.status.last_successful_fetch or "Never" }}</dd>
+
+        <dt>Last Fingerprinted</dt>
+        <dd data-testid="firm-last-fingerprinted">{{ firm.status.last_fingerprinted or "Never" }}</dd>
+    </dl>
+</section>
+{% endblock %}
