@@ -76,10 +76,28 @@ class SourceHealthService:
     def _db(self):
         return get_db(self._db_path)
 
-    def get_report(self) -> SourceHealthReport:
+    def get_report(self, status: str | None = None) -> SourceHealthReport:
+        """Build the source health report.
+
+        `status` is an optional equality filter on each source's latest run
+        status (diagnostic filtering for the Source Health dashboard
+        screen). The global summary is always computed over the full,
+        unfiltered data — filtering only narrows the per-source table, it
+        must not change the health totals shown in the global bar.
+        """
         sources = self._get_source_run_summaries()
         global_summary = self._get_global_summary()
+        if status is not None:
+            sources = [s for s in sources if s.status == status]
         return SourceHealthReport(sources=sources, global_summary=global_summary)
+
+    def list_distinct_statuses(self) -> list[str]:
+        """Return distinct latest-run status values, sorted, for filter UI."""
+        with self._db() as db:
+            rows = db.execute(
+                "SELECT DISTINCT status FROM source_health WHERE status IS NOT NULL ORDER BY status ASC"
+            ).fetchall()
+        return [r["status"] for r in rows]
 
     def _get_source_run_summaries(self) -> list[SourceRunSummary]:
         sql = """

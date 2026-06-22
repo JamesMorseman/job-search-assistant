@@ -5,6 +5,47 @@
 {% block content %}
 <h2>Pipeline Runs</h2>
 
+{% if statuses or run_types %}
+<nav data-testid="pipeline-runs-filters" aria-label="Filter pipeline runs">
+    {% if statuses %}
+    <span data-testid="status-filter-group">
+        Status:
+        <a data-testid="status-filter-all"
+           href="/dashboard/pipeline-runs{% if selected_run_type %}?run_type={{ selected_run_type }}{% endif %}"
+           {% if not selected_status %}aria-current="true"{% endif %}>All</a>
+        {% for s in statuses %}
+        <a data-testid="status-filter-{{ s }}"
+           href="/dashboard/pipeline-runs?status={{ s }}{% if selected_run_type %}&run_type={{ selected_run_type }}{% endif %}"
+           {% if selected_status == s %}aria-current="true"{% endif %}>{{ s }}</a>
+        {% endfor %}
+    </span>
+    {% endif %}
+    {% if run_types %}
+    <span data-testid="run-type-filter-group">
+        Run Type:
+        <a data-testid="run-type-filter-all"
+           href="/dashboard/pipeline-runs{% if selected_status %}?status={{ selected_status }}{% endif %}"
+           {% if not selected_run_type %}aria-current="true"{% endif %}>All</a>
+        {% for rt in run_types %}
+        <a data-testid="run-type-filter-{{ rt }}"
+           href="/dashboard/pipeline-runs?run_type={{ rt }}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+           {% if selected_run_type == rt %}aria-current="true"{% endif %}>{{ rt }}</a>
+        {% endfor %}
+    </span>
+    {% endif %}
+</nav>
+{% endif %}
+
+{% if selected_status or selected_run_type %}
+<p data-testid="pipeline-runs-active-filters">
+    Showing
+    {% if selected_status %}status=<strong>{{ selected_status }}</strong>{% endif %}
+    {% if selected_status and selected_run_type %} and {% endif %}
+    {% if selected_run_type %}run_type=<strong>{{ selected_run_type }}</strong>{% endif %}
+    — <a data-testid="clear-filters" href="/dashboard/pipeline-runs">clear filters</a>
+</p>
+{% endif %}
+
 {% if runs %}
 <table data-testid="pipeline-runs-table">
     <thead>
@@ -53,6 +94,10 @@
     </tbody>
 </table>
 {% else %}
+{% if selected_status or selected_run_type %}
+<p data-testid="no-runs-recorded">No pipeline runs match the selected filters</p>
+{% else %}
 <p data-testid="no-runs-recorded">No pipeline runs recorded yet</p>
+{% endif %}
 {% endif %}
 {% endblock %}

@@ -140,7 +140,7 @@ def test_review_queue_route_uses_dependency_override_not_direct_construction(db)
     app = create_app()
 
     class _StubJobsService:
-        def list_jobs(self, app_state=None, source=None, limit=None, offset=0):
+        def list_jobs(self, app_state=None, source=None, limit=None, offset=0, q=None):
             assert app_state == "presented"
             return []
 
@@ -212,7 +212,8 @@ def test_review_queue_renders_select_and_reject_actions(client, db):
     resp = client.get("/dashboard/review-queue")
     assert f'/dashboard/review-queue/j1/select' in resp.text
     assert f'/dashboard/review-queue/j1/reject' in resp.text
-    assert resp.text.count("<form") == 2
+    # 2 action forms (select/reject) + 1 search form (ANNA-P2-DASHBOARD-DIAGNOSTICS)
+    assert resp.text.count("<form") == 3
 
 
 # ── Empty-state behavior ─────────────────────────────────────────────────
@@ -736,7 +737,7 @@ def test_review_queue_handles_service_failure_without_500_traceback(db):
     app = create_app()
 
     class _FailingJobsService:
-        def list_jobs(self, app_state=None, source=None, limit=None, offset=0):
+        def list_jobs(self, app_state=None, source=None, limit=None, offset=0, q=None):
             raise RuntimeError("simulated database outage")
 
     app.dependency_overrides[get_jobs_service] = lambda: _FailingJobsService()
@@ -1801,7 +1802,7 @@ def test_source_health_uses_dependency_override_not_direct_construction(db):
     calls = []
 
     class _StubSourceHealthService:
-        def get_report(self):
+        def get_report(self, status=None):
             calls.append("get_report")
             return SourceHealthReport(
                 sources=[],
@@ -1813,6 +1814,9 @@ def test_source_health_uses_dependency_override_not_direct_construction(db):
                     all_healthy=True,
                 ),
             )
+
+        def list_distinct_statuses(self):
+            return []
 
     app.dependency_overrides[get_source_health_service] = lambda: _StubSourceHealthService()
     with TestClient(app) as c:
@@ -2456,8 +2460,14 @@ def test_pipeline_runs_uses_dependency_override_not_direct_construction(db):
     calls = []
 
     class _StubPipelineService:
-        def list_recent_runs(self):
+        def list_recent_runs(self, status=None, run_type=None):
             calls.append("list_recent_runs")
+            return []
+
+        def list_distinct_statuses(self):
+            return []
+
+        def list_distinct_run_types(self):
             return []
 
     app.dependency_overrides[get_pipeline_service] = lambda: _StubPipelineService()
@@ -2510,3 +2520,341 @@ def test_pipeline_runs_route_has_no_mutation_routes():
     source = inspect.getsource(pipeline_runs_routes)
     for verb in ("@router.post(", "@router.put(", "@router.patch(", "@router.delete("):
         assert verb not in source
+
+
+# ── ANNA-P2-DASHBOARD-DIAGNOSTICS — Pipeline Runs status/run_type filters ──
+
+
+def test_pipeline_runs_filters_by_status(client, db):
+    svc = PipelineService(db)
+    run_id_1 = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(run_id_1)
+    run_id_2 = svc.start_run("grade", trigger="cli")
+    svc.fail_run(run_id_2, error_detail="boom")
+
+    resp = client.get("/dashboard/pipeline-runs?status=failed")
+    assert resp.status_code == 200
+    assert 'data-testid="run-type">grade<' in resp.text
+    assert 'data-testid="run-type">ingest<' not in resp.text
+
+
+def test_pipeline_runs_filters_by_run_type(client, db):
+    svc = PipelineService(db)
+    svc.start_run("ingest", trigger="cli")
+    svc.start_run("grade", trigger="cli")
+
+    resp = client.get("/dashboard/pipeline-runs?run_type=grade")
+    assert resp.status_code == 200
+    assert 'data-testid="run-type">grade<' in resp.text
+    assert 'data-testid="run-type">ingest<' not in resp.text
+
+
+def test_pipeline_runs_filters_combine_status_and_run_type(client, db):
+    svc = PipelineService(db)
+    run_id_1 = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(run_id_1)
+    run_id_2 = svc.start_run("ingest", trigger="cli")
+    svc.fail_run(run_id_2)
+    run_id_3 = svc.start_run("grade", trigger="cli")
+    svc.fail_run(run_id_3)
+
+    resp = client.get("/dashboard/pipeline-runs?status=failed&run_type=ingest")
+    assert resp.status_code == 200
+    rows = resp.text.count('data-testid="pipeline-run-row"')
+    assert rows == 1
+
+
+def test_pipeline_runs_filter_nav_renders_distinct_values(client, db):
+    svc = PipelineService(db)
+    run_id = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(run_id)
+
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert 'data-testid="pipeline-runs-filters"' in resp.text
+    assert 'data-testid="status-filter-complete"' in resp.text
+    assert 'data-testid="run-type-filter-ingest"' in resp.text
+
+
+def test_pipeline_runs_no_filter_nav_when_no_runs(client, db):
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert 'data-testid="pipeline-runs-filters"' not in resp.text
+
+
+def test_pipeline_runs_empty_filtered_result_shows_filtered_message(client, db):
+    svc = PipelineService(db)
+    run_id = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(run_id)
+
+    resp = client.get("/dashboard/pipeline-runs?status=failed")
+    assert resp.status_code == 200
+    assert 'data-testid="no-runs-recorded"' in resp.text
+    assert "No pipeline runs match the selected filters" in resp.text
+
+
+def test_pipeline_runs_clear_filters_link_present_when_filtered(client, db):
+    svc = PipelineService(db)
+    run_id = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(run_id)
+
+    resp = client.get("/dashboard/pipeline-runs?status=complete")
+    assert resp.status_code == 200
+    assert 'data-testid="clear-filters"' in resp.text
+    assert 'href="/dashboard/pipeline-runs"' in resp.text
+
+
+def test_pipeline_runs_service_filters_by_status_directly(db):
+    svc = PipelineService(db)
+    run_id_1 = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(run_id_1)
+    run_id_2 = svc.start_run("grade", trigger="cli")
+    svc.fail_run(run_id_2)
+
+    failed = svc.list_recent_runs(status="failed")
+    assert [r.id for r in failed] == [run_id_2]
+
+
+def test_pipeline_runs_service_list_distinct_statuses_and_run_types(db):
+    svc = PipelineService(db)
+    run_id_1 = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(run_id_1)
+    run_id_2 = svc.start_run("grade", trigger="cli")
+    svc.fail_run(run_id_2)
+
+    assert svc.list_distinct_statuses() == ["complete", "failed"]
+    assert svc.list_distinct_run_types() == ["grade", "ingest"]
+
+
+# ── ANNA-P2-DASHBOARD-DIAGNOSTICS — Source Health status filter ───────────
+
+
+def test_source_health_filters_by_status(client, db):
+    _insert_firm(db, "f1", "Acme Corp")
+    _insert_firm(db, "f2", "Globex")
+    _insert_source_run(db, "greenhouse", firm_id="f1", status="ok")
+    _insert_source_run(db, "lever", firm_id="f2", status="error", error_class="transient")
+
+    resp = client.get("/dashboard/source-health?status=error")
+    assert resp.status_code == 200
+    assert "lever" in resp.text
+    assert "greenhouse" not in resp.text
+
+
+def test_source_health_filter_does_not_change_global_summary(client, db):
+    _insert_firm(db, "f1", "Acme Corp", circuit_state="open", quarantine_until="2099-01-01T00:00:00")
+    _insert_firm(db, "f2", "Globex", circuit_state="closed")
+    _insert_source_run(db, "greenhouse", firm_id="f1", status="error")
+    _insert_source_run(db, "lever", firm_id="f2", status="ok")
+
+    resp = client.get("/dashboard/source-health?status=ok")
+    assert resp.status_code == 200
+    # Global summary still reflects the full, unfiltered dataset.
+    assert '<span data-testid="total-sources">2</span>' in resp.text
+    assert 'data-testid="open-circuit-count">Open circuits: 1' in resp.text
+
+
+def test_source_health_filter_nav_renders_distinct_statuses(client, db):
+    _insert_firm(db, "f1", "Acme Corp")
+    _insert_source_run(db, "greenhouse", firm_id="f1", status="ok")
+
+    resp = client.get("/dashboard/source-health")
+    assert resp.status_code == 200
+    assert 'data-testid="source-health-filters"' in resp.text
+    assert 'data-testid="status-filter-ok"' in resp.text
+
+
+def test_source_health_no_filter_nav_when_no_runs(client, db):
+    resp = client.get("/dashboard/source-health")
+    assert resp.status_code == 200
+    assert 'data-testid="source-health-filters"' not in resp.text
+
+
+def test_source_health_empty_filtered_result_shows_filtered_message(client, db):
+    _insert_firm(db, "f1", "Acme Corp")
+    _insert_source_run(db, "greenhouse", firm_id="f1", status="ok")
+
+    resp = client.get("/dashboard/source-health?status=error")
+    assert resp.status_code == 200
+    assert 'data-testid="no-runs-recorded"' in resp.text
+    assert "No sources match the selected status filter" in resp.text
+
+
+def test_source_health_service_get_report_filters_by_status_directly(db):
+    _insert_firm(db, "f1", "Acme Corp")
+    _insert_firm(db, "f2", "Globex")
+    _insert_source_run(db, "greenhouse", firm_id="f1", status="ok")
+    _insert_source_run(db, "lever", firm_id="f2", status="error")
+
+    svc = SourceHealthService(db_path=db)
+    report = svc.get_report(status="error")
+    assert [s.source for s in report.sources] == ["lever"]
+    # Global summary unaffected by the filter.
+    assert report.global_summary.total_sources == 2
+
+
+def test_source_health_service_list_distinct_statuses(db):
+    _insert_firm(db, "f1", "Acme Corp")
+    _insert_source_run(db, "greenhouse", firm_id="f1", status="ok")
+    _insert_source_run(db, "lever", firm_id="f1", status="error")
+
+    svc = SourceHealthService(db_path=db)
+    assert svc.list_distinct_statuses() == ["error", "ok"]
+
+
+# ── ANNA-P2-DASHBOARD-DIAGNOSTICS — Review Queue search ────────────────────
+
+
+def test_review_queue_search_filters_by_company(client, db):
+    _insert_job(db, "j1", company="Acme Engineering", title="Structural Engineer I")
+    _insert_job(db, "j2", company="Globex Structural", title="Civil Engineer II", source="usajobs")
+    _advance(db, "j1", "presented")
+    _advance(db, "j2", "presented")
+
+    resp = client.get("/dashboard/review-queue?q=Acme")
+    assert resp.status_code == 200
+    assert "Acme Engineering" in resp.text
+    assert "Globex Structural" not in resp.text
+
+
+def test_review_queue_search_filters_by_title(client, db):
+    _insert_job(db, "j1", company="Acme Engineering", title="Structural Engineer I")
+    _insert_job(db, "j2", company="Globex Structural", title="Civil Engineer II")
+    _advance(db, "j1", "presented")
+    _advance(db, "j2", "presented")
+
+    resp = client.get("/dashboard/review-queue?q=Civil")
+    assert resp.status_code == 200
+    assert "Civil Engineer II" in resp.text
+    assert "Structural Engineer I" not in resp.text
+
+
+def test_review_queue_search_is_case_insensitive(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _advance(db, "j1", "presented")
+
+    resp = client.get("/dashboard/review-queue?q=acme")
+    assert resp.status_code == 200
+    assert "Acme Engineering" in resp.text
+
+
+def test_review_queue_search_no_match_shows_empty_state(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _advance(db, "j1", "presented")
+
+    resp = client.get("/dashboard/review-queue?q=NoSuchCompany")
+    assert resp.status_code == 200
+    assert "No jobs are currently presented for review." in resp.text
+
+
+def test_review_queue_search_box_preserves_query_value(client, db):
+    resp = client.get("/dashboard/review-queue?q=Acme")
+    assert resp.status_code == 200
+    assert 'value="Acme"' in resp.text
+    assert 'data-testid="review-queue-active-search"' in resp.text
+
+
+def test_review_queue_search_box_present_without_query(client, db):
+    resp = client.get("/dashboard/review-queue")
+    assert resp.status_code == 200
+    assert 'data-testid="review-queue-search-form"' in resp.text
+    assert 'data-testid="review-queue-active-search"' not in resp.text
+
+
+def test_review_queue_clear_search_link_present_when_searching(client, db):
+    resp = client.get("/dashboard/review-queue?q=Acme")
+    assert resp.status_code == 200
+    assert 'data-testid="review-queue-clear-search"' in resp.text
+
+
+def test_jobs_service_list_jobs_search_matches_company_or_title(db):
+    _insert_job(db, "j1", company="Acme Engineering", title="Structural Engineer I")
+    _insert_job(db, "j2", company="Globex Structural", title="Civil Engineer II")
+
+    svc = JobsService()
+    results = svc.list_jobs(q="Acme")
+    assert [j.canonical_job_id for j in results] == ["j1"]
+
+
+def test_jobs_service_list_jobs_no_search_term_returns_all(db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _insert_job(db, "j2", company="Globex Structural")
+
+    svc = JobsService()
+    results = svc.list_jobs()
+    assert {j.canonical_job_id for j in results} == {"j1", "j2"}
+
+
+# ── ANNA-P2-DASHBOARD-DIAGNOSTICS — Tracker stage filter ───────────────────
+
+
+def test_tracker_filters_by_stage(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _insert_job(db, "j2", company="Globex Structural")
+    _advance(db, "j1", "presented", "selected")
+    _advance(db, "j2", "presented", "selected", "applied")
+
+    resp = client.get("/dashboard/tracker?state=applied")
+    assert resp.status_code == 200
+    assert "Globex Structural" in resp.text
+    assert "Acme Engineering" not in resp.text
+
+
+def test_tracker_stage_filter_ignores_invalid_state(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _advance(db, "j1", "presented", "selected")
+
+    resp = client.get("/dashboard/tracker?state=not-a-real-state")
+    assert resp.status_code == 200
+    # Falls back to showing all tracked states rather than erroring.
+    assert "Acme Engineering" in resp.text
+
+
+def test_tracker_stage_filter_nav_renders_all_tracked_states(client, db):
+    resp = client.get("/dashboard/tracker")
+    assert resp.status_code == 200
+    assert 'data-testid="tracker-state-filters"' in resp.text
+    assert 'data-testid="tracker-state-filter-applied"' in resp.text
+    assert 'data-testid="tracker-state-filter-all"' in resp.text
+
+
+def test_tracker_stage_filter_empty_state_names_the_stage(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _advance(db, "j1", "presented", "selected")
+
+    resp = client.get("/dashboard/tracker?state=offer")
+    assert resp.status_code == 200
+    assert 'data-testid="tracker-empty-state"' in resp.text
+    assert 'No applications are currently in the "offer" stage.' in resp.text
+
+
+def test_tracker_stage_filter_clear_link_present_when_filtered(client, db):
+    _insert_job(db, "j1")
+    _advance(db, "j1", "presented", "selected")
+
+    resp = client.get("/dashboard/tracker?state=selected")
+    assert resp.status_code == 200
+    assert 'data-testid="tracker-clear-state-filter"' in resp.text
+
+
+def test_tracker_stage_filter_does_not_affect_followups(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _advance(db, "j1", "presented", "selected", "applied")
+    _insert_followup(db, "j1", "check_status", "2026-01-01")
+
+    resp = client.get("/dashboard/tracker?state=offer")
+    assert resp.status_code == 200
+    # Job is filtered out of the tracker table (it's in 'applied', not 'offer'),
+    # but its due follow-up still appears — filter only narrows the table.
+    assert 'data-testid="followup-row"' in resp.text
+
+
+def test_tracker_service_list_tracker_rows_with_single_state(db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _insert_job(db, "j2", company="Globex Structural")
+    _advance(db, "j1", "presented", "selected")
+    _advance(db, "j2", "presented", "selected", "applied")
+
+    svc = TrackerService()
+    rows = svc.list_tracker_rows(states=("applied",))
+    assert [r.company for r in rows] == ["Globex Structural"]

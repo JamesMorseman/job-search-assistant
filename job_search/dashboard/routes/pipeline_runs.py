@@ -1,6 +1,11 @@
 """Pipeline Runs screen — read-only (Phase 6 Package 5).
 
 GET /dashboard/pipeline-runs only. No POST routes, no mutations.
+
+ANNA-P2-DASHBOARD-DIAGNOSTICS adds optional `status` / `run_type` query-param
+filters for diagnostic visibility — both are passed straight through to
+`PipelineService.list_recent_runs()`, which already implements the filtering
+as plain equality clauses. No new write path or mutation is introduced.
 """
 
 from __future__ import annotations
@@ -22,10 +27,14 @@ router = APIRouter()
 @router.get("/pipeline-runs", response_class=HTMLResponse)
 def pipeline_runs(
     request: Request,
+    status: str | None = None,
+    run_type: str | None = None,
     svc: PipelineService = Depends(get_pipeline_service),
 ) -> HTMLResponse:
     try:
-        runs = svc.list_recent_runs()
+        runs = svc.list_recent_runs(status=status or None, run_type=run_type or None)
+        statuses = svc.list_distinct_statuses()
+        run_types = svc.list_distinct_run_types()
     except Exception:
         logger.exception("pipeline_runs: PipelineService.list_recent_runs() failed")
         return templates.TemplateResponse(
@@ -38,5 +47,11 @@ def pipeline_runs(
     return templates.TemplateResponse(
         request,
         "pipeline_runs.html",
-        {"runs": runs},
+        {
+            "runs": runs,
+            "statuses": statuses,
+            "run_types": run_types,
+            "selected_status": status or "",
+            "selected_run_type": run_type or "",
+        },
     )

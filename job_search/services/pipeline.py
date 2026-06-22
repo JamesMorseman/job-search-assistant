@@ -181,14 +181,54 @@ class PipelineService:
 
     # ── Read methods ──────────────────────────────────────────────────────────
 
-    def list_recent_runs(self, limit: int = 20) -> list[PipelineRun]:
-        """Return the most recent pipeline runs, newest first."""
+    def list_recent_runs(
+        self,
+        limit: int = 20,
+        *,
+        status: str | None = None,
+        run_type: str | None = None,
+    ) -> list[PipelineRun]:
+        """Return the most recent pipeline runs, newest first.
+
+        `status` and `run_type` are optional equality filters applied at the
+        SQL layer (diagnostic filtering for the Pipeline Runs dashboard
+        screen) — both default to no filtering, preserving existing
+        behavior for any other caller.
+        """
+        where = []
+        params: list[object] = []
+        if status is not None:
+            where.append("status = ?")
+            params.append(status)
+        if run_type is not None:
+            where.append("run_type = ?")
+            params.append(run_type)
+
+        sql = "SELECT * FROM pipeline_runs"
+        if where:
+            sql += " WHERE " + " AND ".join(where)
+        sql += " ORDER BY started_at DESC, id DESC LIMIT ?"
+        params.append(limit)
+
+        with get_db(self._db_path) as db:
+            rows = db.execute(sql, params).fetchall()
+        return [_row_to_run(r) for r in rows]
+
+    def list_distinct_statuses(self) -> list[str]:
+        """Return distinct status values present in pipeline_runs, sorted."""
         with get_db(self._db_path) as db:
             rows = db.execute(
-                "SELECT * FROM pipeline_runs ORDER BY started_at DESC, id DESC LIMIT ?",
-                (limit,),
+                "SELECT DISTINCT status FROM pipeline_runs ORDER BY status ASC"
             ).fetchall()
-        return [_row_to_run(r) for r in rows]
+        return [r["status"] for r in rows]
+
+    def list_distinct_run_types(self) -> list[str]:
+        """Return distinct run_type values present in pipeline_runs, sorted."""
+        with get_db(self._db_path) as db:
+            rows = db.execute(
+                "SELECT DISTINCT run_type FROM pipeline_runs ORDER BY run_type ASC"
+            ).fetchall()
+        return [r["run_type"] for r in rows]
 
     def get_run(self, run_id: int) -> PipelineRun | None:
         """Return a single run by id, or None if not found."""

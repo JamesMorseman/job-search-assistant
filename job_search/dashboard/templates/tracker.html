@@ -9,6 +9,26 @@
 
 <section data-testid="tracker-section">
     <h3>Active Applications</h3>
+
+    {% if tracked_states %}
+    <nav data-testid="tracker-state-filters" aria-label="Filter by stage">
+        Stage:
+        <a data-testid="tracker-state-filter-all" href="/dashboard/tracker"
+           {% if not selected_state %}aria-current="true"{% endif %}>All</a>
+        {% for st in tracked_states %}
+        <a data-testid="tracker-state-filter-{{ st }}" href="/dashboard/tracker?state={{ st }}"
+           {% if selected_state == st %}aria-current="true"{% endif %}>{{ st }}</a>
+        {% endfor %}
+    </nav>
+    {% endif %}
+
+    {% if selected_state %}
+    <p data-testid="tracker-active-state-filter">
+        Showing stage=<strong>{{ selected_state }}</strong>
+        — <a data-testid="tracker-clear-state-filter" href="/dashboard/tracker">clear filter</a>
+    </p>
+    {% endif %}
+
     {% if rows %}
     <table>
         <thead>
@@ -56,7 +76,11 @@
         </tbody>
     </table>
     {% else %}
+    {% if selected_state %}
+    <p data-testid="tracker-empty-state">No applications are currently in the "{{ selected_state }}" stage.</p>
+    {% else %}
     <p data-testid="tracker-empty-state">No applications are currently being tracked.</p>
+    {% endif %}
     {% endif %}
 </section>
 

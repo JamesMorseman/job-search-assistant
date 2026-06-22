@@ -24,6 +24,25 @@
     {% endif %}
 </section>
 
+{% if statuses %}
+<nav data-testid="source-health-filters" aria-label="Filter sources by status">
+    Status:
+    <a data-testid="status-filter-all" href="/dashboard/source-health"
+       {% if not selected_status %}aria-current="true"{% endif %}>All</a>
+    {% for s in statuses %}
+    <a data-testid="status-filter-{{ s }}" href="/dashboard/source-health?status={{ s }}"
+       {% if selected_status == s %}aria-current="true"{% endif %}>{{ s }}</a>
+    {% endfor %}
+</nav>
+{% endif %}
+
+{% if selected_status %}
+<p data-testid="source-health-active-filter">
+    Showing status=<strong>{{ selected_status }}</strong>
+    — <a data-testid="clear-filters" href="/dashboard/source-health">clear filter</a>
+</p>
+{% endif %}
+
 {% if sources %}
 <table data-testid="source-health-table">
     <thead>
@@ -68,6 +87,10 @@
     </tbody>
 </table>
 {% else %}
+{% if selected_status %}
+<p data-testid="no-runs-recorded">No sources match the selected status filter</p>
+{% else %}
 <p data-testid="no-runs-recorded">No runs recorded</p>
+{% endif %}
 {% endif %}
 {% endblock %}

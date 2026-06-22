@@ -6,6 +6,11 @@ The two action routes (`select_job`, `reject_job`) call
 `TrackerService.transition_job()`, the sole authorized path for
 `jobs.app_state` changes from any dashboard route. No route in this module
 writes to `jobs.app_state` or `app_transitions` directly.
+
+ANNA-P2-DASHBOARD-DIAGNOSTICS adds an optional `q` query-param search over
+company/title for the Review Queue, passed through to
+`JobsService.list_jobs(q=...)` as a keyword argument so existing callers
+(and test stubs) that omit it are unaffected.
 """
 
 from __future__ import annotations
@@ -30,10 +35,11 @@ router = APIRouter()
 def review_queue(
     request: Request,
     error: str | None = None,
+    q: str | None = None,
     jobs_service: JobsService = Depends(get_jobs_service),
 ) -> HTMLResponse:
     try:
-        jobs = jobs_service.list_jobs(app_state="presented")
+        jobs = jobs_service.list_jobs(app_state="presented", q=q or None)
     except Exception:
         logger.exception("review_queue: JobsService.list_jobs() failed")
         return templates.TemplateResponse(
@@ -46,7 +52,7 @@ def review_queue(
     return templates.TemplateResponse(
         request,
         "review_queue.html",
-        {"jobs": jobs, "error": error},
+        {"jobs": jobs, "error": error, "q": q or ""},
     )
 
 

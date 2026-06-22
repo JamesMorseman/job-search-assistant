@@ -9,6 +9,11 @@ module.
 `VALID_TRANSITIONS` is imported from the state machine for rendering
 per-row dropdown options only, not for enforcing transition rules.
 Enforcement remains inside `advance_state()` via `TrackerService`.
+
+ANNA-P2-DASHBOARD-DIAGNOSTICS adds an optional `state` query-param filter
+for stage-tracking visibility — narrows `list_tracker_rows()` to a single
+tracked state via its existing `states` tuple argument. Follow-ups are
+unaffected by this filter.
 """
 
 from __future__ import annotations
@@ -38,14 +43,28 @@ def _redirect_to_tracker(error: str | None = None) -> RedirectResponse:
     return RedirectResponse(url=url, status_code=303)
 
 
+_TRACKED_STATES = (
+    "selected",
+    "applied",
+    "acknowledged",
+    "screen",
+    "interview",
+    "offer",
+    "rejected",
+    "ghosted",
+)
+
+
 @router.get("/tracker", response_class=HTMLResponse)
 def application_tracker(
     request: Request,
     error: str | None = None,
+    state: str | None = None,
     tracker_service: TrackerService = Depends(get_tracker_service),
 ) -> HTMLResponse:
+    states = (state,) if state in _TRACKED_STATES else None
     try:
-        rows = tracker_service.list_tracker_rows()
+        rows = tracker_service.list_tracker_rows(states=states)
         followups = tracker_service.list_due_followups()
     except Exception:
         logger.exception("application_tracker: TrackerService failed")
@@ -64,6 +83,8 @@ def application_tracker(
             "followups": followups,
             "valid_transitions": VALID_TRANSITIONS,
             "error": error,
+            "tracked_states": _TRACKED_STATES,
+            "selected_state": state if state in _TRACKED_STATES else "",
         },
     )
 

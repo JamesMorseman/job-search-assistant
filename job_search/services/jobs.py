@@ -152,7 +152,14 @@ class JobsService:
         source: str | None = None,
         limit: int | None = None,
         offset: int = 0,
+        q: str | None = None,
     ) -> list[JobListItem]:
+        """List jobs, optionally filtered by state/source and a free-text
+        search term `q`. `q` matches case-insensitively against company or
+        title (diagnostic search/filter for the Review Queue dashboard
+        screen) — it does not introduce a new query surface beyond simple
+        substring matching on existing columns.
+        """
         where = []
         params: list[object] = []
         if app_state is not None:
@@ -161,6 +168,10 @@ class JobsService:
         if source is not None:
             where.append("source = ?")
             params.append(source)
+        if q:
+            where.append("(company LIKE ? OR title LIKE ?)")
+            like_term = f"%{q}%"
+            params.extend([like_term, like_term])
 
         sql = """
             SELECT canonical_job_id, source, firm_id, company, title,

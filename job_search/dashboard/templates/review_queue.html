@@ -8,6 +8,20 @@
 <p data-testid="action-error">{{ error }}</p>
 {% endif %}
 
+<form method="get" action="/dashboard/review-queue" data-testid="review-queue-search-form">
+    <label for="review-queue-search-input">Search</label>
+    <input type="text" id="review-queue-search-input" name="q" value="{{ q or '' }}"
+           placeholder="Search company or title" data-testid="review-queue-search-input">
+    <button type="submit" data-testid="review-queue-search-submit">Search</button>
+    {% if q %}
+    <a data-testid="review-queue-clear-search" href="/dashboard/review-queue">Clear</a>
+    {% endif %}
+</form>
+
+{% if q %}
+<p data-testid="review-queue-active-search">Showing results for "<strong>{{ q }}</strong>"</p>
+{% endif %}
+
 {% if jobs %}
 <table>
     <thead>
