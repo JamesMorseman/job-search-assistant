@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/atlas/visual-registry/atlasVisualObjects.schema.json",
+  "title": "ATLAS Visual Object Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_status", "objects", "variants", "screen_instances"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "ATLAS_VISUAL_OBJECT_REGISTRY_V1"
+    },
+    "registry_status": {
+      "type": "string",
+      "enum": ["candidate_registry_foundation", "draft", "accepted", "deprecated"]
+    },
+    "objects": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/object"
+      }
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/variant"
+      }
+    },
+    "screen_instances": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/screenInstance"
+      }
+    }
+  },
+  "$defs": {
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_id",
+        "schema_version",
+        "status",
+        "semantic_role",
+        "variant_axes",
+        "token_bindings",
+        "acceptance_criteria",
+        "implementation_mapping"
+      ],
+      "properties": {
+        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "schema_version": { "type": "string", "const": "ATLAS_VISUAL_OBJECT_REGISTRY_V1" },
+        "status": { "type": "string", "enum": ["candidate", "draft", "accepted", "deprecated"] },
+        "semantic_role": { "type": "string", "minLength": 1 },
+        "variant_axes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["size", "density", "tier", "motion", "state", "surface", "emphasis"]
+          },
+          "uniqueItems": true
+        },
+        "token_bindings": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]+$" }
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/criterion" }
+        },
+        "implementation_mapping": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/implementationMapping" }
+        }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variant_ref",
+        "object_id",
+        "axis_values",
+        "token_bindings",
+        "state_overrides",
+        "acceptance_criteria_refs",
+        "implementation_mapping"
+      ],
+      "properties": {
+        "variant_ref": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
+        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "axis_values": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["size", "density", "tier", "motion", "state", "surface", "emphasis"],
+          "properties": {
+            "size": { "type": "string", "enum": ["compact", "standard", "workspace"] },
+            "density": { "type": "string", "enum": ["compact", "comfortable", "expanded"] },
+            "tier": { "type": "string", "enum": ["relevant", "emerging", "neutral", "warning"] },
+            "motion": { "type": "string", "enum": ["static", "periodic_hold", "continuous_sweep"] },
+            "state": { "type": "string", "enum": ["default", "hover", "selected", "loading", "empty", "disabled"] },
+            "surface": { "type": "string", "enum": ["dark_panel", "shell_panel", "modal_panel"] },
+            "emphasis": { "type": "string", "enum": ["low", "medium", "high"] }
+          }
+        },
+        "token_bindings": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]+$" }
+        },
+        "state_overrides": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]+$" }
+        },
+        "acceptance_criteria_refs": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" }
+        },
+        "implementation_mapping": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/implementationMapping" }
+        }
+      }
+    },
+    "screenInstance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instance_id",
+        "object_id",
+        "variant_ref",
+        "surface",
+        "route",
+        "state",
+        "acceptance_criteria_refs",
+        "implementation_mapping"
+      ],
+      "properties": {
+        "instance_id": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
+        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "variant_ref": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
+        "surface": { "type": "string", "enum": ["dark_panel", "shell_panel", "modal_panel"] },
+        "route": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "enum": ["default", "hover", "selected", "loading", "empty", "disabled"] },
+        "acceptance_criteria_refs": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" }
+        },
+        "implementation_mapping": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/implementationMapping" }
+        }
+      }
+    },
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "statement"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
+        "statement": { "type": "string", "minLength": 1 }
+      }
+    },
+    "implementationMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "kind"],
+      "properties": {
+        "target": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

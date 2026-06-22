@@ -1,0 +1,410 @@
+{
+  "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+  "registry_status": "candidate_registry_foundation",
+  "objects": [
+    {
+      "object_id": "radar_workspace",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "primary workspace surface",
+      "variant_axes": ["size", "density", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "surface_border": "token.border.soft",
+        "surface_glow": "token.glow.moderate",
+        "title": "token.color.accent.primary",
+        "text": "token.color.text.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "radar_workspace.layout.balance",
+          "statement": "The workspace registers a candidate radar surface with a balanced shell-panel layout."
+        },
+        {
+          "id": "radar_workspace.registry.no_render_import",
+          "statement": "The registry stays data-only and is not imported by render code in this first E3."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/Radar.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "object_id": "radar_sweep_mark",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "visual primitive",
+      "variant_axes": ["size", "density", "tier", "motion", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "ring": "token.color.border.soft",
+        "sweep": "token.color.accent.primary",
+        "accent": "token.color.accent.secondary",
+        "motion_duration": "token.motion.sweep.duration",
+        "motion_curve": "token.motion.sweep.curve"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "radar_sweep_mark.registry.symbolic_tokens",
+          "statement": "Sweep mark bindings stay symbolic and do not introduce raw hex, px, or duration literals."
+        },
+        {
+          "id": "radar_sweep_mark.registry.variant_coverage",
+          "statement": "The primitive exposes compact and workspace variants, including periodic and continuous motion modes."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/RadarSweepMark.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "object_id": "signal_card",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "reusable visual object",
+      "variant_axes": ["size", "density", "tier", "motion", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "surface_border": "token.border.soft",
+        "accent": "token.color.accent.primary",
+        "tier_relevant": "token.color.tier.relevant",
+        "tier_emerging": "token.color.tier.emerging"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "signal_card.registry.symbolic_tokens",
+          "statement": "Signal card bindings stay symbolic and do not introduce raw hex, px, or duration literals."
+        },
+        {
+          "id": "signal_card.registry.variant_coverage",
+          "statement": "The registry covers standard and compact signal card variants and supports relevant and emerging tiers."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/SignalCard.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "variant_ref": "radar_workspace.workspace.relevant.default",
+      "object_id": "radar_workspace",
+      "axis_values": {
+        "size": "workspace",
+        "density": "expanded",
+        "tier": "relevant",
+        "motion": "continuous_sweep",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "high"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "surface_border": "token.border.shell",
+        "title": "token.color.accent.primary",
+        "motion_duration": "token.motion.sweep.duration"
+      },
+      "state_overrides": {
+        "selected": "token.color.accent.primary"
+      },
+      "acceptance_criteria_refs": [
+        "radar_workspace.layout.balance"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/Radar.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "variant_ref": "radar_workspace.workspace.relevant.selected",
+      "object_id": "radar_workspace",
+      "axis_values": {
+        "size": "workspace",
+        "density": "expanded",
+        "tier": "relevant",
+        "motion": "continuous_sweep",
+        "state": "selected",
+        "surface": "shell_panel",
+        "emphasis": "high"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "surface_border": "token.border.selected",
+        "title": "token.color.accent.primary",
+        "motion_duration": "token.motion.sweep.duration"
+      },
+      "state_overrides": {
+        "border": "token.border.selected",
+        "glow": "token.glow.strong"
+      },
+      "acceptance_criteria_refs": [
+        "radar_workspace.layout.balance"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/Radar.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "variant_ref": "radar_sweep_mark.workspace.relevant.continuous",
+      "object_id": "radar_sweep_mark",
+      "axis_values": {
+        "size": "workspace",
+        "density": "expanded",
+        "tier": "relevant",
+        "motion": "continuous_sweep",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "high"
+      },
+      "token_bindings": {
+        "sweep": "token.color.accent.primary",
+        "motion_duration": "token.motion.sweep.duration",
+        "motion_curve": "token.motion.sweep.curve"
+      },
+      "state_overrides": {
+        "selected": "token.color.accent.secondary"
+      },
+      "acceptance_criteria_refs": [
+        "radar_sweep_mark.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/RadarSweepMark.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "variant_ref": "radar_sweep_mark.compact.relevant.static",
+      "object_id": "radar_sweep_mark",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "relevant",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "sweep": "token.color.accent.primary",
+        "motion_duration": "token.motion.sweep.duration"
+      },
+      "state_overrides": {
+        "motion": "token.motion.static"
+      },
+      "acceptance_criteria_refs": [
+        "radar_sweep_mark.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/RadarSweepMark.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "variant_ref": "radar_sweep_mark.workspace.emerging.periodic_hold",
+      "object_id": "radar_sweep_mark",
+      "axis_values": {
+        "size": "workspace",
+        "density": "expanded",
+        "tier": "emerging",
+        "motion": "periodic_hold",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "sweep": "token.color.tier.emerging",
+        "motion_duration": "token.motion.sweep.duration",
+        "motion_curve": "token.motion.sweep.curve"
+      },
+      "state_overrides": {
+        "motion": "token.motion.periodic_hold"
+      },
+      "acceptance_criteria_refs": [
+        "radar_sweep_mark.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/RadarSweepMark.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "variant_ref": "signal_card.standard.relevant.default",
+      "object_id": "signal_card",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "relevant",
+        "motion": "continuous_sweep",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "surface_border": "token.border.soft",
+        "sweep": "token.color.tier.relevant",
+        "motion_duration": "token.motion.sweep.duration"
+      },
+      "state_overrides": {
+        "footer": "token.surface.raised"
+      },
+      "acceptance_criteria_refs": [
+        "signal_card.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/SignalCard.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "variant_ref": "signal_card.compact.relevant.default",
+      "object_id": "signal_card",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "relevant",
+        "motion": "continuous_sweep",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "surface_border": "token.border.soft",
+        "sweep": "token.color.tier.relevant",
+        "motion_duration": "token.motion.sweep.duration"
+      },
+      "state_overrides": {
+        "footer": "token.surface.raised"
+      },
+      "acceptance_criteria_refs": [
+        "signal_card.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/SignalCard.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "variant_ref": "signal_card.standard.emerging.loading",
+      "object_id": "signal_card",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "emerging",
+        "motion": "periodic_hold",
+        "state": "loading",
+        "surface": "dark_panel",
+        "emphasis": "low"
+      },
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "surface_border": "token.border.soft",
+        "sweep": "token.color.tier.emerging",
+        "motion_duration": "token.motion.sweep.duration"
+      },
+      "state_overrides": {
+        "loading": "token.motion.loading"
+      },
+      "acceptance_criteria_refs": [
+        "signal_card.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/SignalCard.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    }
+  ],
+  "screen_instances": [
+    {
+      "instance_id": "dashboard.radar.primary_workspace",
+      "object_id": "radar_workspace",
+      "variant_ref": "radar_workspace.workspace.relevant.default",
+      "surface": "shell_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "radar_workspace.layout.balance"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/Radar.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.radar.primary_workspace.sweep",
+      "object_id": "radar_sweep_mark",
+      "variant_ref": "radar_sweep_mark.workspace.relevant.continuous",
+      "surface": "shell_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "radar_sweep_mark.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/shell/RadarSweepMark.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.radar.primary_workspace.signal_card.relevant",
+      "object_id": "signal_card",
+      "variant_ref": "signal_card.standard.relevant.default",
+      "surface": "dark_panel",
+      "route": "/atlas/radar",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "signal_card.registry.symbolic_tokens"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/workspaces/SignalCard.tsx",
+          "kind": "future-implementation-map",
+          "notes": "Registry target only; no import in this first E3."
+        }
+      ]
+    }
+  ]
+}
