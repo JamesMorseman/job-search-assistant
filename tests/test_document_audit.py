@@ -157,6 +157,61 @@ def test_resume_audit_fails_on_unresolved_placeholder_and_missing_required_secti
     assert "PLACEHOLDER_LEAKAGE" in failure_codes(result)
 
 
+def test_resume_audit_fails_on_leftover_boilerplate_text():
+    data = valid_resume_json()
+    data["professional_summary"] = "Civil engineering candidate. TODO: add more detail."
+
+    result = audit_resume(resume_json=data, profile=profile(), resume_text=valid_resume_text())
+
+    assert "PLACEHOLDER_LEAKAGE" in failure_codes(result)
+
+
+def test_resume_audit_passes_without_leftover_boilerplate_text():
+    result = audit_resume(
+        resume_json=valid_resume_json(),
+        profile=profile(),
+        resume_text=valid_resume_text(),
+    )
+
+    assert "PLACEHOLDER_LEAKAGE" not in failure_codes(result)
+
+
+def test_resume_audit_fails_on_duplicate_bullet_text():
+    data = valid_resume_json()
+    data["projects"] = [
+        {
+            "name": "Senior Capstone Project",
+            "bullets": ["Performed capstone structural modeling and load-path review."],
+        },
+        {
+            "name": "Second Project",
+            "bullets": ["Performed capstone structural modeling and load-path review."],
+        },
+    ]
+
+    result = audit_resume(resume_json=data, profile=profile(), resume_text=valid_resume_text())
+
+    assert "DUPLICATE_BULLET_TEXT" in failure_codes(result)
+
+
+def test_resume_audit_passes_with_distinct_bullet_text():
+    data = valid_resume_json()
+    data["projects"] = [
+        {
+            "name": "Senior Capstone Project",
+            "bullets": ["Performed capstone structural modeling and load-path review."],
+        },
+        {
+            "name": "Second Project",
+            "bullets": ["Coordinated steel connection design for a separate structure."],
+        },
+    ]
+
+    result = audit_resume(resume_json=data, profile=profile(), resume_text=valid_resume_text())
+
+    assert "DUPLICATE_BULLET_TEXT" not in failure_codes(result)
+
+
 def test_resume_audit_fails_when_page_count_exceeded():
     data = valid_resume_json()
     data["rendering_qa"] = {"estimated_page_count": 2}
@@ -295,6 +350,15 @@ def test_cover_letter_audit_allows_legitimate_bracketed_company_name():
 def test_cover_letter_audit_fails_unresolved_template_markers():
     cover = valid_cover_json()
     cover["body_paragraphs"][0] = "I am interested in {company}."
+
+    result = audit_cover_letter(cover_json=cover, profile=profile(), job=job(), cover_text=valid_cover_text())
+
+    assert "PLACEHOLDER_LEAKAGE" in failure_codes(result)
+
+
+def test_cover_letter_audit_fails_on_leftover_boilerplate_text():
+    cover = valid_cover_json()
+    cover["body_paragraphs"][0] = "Lorem ipsum dolor sit amet, interested in the role."
 
     result = audit_cover_letter(cover_json=cover, profile=profile(), job=job(), cover_text=valid_cover_text())
 

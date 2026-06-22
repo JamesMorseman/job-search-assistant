@@ -26,6 +26,9 @@ class AuditSeverity(str, Enum):
 
 
 TEMPLATE_PLACEHOLDER_RE = re.compile(r"\b[\w-]*placeholder[\w-]*\b", re.IGNORECASE)
+LEFTOVER_BOILERPLATE_RE = re.compile(
+    r"\b(?:lorem\s+ipsum|TODO|FIXME|TBD|XXX)\b", re.IGNORECASE
+)
 TEMPLATE_MARKER_LABELS = (
     "company",
     "role",
@@ -225,6 +228,10 @@ def audit_resume(*, resume_json: dict, profile: dict, resume_text: str = "") -> 
         _check(len(projects) == 0 or len(projects[0].get("bullets", [])) >= 1, "SPARSE_CAPSTONE_BULLETS", AuditSeverity.MAJOR,
                "Capstone project should have supporting bullets.", "First engineering project has no supporting bullet evidence.",
                "Add concise capstone/project bullets grounded in profile evidence."),
+        _check(not _has_repeated_bullet_text(projects), "DUPLICATE_BULLET_TEXT", AuditSeverity.MAJOR,
+               "Project/engineering experience bullets should not repeat identical text.",
+               "Two or more project bullets contain identical text.",
+               "Regenerate or rewrite duplicated bullets so each conveys distinct evidence."),
         _check(_resume_utilization_ok(full_text), "RESUME_UNDERUTILIZED", AuditSeverity.MINOR,
                "Resume should use available page capacity reasonably.", "Resume appears short for a one-page target.",
                "Consider adding relevant coursework, skills, or project detail if space allows."),
@@ -317,6 +324,7 @@ def contains_unresolved_template_marker(value: str) -> bool:
         TEMPLATE_PLACEHOLDER_RE.search(text)
         or UNRESOLVED_TEMPLATE_MARKER_RE.search(text)
         or _has_malformed_closing_fragment(text)
+        or _has_leftover_boilerplate(text)
     )
 
 
@@ -473,6 +481,24 @@ def _points(value: Any) -> float:
         return float(value)
     except (TypeError, ValueError):
         return 0.0
+
+
+def _has_leftover_boilerplate(text: str) -> bool:
+    return bool(LEFTOVER_BOILERPLATE_RE.search(text or ""))
+
+
+def _has_repeated_bullet_text(projects: list[Any]) -> bool:
+    bullets = []
+    for project in projects or []:
+        if not isinstance(project, dict):
+            continue
+        for bullet in project.get("bullets", []) or []:
+            cleaned = _clean(bullet).lower()
+            if cleaned:
+                bullets.append(cleaned)
+    if len(bullets) < 2:
+        return False
+    return len(set(bullets)) < len(bullets)
 
 
 def _has_capstone_or_baldwin(text: str) -> bool:
