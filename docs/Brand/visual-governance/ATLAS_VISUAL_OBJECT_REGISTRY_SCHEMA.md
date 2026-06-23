@@ -54,6 +54,19 @@ acceptance_criteria
 implementation_mapping
 ```
 
+## Object ID format
+
+Object IDs use underscore-separated base identifiers. VR03 also permits the
+bounded `.shell_only` suffix for shell-only registry objects:
+
+```text
+base_object_id
+base_object_id.shell_only
+```
+
+This suffix does not authorize arbitrary dotted object taxonomy, live component
+binding, CSS binding, route binding, or visual acceptance.
+
 ## Object status values
 
 ```text
@@ -184,9 +197,9 @@ atlas_mark
 The registry inclusion is data/schema only and does not authorize any
 acceptance gate.
 
-## Deferred shell object set
+## VR03 additive shell object set
 
-The chat-side shell objects are deferred to VR03 or later:
+VR03 adds the following shell-only objects to the existing main registry:
 
 ```text
 recommendation_card.shell_only
@@ -199,4 +212,10 @@ filter_chip
 search_input_shell
 ```
 
-These deferred objects remain outside the VR02 additive registry.
+VR03 does not replace the registry. It preserves the foundation objects and the
+VR02 additive objects, then adds only the shell objects listed above.
+
+Registry inclusion is data/schema/validation/documentation only. It does not
+authorize UI implementation, rendering, CSS, layout, route or navigation
+binding, screenshots, visual pass, implementation acceptance, identity
+acceptance, Rin sync, P7P6, public/recruiter release, or release readiness.

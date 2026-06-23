@@ -104,6 +104,11 @@ test("schema doc describes the required registry structure", () => {
   assert.match(schemaDoc, /atlas_mark/);
   assert.match(schemaDoc, /recommendation_card\.shell_only/);
   assert.match(schemaDoc, /pipeline_status_item\.shell_only/);
+  assert.match(schemaDoc, /progress_indicator/);
+  assert.match(schemaDoc, /metric_tile/);
+  assert.match(schemaDoc, /empty_state_panel/);
+  assert.match(schemaDoc, /section_header/);
+  assert.match(schemaDoc, /filter_chip/);
   assert.match(schemaDoc, /search_input_shell/);
 });
 
@@ -115,6 +120,14 @@ test("registry schema is well-formed", () => {
   assert.equal(schema.required.includes("screen_instances"), true);
 });
 
+test("object id schema only allows base ids plus shell-only suffixes", () => {
+  const pattern = new RegExp(schema.$defs.object.properties.object_id.pattern);
+  assert.equal(pattern.test("metric_tile"), true);
+  assert.equal(pattern.test("recommendation_card.shell_only"), true);
+  assert.equal(pattern.test("recommendation_card.other_suffix"), false);
+  assert.equal(pattern.test("recommendation.card.shell_only"), false);
+});
+
 test("registry has the required foundation and expansion objects", () => {
   assert.equal(registry.schema_version, "ATLAS_VISUAL_OBJECT_REGISTRY_V1");
   assert.equal(registry.registry_status, "candidate_registry_foundation");
@@ -124,10 +137,18 @@ test("registry has the required foundation and expansion objects", () => {
       "action_button",
       "atlas_mark",
       "context_rail",
+      "empty_state_panel",
+      "filter_chip",
       "icon_button",
+      "metric_tile",
       "panel_surface",
+      "pipeline_status_item.shell_only",
+      "progress_indicator",
       "radar_sweep_mark",
       "radar_workspace",
+      "recommendation_card.shell_only",
+      "search_input_shell",
+      "section_header",
       "signal_card",
       "status_badge",
       "status_metric",
