@@ -7,6 +7,12 @@ anatomy at a high level, and known drift risks. The registry does **not** contai
 pixel specs - it points to them. See `VISUAL_GOVERNANCE_V1.md` for governing direction
 and the Deep Research normalization states used below.
 
+This document is an evidence-oriented inventory, not the Build 1 machine-readable
+closed object set. For the current Build 1 evidence state referenced by W4-
+VISUAL-REGISTRY-02, the closed set is exactly `context_rail`, `status_metric`,
+and `atlas_mark`. Earlier eight-object prose coverage is historical context only
+and should not be read as current closed-set coverage.
+
 ## Registry Entry Template
 
 ```text
