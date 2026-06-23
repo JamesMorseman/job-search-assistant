@@ -261,6 +261,52 @@ def test_list_recent_runs_returns_pipelinerun_models(db):
 # ── get_run ───────────────────────────────────────────────────────────────────
 
 
+def test_get_summary_empty_on_empty_db(db):
+    summary = PipelineService(db).get_summary()
+    assert summary.total_runs == 0
+    assert summary.running_count == 0
+    assert summary.failed_count == 0
+    assert summary.last_run_at is None
+    assert summary.last_successful_run_at is None
+
+
+def test_get_summary_counts_global_statuses(db):
+    svc = PipelineService(db)
+    complete_id = svc.start_run("ingest")
+    svc.complete_run(complete_id)
+    failed_id = svc.start_run("grade")
+    svc.fail_run(failed_id)
+    svc.start_run("report")
+
+    summary = svc.get_summary()
+    assert summary.total_runs == 3
+    assert summary.running_count == 1
+    assert summary.failed_count == 1
+    assert summary.last_run_at is not None
+    assert summary.last_successful_run_at is not None
+
+
+def test_get_summary_last_successful_run_uses_completed_at_for_complete_runs(db):
+    import sqlite3
+
+    conn = sqlite3.connect(db)
+    conn.execute(
+        """
+        INSERT INTO pipeline_runs (run_type, status, started_at, completed_at, trigger)
+        VALUES
+            ('ingest', 'complete', '2026-01-01T10:00:00', '2026-01-01T10:05:00', 'cli'),
+            ('grade', 'failed', '2026-01-02T10:00:00', '2026-01-02T10:05:00', 'cli'),
+            ('report', 'complete', '2026-01-03T10:00:00', '2026-01-03T10:08:00', 'manual')
+        """
+    )
+    conn.commit()
+    conn.close()
+
+    summary = PipelineService(db).get_summary()
+    assert summary.last_run_at == "2026-01-03T10:00:00"
+    assert summary.last_successful_run_at == "2026-01-03T10:08:00"
+
+
 def test_get_run_returns_none_for_missing_id(db):
     svc = PipelineService(db)
     assert svc.get_run(99999) is None

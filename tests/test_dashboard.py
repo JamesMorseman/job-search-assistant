@@ -35,7 +35,7 @@ from job_search.services.documents import DocumentsService
 from job_search.services.firms import FirmsService
 from job_search.services.jobs import JobsService
 from job_search.services.metrics import MetricsService
-from job_search.services.pipeline import PipelineService
+from job_search.services.pipeline import PipelineRunsSummary, PipelineService
 from job_search.services.tracker import TrackerService
 from job_search.tracking import advance_state
 
@@ -2460,6 +2460,15 @@ def test_pipeline_runs_empty_table_shows_no_runs_recorded(client, db):
     assert 'data-testid="no-runs-recorded"' in resp.text
 
 
+def test_pipeline_runs_renders_empty_summary(client, db):
+    resp = client.get("/dashboard/pipeline-runs")
+    assert resp.status_code == 200
+    assert 'data-testid="pipeline-runs-summary"' in resp.text
+    assert 'data-testid="pipeline-summary-total">0<' in resp.text
+    assert 'data-testid="pipeline-summary-running">0<' in resp.text
+    assert 'data-testid="pipeline-summary-failed">0<' in resp.text
+
+
 def test_pipeline_runs_renders_completed_run(client, db):
     svc = PipelineService(db)
     run_id = svc.start_run("ingest", source="greenhouse", trigger="cli")
@@ -2475,6 +2484,22 @@ def test_pipeline_runs_renders_completed_run(client, db):
     assert "complete" in resp.text
     assert "120" in resp.text
     assert "OK" in resp.text
+
+
+def test_pipeline_runs_renders_global_summary(client, db):
+    svc = PipelineService(db)
+    complete_id = svc.start_run("ingest", trigger="cli")
+    svc.complete_run(complete_id)
+    failed_id = svc.start_run("grade", trigger="cli")
+    svc.fail_run(failed_id, error_detail="boom")
+    svc.start_run("report", trigger="manual")
+
+    resp = client.get("/dashboard/pipeline-runs?status=failed")
+    assert resp.status_code == 200
+    assert 'data-testid="pipeline-summary-total">3<' in resp.text
+    assert 'data-testid="pipeline-summary-running">1<' in resp.text
+    assert 'data-testid="pipeline-summary-failed">1<' in resp.text
+    assert 'data-testid="pipeline-summary-last-success"' in resp.text
 
 
 def test_pipeline_runs_renders_failed_run_with_error_detail(client, db):
@@ -2537,12 +2562,23 @@ def test_pipeline_runs_uses_dependency_override_not_direct_construction(db):
         def list_distinct_run_types(self):
             return []
 
+        def get_summary(self):
+            calls.append("get_summary")
+            return PipelineRunsSummary(
+                total_runs=0,
+                running_count=0,
+                failed_count=0,
+                last_run_at=None,
+                last_successful_run_at=None,
+            )
+
     app.dependency_overrides[get_pipeline_service] = lambda: _StubPipelineService()
     with TestClient(app) as c:
         resp = c.get("/dashboard/pipeline-runs")
 
     assert resp.status_code == 200
     assert "list_recent_runs" in calls
+    assert "get_summary" in calls
 
 
 def test_pipeline_runs_handles_service_failure_without_500(db):

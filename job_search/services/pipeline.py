@@ -34,6 +34,16 @@ class PipelineRun(BaseModel):
     notes: str | None
 
 
+class PipelineRunsSummary(BaseModel):
+    """Read model for global Pipeline Runs screen counts."""
+
+    total_runs: int
+    running_count: int
+    failed_count: int
+    last_run_at: str | None
+    last_successful_run_at: str | None
+
+
 def _now_iso() -> str:
     return datetime.now(tz=timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds")
 
@@ -213,6 +223,28 @@ class PipelineService:
         with get_db(self._db_path) as db:
             rows = db.execute(sql, params).fetchall()
         return [_row_to_run(r) for r in rows]
+
+    def get_summary(self) -> PipelineRunsSummary:
+        """Return read-only aggregate counts across all pipeline runs."""
+        with get_db(self._db_path) as db:
+            row = db.execute(
+                """
+                SELECT
+                    COUNT(*) AS total_runs,
+                    COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0) AS running_count,
+                    COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0) AS failed_count,
+                    MAX(started_at) AS last_run_at,
+                    MAX(CASE WHEN status = 'complete' THEN completed_at ELSE NULL END) AS last_successful_run_at
+                FROM pipeline_runs
+                """
+            ).fetchone()
+        return PipelineRunsSummary(
+            total_runs=row["total_runs"] or 0,
+            running_count=row["running_count"] or 0,
+            failed_count=row["failed_count"] or 0,
+            last_run_at=row["last_run_at"],
+            last_successful_run_at=row["last_successful_run_at"],
+        )
 
     def list_distinct_statuses(self) -> list[str]:
         """Return distinct status values present in pipeline_runs, sorted."""
