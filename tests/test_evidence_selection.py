@@ -1,7 +1,13 @@
 """Tests for deterministic evidence selection."""
 
 from job_search.evidence.discipline import classify_job
-from job_search.evidence.keywords import build_alias_map, expand_with_aliases
+from job_search.evidence.keywords import (
+    build_alias_map,
+    expand_with_aliases,
+    normalize_text,
+    phrase_hits,
+    tokenize,
+)
 from job_search.evidence.loader import EvidenceLoader
 from job_search.evidence.scorer import EvidenceScorer, ScoreContext
 from job_search.evidence.selector import EvidenceSelector
@@ -242,3 +248,42 @@ def test_redundant_structural_project_deprioritized_when_capstone_selected():
 
     assert "capstone" in project_ids
     assert "proj_steel_duplicate" not in project_ids
+
+
+def test_normalize_text_folds_unicode_dashes_to_ascii_hyphen():
+    # Job descriptions copy-pasted from Word/PDF often use en dash, em dash,
+    # or the dedicated Unicode hyphen character instead of a plain ASCII "-".
+    # These should normalize the same way an ASCII hyphen would, so compound
+    # terms stay joined as one token instead of being split into two.
+    assert normalize_text("co‐ordinate") == "co-ordinate"  # hyphen
+    assert normalize_text("co‑ordinate") == "co-ordinate"  # non-breaking hyphen
+    assert normalize_text("AutoCAD–Civil 3D") == "autocad-civil 3d"  # en dash
+    assert normalize_text("AutoCAD—Civil 3D") == "autocad-civil 3d"  # em dash
+
+
+def test_normalize_text_folds_smart_quotes_consistently_with_ascii():
+    # Smart/curly apostrophes should normalize identically to a plain ASCII
+    # apostrophe rather than silently producing a different token stream.
+    assert normalize_text("don’t") == normalize_text("don't")
+    assert normalize_text("“structural” engineer") == normalize_text('"structural" engineer')
+
+
+def test_normalize_text_drops_soft_hyphen_without_inserting_space():
+    # A soft hyphen (invisible line-break hint) should be removed outright,
+    # not converted into a space that would split a word in two.
+    assert normalize_text("soft­hyphen") == "softhyphen"
+
+
+def test_phrase_hits_matches_across_unicode_hyphen_variants():
+    # Regression for a real matching gap: a profile keyword written with an
+    # ASCII hyphen previously failed to match a job description that used a
+    # Unicode hyphen character for the same compound word.
+    jd = "Looking for someone to co‐ordinate field reports and submittals."
+
+    assert phrase_hits(["co-ordinate"], jd) == {"co-ordinate"}
+
+
+def test_tokenize_treats_unicode_dash_compound_as_single_token():
+    tokens = tokenize("co–ordinate field reports")
+
+    assert "co-ordinate" in tokens

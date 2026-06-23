@@ -12,9 +12,42 @@ STOPWORDS = {
     "engineering", "project", "projects", "including", "related",
 }
 
+# Unicode punctuation that should collapse to a canonical ASCII equivalent
+# *before* the strip regex runs, so terms typed with "smart" punctuation
+# (common in job descriptions copy-pasted from Word/PDF) still line up with
+# resume/profile text typed with plain ASCII punctuation. Hyphen-like dashes
+# map to "-" so compound terms (e.g. "co-ordinate") stay joined instead of
+# being split into separate tokens; quote-like marks map to "'" so
+# contractions/possessives don't lose trailing characters; space-like
+# separators map to a plain space.
+_UNICODE_PUNCT_MAP = {
+    "‐": "-",  # hyphen
+    "‑": "-",  # non-breaking hyphen
+    "‒": "-",  # figure dash
+    "–": "-",  # en dash
+    "—": "-",  # em dash
+    "―": "-",  # horizontal bar
+    "‘": "'",  # left single quote
+    "’": "'",  # right single quote / apostrophe
+    "‚": "'",  # single low-9 quote
+    "‛": "'",  # single high-reversed-9 quote
+    "“": '"',  # left double quote
+    "”": '"',  # right double quote
+    " ": " ",  # non-breaking space
+    " ": " ",  # figure space
+    " ": " ",  # narrow no-break space
+    "­": "",   # soft hyphen (invisible; drop rather than split words)
+}
+_UNICODE_PUNCT_RE = re.compile("|".join(re.escape(ch) for ch in _UNICODE_PUNCT_MAP))
+
+
+def _fold_unicode_punctuation(text: str) -> str:
+    return _UNICODE_PUNCT_RE.sub(lambda m: _UNICODE_PUNCT_MAP[m.group(0)], text)
+
 
 def normalize_text(value: Any) -> str:
     text = str(value or "").lower()
+    text = _fold_unicode_punctuation(text)
     text = re.sub(r"[^a-z0-9+#.\s-]", " ", text)
     return re.sub(r"\s+", " ", text).strip()
 

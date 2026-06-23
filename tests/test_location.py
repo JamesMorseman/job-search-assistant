@@ -72,6 +72,68 @@ def test_fuzzy_match_on_typo(scorer):
     assert 0.8 <= s.confidence < 1.0
 
 
+# ── Cross-state name-collision guard ──────────────────────────────────────────
+#
+# Several metros carry a bare-city alias (e.g. "troy, mi" -> key "troy" for
+# Detroit, "columbus" for Columbus, OH) that also happens to be the name of a
+# real, unrelated city elsewhere in the country (Troy, NY; Columbus, GA — not
+# in this dataset). The matcher must not let its global fuzzy fallback
+# resurrect that same alias key at high confidence once the explicit state
+# disagreement has already ruled it out for this query.
+
+def test_state_mismatch_does_not_resurrect_via_global_fuzzy(scorer):
+    """Troy, NY is real but unranked; must not silently resolve to Detroit, MI
+    just because "troy, mi" is an alias of Detroit."""
+    s = scorer.score("Troy", "NY")
+    assert s.metro_id is None
+    assert s.ranked is False
+    assert s.match_kind == "fallback"
+
+
+def test_columbus_ga_does_not_resolve_to_columbus_oh(scorer):
+    """Columbus, GA is unranked and distinct from Columbus, OH."""
+    s = scorer.score("Columbus", "GA")
+    assert s.metro_id is None
+    assert s.ranked is False
+    assert s.match_kind == "fallback"
+
+
+def test_columbus_oh_still_matches_with_correct_state(scorer):
+    """Sanity check: the fix must not break the legitimate same-state match."""
+    s = scorer.score("Columbus", "OH")
+    assert s.metro_id == "columbus_oh"
+    assert s.ranked is True
+
+
+def test_cross_state_fuzzy_match_gets_confidence_penalty(scorer):
+    """A genuine fuzzy (typo) match that lands in a state different from the
+    one supplied should be flagged with reduced confidence, not full trust."""
+    same_state = scorer.score("Cinncinati", "OH")
+    cross_state = scorer.score("Cinncinati", "KY")
+    assert same_state.metro_id == "cincinnati_oh"
+    assert cross_state.metro_id == "cincinnati_oh"
+    assert cross_state.confidence < same_state.confidence
+
+
+# ── Degenerate / short input guard ────────────────────────────────────────────
+
+def test_single_character_city_does_not_falsely_match(scorer):
+    """A single garbage character must not substring-match into an unrelated
+    metro/alias key (e.g. "a" is a substring of "cleveland")."""
+    s = scorer.score("a", "OH")
+    assert s.metro_id is None
+    assert s.ranked is False
+    assert s.match_kind == "fallback"
+
+
+def test_short_but_real_alias_still_matches(scorer):
+    """The short-input guard must not break legitimate short aliases."""
+    s = scorer.score("LA", "CA")
+    assert s.metro_id == "los_angeles_ca"
+    s2 = scorer.score("SF", "CA")
+    assert s2.metro_id == "sf_bay_ca"
+
+
 def test_unranked_metro_returns_fallback(scorer):
     s = scorer.score("Boise", "ID")
     assert s.metro_id is None

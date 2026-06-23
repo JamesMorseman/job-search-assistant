@@ -22,6 +22,19 @@ from .models import MetroArea
 # Fuzzy-match threshold — below this, fall through to fallback
 FUZZY_THRESHOLD = 88
 
+# Minimum normalized-city length eligible for substring-containment matching.
+# Below this, short/garbage input (e.g. a single letter) can spuriously be a
+# substring of — or contain — an unrelated metro/alias key.
+MIN_SUBSTRING_MATCH_LEN = 3
+
+# Confidence penalty applied to a global fuzzy match when the caller supplied
+# a state that disagrees with the matched metro's state. Cross-state name
+# collisions (e.g. "Columbus, GA" vs. the "columbus" alias for Columbus, OH;
+# "Troy, NY" vs. the "troy" alias for Detroit, MI) are a much weaker signal
+# than a same-state or state-less match, so they should never be reported
+# with the same confidence as a clean match.
+CROSS_STATE_FUZZY_PENALTY = 0.15
+
 
 @dataclass
 class MatchResult:
@@ -86,23 +99,36 @@ class CityMatcher:
                 m = self._by_id[self._lookup[full_key]]
                 return MatchResult(metro=m, kind="exact", confidence=1.0)
 
+        # Tracks a metro_id that was positively ruled out because it matched
+        # the city name but in a state that disagrees with the caller's
+        # input. Later, weaker steps (global fuzzy) must not silently
+        # resurrect this same candidate at high confidence — that would
+        # defeat the disagreement check below (e.g. "Troy, NY" falling
+        # through to re-discover "troy" -> Detroit, MI via fuzzy search).
+        rejected_state_mismatch_id: str | None = None
+
         # 2. City-only exact in global lookup
         if city_norm in self._lookup:
             m = self._by_id[self._lookup[city_norm]]
             # If a state was given but disagrees, drop the match
             if state_norm and m.state != state_norm:
-                pass
+                rejected_state_mismatch_id = m.id
             else:
                 return MatchResult(metro=m, kind="alias", confidence=0.95)
 
         # 3. Within-state alias / fuzzy
         if state_norm and state_norm in self._state_lookup:
             state_keys = list(self._state_lookup[state_norm].keys())
-            # Try contains-substring match for compound aliases first
-            for key in state_keys:
-                if city_norm == key or city_norm in key or key in city_norm:
-                    metro_id = self._state_lookup[state_norm][key]
-                    return MatchResult(metro=self._by_id[metro_id], kind="alias", confidence=0.85)
+            # Try contains-substring match for compound aliases first.
+            # Guard against degenerate short input (e.g. "a") spuriously
+            # matching as a substring of/containing an unrelated key.
+            if len(city_norm) >= MIN_SUBSTRING_MATCH_LEN:
+                for key in state_keys:
+                    if len(key) < MIN_SUBSTRING_MATCH_LEN:
+                        continue
+                    if city_norm == key or city_norm in key or key in city_norm:
+                        metro_id = self._state_lookup[state_norm][key]
+                        return MatchResult(metro=self._by_id[metro_id], kind="alias", confidence=0.85)
             # Fuzzy
             best = process.extractOne(
                 city_norm,
@@ -120,7 +146,10 @@ class CityMatcher:
                 )
 
         # 4. Global fuzzy (last resort — useful when state is missing/wrong)
-        global_keys = list(self._lookup.keys())
+        global_keys = [
+            key for key, metro_id in self._lookup.items()
+            if metro_id != rejected_state_mismatch_id
+        ]
         best = process.extractOne(
             city_norm,
             global_keys,
@@ -130,11 +159,13 @@ class CityMatcher:
         if best:
             key, score, _ = best
             metro_id = self._lookup[key]
-            return MatchResult(
-                metro=self._by_id[metro_id],
-                kind="fuzzy",
-                confidence=score / 100.0,
-            )
+            metro = self._by_id[metro_id]
+            confidence = score / 100.0
+            # A state was supplied but disagrees with the matched metro:
+            # this is a cross-state name collision, not a confident match.
+            if state_norm and metro.state != state_norm:
+                confidence = max(0.0, confidence - CROSS_STATE_FUZZY_PENALTY)
+            return MatchResult(metro=metro, kind="fuzzy", confidence=confidence)
 
         return None
 
