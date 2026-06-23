@@ -20,7 +20,7 @@ respectively. No new workflow rules are introduced here.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from sqlite3 import Row
 
 from pydantic import BaseModel
@@ -72,6 +72,21 @@ def _row_to_tracker_row(row: Row) -> TrackerRow:
         match_score=row["match_score"],
         last_transitioned_at=row["last_transitioned_at"],
         last_transition_note=row["last_transition_note"],
+    )
+
+
+def _row_to_followup_item(row: Row) -> FollowUpItem:
+    return FollowUpItem(
+        id=row["id"],
+        canonical_job_id=row["canonical_job_id"],
+        company=row["company"],
+        title=row["title"],
+        app_state=row["app_state"],
+        apply_url=row["apply_url"],
+        action_type=row["action_type"],
+        due_date=row["due_date"],
+        resolved=bool(row["resolved"]),
+        note=row["note"],
     )
 
 
@@ -162,21 +177,32 @@ class TrackerService:
         """
         with get_db() as db:
             rows = db.execute(sql, params).fetchall()
-        return [
-            FollowUpItem(
-                id=row["id"],
-                canonical_job_id=row["canonical_job_id"],
-                company=row["company"],
-                title=row["title"],
-                app_state=row["app_state"],
-                apply_url=row["apply_url"],
-                action_type=row["action_type"],
-                due_date=row["due_date"],
-                resolved=bool(row["resolved"]),
-                note=row["note"],
-            )
-            for row in rows
-        ]
+        return [_row_to_followup_item(row) for row in rows]
+
+    def list_upcoming_followups(self, as_of: str | None = None, days: int = 7) -> list[FollowUpItem]:
+        """Unresolved follow-ups due after `as_of` and within `days`.
+
+        This is intentionally separate from `list_due_followups()` so the
+        dashboard can show a planning horizon without changing due-item
+        behavior or invoking FollowUpEngine's auto-ghost write path.
+        """
+        as_of = as_of or date.today().isoformat()
+        horizon = (date.fromisoformat(as_of) + timedelta(days=days)).isoformat()
+
+        sql = """
+            SELECT fq.id, fq.canonical_job_id, fq.action_type, fq.due_date,
+                   fq.resolved, fq.note,
+                   j.company, j.title, j.app_state, j.apply_url
+            FROM followup_queue fq
+            JOIN jobs j ON j.canonical_job_id = fq.canonical_job_id
+            WHERE fq.due_date > ?
+              AND fq.due_date <= ?
+              AND fq.resolved = 0
+            ORDER BY fq.due_date ASC
+        """
+        with get_db() as db:
+            rows = db.execute(sql, (as_of, horizon)).fetchall()
+        return [_row_to_followup_item(row) for row in rows]
 
     # ── Actions (Package 3b — state-mutating) ────────────────────────────
 

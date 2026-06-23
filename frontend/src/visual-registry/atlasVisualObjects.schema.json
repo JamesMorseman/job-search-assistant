@@ -51,7 +51,7 @@
         "implementation_mapping"
       ],
       "properties": {
-        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(?:\\.shell_only)?$" },
         "schema_version": { "type": "string", "const": "ATLAS_VISUAL_OBJECT_REGISTRY_V1" },
         "status": { "type": "string", "enum": ["candidate", "draft", "accepted", "deprecated"] },
         "semantic_role": { "type": "string", "minLength": 1 },
@@ -92,7 +92,7 @@
       ],
       "properties": {
         "variant_ref": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
-        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(?:\\.shell_only)?$" },
         "axis_values": {
           "type": "object",
           "additionalProperties": false,
@@ -140,7 +140,7 @@
       ],
       "properties": {
         "instance_id": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
-        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "object_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(?:\\.shell_only)?$" },
         "variant_ref": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
         "surface": { "type": "string", "enum": ["dark_panel", "shell_panel", "modal_panel"] },
         "route": { "type": "string", "minLength": 1 },

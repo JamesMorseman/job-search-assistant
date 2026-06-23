@@ -12,6 +12,7 @@ code" — the dashboard routes consume `JobsService`/`TrackerService`/
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 import sqlite3
 
 import pytest
@@ -1321,6 +1322,67 @@ def test_tracker_followups_empty_state_when_none_due(client, db):
     assert "No follow-ups are currently due." in resp.text
 
 
+def test_tracker_renders_upcoming_followups(client, db):
+    _insert_job(db, "j1", company="Acme Engineering", title="Structural Engineer I")
+    _advance(db, "j1", "presented", "selected", "applied")
+    upcoming = (date.today() + timedelta(days=3)).isoformat()
+    _insert_followup(db, "j1", "check_status", upcoming, note="Plan next check-in")
+
+    resp = client.get("/dashboard/tracker")
+
+    assert resp.status_code == 200
+    assert 'data-testid="upcoming-followups-section"' in resp.text
+    assert 'data-testid="upcoming-followup-row"' in resp.text
+    assert "Plan next check-in" in resp.text
+    assert upcoming in resp.text
+
+
+def test_tracker_upcoming_followups_empty_state_when_none_upcoming(client, db):
+    resp = client.get("/dashboard/tracker")
+
+    assert resp.status_code == 200
+    assert 'data-testid="upcoming-followups-empty-state"' in resp.text
+    assert "No follow-ups are due in the next 7 days." in resp.text
+
+
+def test_tracker_upcoming_followups_excludes_due_and_later_items(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _insert_job(db, "j2", company="Globex Structural")
+    _insert_job(db, "j3", company="Initech Civil")
+    _advance(db, "j1", "presented", "selected", "applied")
+    _advance(db, "j2", "presented", "selected", "applied")
+    _advance(db, "j3", "presented", "selected", "applied")
+
+    due_today = date.today().isoformat()
+    in_window = (date.today() + timedelta(days=2)).isoformat()
+    outside_window = (date.today() + timedelta(days=9)).isoformat()
+    _insert_followup(db, "j1", "check_status", due_today)
+    _insert_followup(db, "j2", "check_status", in_window)
+    _insert_followup(db, "j3", "check_status", outside_window)
+
+    resp = client.get("/dashboard/tracker")
+
+    assert resp.status_code == 200
+    assert 'data-testid="followup-row"' in resp.text
+    assert 'data-testid="upcoming-followup-row"' in resp.text
+    assert resp.text.count('data-testid="upcoming-followup-row"') == 1
+    assert "Acme Engineering" in resp.text
+    assert "Globex Structural" in resp.text
+    assert outside_window not in resp.text
+
+
+def test_tracker_upcoming_followups_excludes_resolved_items(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _advance(db, "j1", "presented", "selected", "applied")
+    upcoming = (date.today() + timedelta(days=3)).isoformat()
+    _insert_followup(db, "j1", "check_status", upcoming, resolved=1)
+
+    resp = client.get("/dashboard/tracker")
+
+    assert resp.status_code == 200
+    assert 'data-testid="upcoming-followup-row"' not in resp.text
+
+
 def test_tracker_links_to_job_detail(client, db):
     _insert_job(db, "j1", company="Acme Engineering", title="Structural Engineer I")
     _advance(db, "j1", "presented", "selected")
@@ -1372,6 +1434,10 @@ def test_tracker_uses_dependency_override_not_direct_construction(db):
             calls.append("list_due_followups")
             return []
 
+        def list_upcoming_followups(self, as_of=None, days=7):
+            calls.append("list_upcoming_followups")
+            return []
+
     app.dependency_overrides[get_tracker_service] = lambda: _StubTrackerService()
     with TestClient(app) as client:
         resp = client.get("/dashboard/tracker")
@@ -1379,6 +1445,7 @@ def test_tracker_uses_dependency_override_not_direct_construction(db):
     assert resp.status_code == 200
     assert "list_tracker_rows" in calls
     assert "list_due_followups" in calls
+    assert "list_upcoming_followups" in calls
 
 
 def test_tracker_route_does_not_query_sqlite_directly():
@@ -2847,6 +2914,18 @@ def test_tracker_stage_filter_does_not_affect_followups(client, db):
     # Job is filtered out of the tracker table (it's in 'applied', not 'offer'),
     # but its due follow-up still appears — filter only narrows the table.
     assert 'data-testid="followup-row"' in resp.text
+
+
+def test_tracker_stage_filter_does_not_affect_upcoming_followups(client, db):
+    _insert_job(db, "j1", company="Acme Engineering")
+    _advance(db, "j1", "presented", "selected", "applied")
+    upcoming = (date.today() + timedelta(days=3)).isoformat()
+    _insert_followup(db, "j1", "check_status", upcoming)
+
+    resp = client.get("/dashboard/tracker?state=offer")
+
+    assert resp.status_code == 200
+    assert 'data-testid="upcoming-followup-row"' in resp.text
 
 
 def test_tracker_service_list_tracker_rows_with_single_state(db):

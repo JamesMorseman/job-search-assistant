@@ -356,6 +356,245 @@
           "notes": "Additive closed-list approved object definition only; no live binding."
         }
       ]
+    },
+    {
+      "object_id": "recommendation_card.shell_only",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "recommendation shell surface",
+      "variant_axes": ["size", "density", "tier", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "accent": "token.color.accent.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "recommendation_card.shell_only.registry.vr03_shell_only",
+          "statement": "VR03 registers recommendation_card.shell_only as data-only shell vocabulary and does not encode recommendation scoring or career-truth semantics."
+        },
+        {
+          "id": "recommendation_card.shell_only.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "pipeline_status_item.shell_only",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "pipeline status shell surface",
+      "variant_axes": ["size", "density", "tier", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "accent": "token.color.tier.neutral"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "pipeline_status_item.shell_only.registry.vr03_shell_only",
+          "statement": "VR03 registers pipeline_status_item.shell_only without workflow completion, process-truth, or status-severity semantics."
+        },
+        {
+          "id": "pipeline_status_item.shell_only.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "progress_indicator",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "progress shell indicator",
+      "variant_axes": ["size", "density", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "track": "token.border.soft",
+        "indicator": "token.color.accent.secondary",
+        "label": "token.color.text.secondary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "progress_indicator.registry.vr03_shell_only",
+          "statement": "VR03 registers progress_indicator as shell vocabulary only and does not encode live progress calculation or timing semantics."
+        },
+        {
+          "id": "progress_indicator.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "metric_tile",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "metric shell tile",
+      "variant_axes": ["size", "density", "tier", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "value": "token.color.text.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "metric_tile.registry.vr03_shell_only",
+          "statement": "VR03 registers metric_tile as visual shell vocabulary and does not define score, threshold, risk, or public claim meaning."
+        },
+        {
+          "id": "metric_tile.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "empty_state_panel",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "empty-state shell panel",
+      "variant_axes": ["size", "density", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "body": "token.color.text.secondary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "empty_state_panel.registry.vr03_shell_only",
+          "statement": "VR03 registers empty_state_panel as shell vocabulary without binding empty-state copy, routes, or product behavior."
+        },
+        {
+          "id": "empty_state_panel.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "section_header",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "section header shell",
+      "variant_axes": ["size", "density", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "label": "token.color.text.primary",
+        "eyebrow": "token.color.text.secondary",
+        "accent": "token.color.accent.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "section_header.registry.vr03_shell_only",
+          "statement": "VR03 registers section_header as shell vocabulary without route, layout, or navigation binding."
+        },
+        {
+          "id": "section_header.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "filter_chip",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "filter chip shell",
+      "variant_axes": ["size", "density", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "accent": "token.color.accent.secondary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "filter_chip.registry.vr03_shell_only",
+          "statement": "VR03 registers filter_chip as shell vocabulary and does not define filter behavior or query semantics."
+        },
+        {
+          "id": "filter_chip.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "search_input_shell",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "search input shell",
+      "variant_axes": ["size", "density", "state", "surface", "emphasis"],
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "text": "token.color.text.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "search_input_shell.registry.vr03_shell_only",
+          "statement": "VR03 registers search_input_shell as shell vocabulary and does not define search behavior, indexing, or query execution."
+        },
+        {
+          "id": "search_input_shell.registry.no_render_import",
+          "statement": "The object remains registry-only and is not imported by render code in this package."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "VR03 shell-only object definition; no live binding."
+        }
+      ]
     }
   ],
   "variants": [
@@ -981,6 +1220,253 @@
           "notes": "Variant stays registry-only and does not bind render code."
         }
       ]
+    },
+    {
+      "variant_ref": "recommendation_card.shell_only.standard.neutral.default",
+      "object_id": "recommendation_card.shell_only",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "accent": "token.color.accent.primary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "recommendation_card.shell_only.registry.vr03_shell_only",
+        "recommendation_card.shell_only.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "pipeline_status_item.shell_only.standard.neutral.default",
+      "object_id": "pipeline_status_item.shell_only",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "accent": "token.color.tier.neutral"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "pipeline_status_item.shell_only.registry.vr03_shell_only",
+        "pipeline_status_item.shell_only.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "progress_indicator.standard.neutral.loading",
+      "object_id": "progress_indicator",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "loading",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "track": "token.border.soft",
+        "indicator": "token.color.accent.secondary",
+        "label": "token.color.text.secondary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "progress_indicator.registry.vr03_shell_only",
+        "progress_indicator.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "metric_tile.standard.neutral.default",
+      "object_id": "metric_tile",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "dark_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.dark_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "value": "token.color.text.primary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "metric_tile.registry.vr03_shell_only",
+        "metric_tile.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "empty_state_panel.standard.neutral.empty",
+      "object_id": "empty_state_panel",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "empty",
+        "surface": "shell_panel",
+        "emphasis": "low"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "body": "token.color.text.secondary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "empty_state_panel.registry.vr03_shell_only",
+        "empty_state_panel.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "section_header.standard.neutral.default",
+      "object_id": "section_header",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "label": "token.color.text.primary",
+        "eyebrow": "token.color.text.secondary",
+        "accent": "token.color.accent.primary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "section_header.registry.vr03_shell_only",
+        "section_header.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "filter_chip.compact.neutral.selected",
+      "object_id": "filter_chip",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "selected",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "border": "token.border.soft",
+        "label": "token.color.text.primary",
+        "accent": "token.color.accent.secondary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "filter_chip.registry.vr03_shell_only",
+        "filter_chip.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "search_input_shell.standard.neutral.default",
+      "object_id": "search_input_shell",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.raised",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "text": "token.color.text.primary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "search_input_shell.registry.vr03_shell_only",
+        "search_input_shell.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
     }
   ],
   "screen_instances": [
@@ -1176,6 +1662,158 @@
       "acceptance_criteria_refs": [
         "atlas_mark.registry.additive_closed_list",
         "atlas_mark.registry.symbolic_identity"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.recommendation_card.shell_only",
+      "object_id": "recommendation_card.shell_only",
+      "variant_ref": "recommendation_card.shell_only.standard.neutral.default",
+      "surface": "dark_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "recommendation_card.shell_only.registry.vr03_shell_only",
+        "recommendation_card.shell_only.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.pipeline_status_item.shell_only",
+      "object_id": "pipeline_status_item.shell_only",
+      "variant_ref": "pipeline_status_item.shell_only.standard.neutral.default",
+      "surface": "shell_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "pipeline_status_item.shell_only.registry.vr03_shell_only",
+        "pipeline_status_item.shell_only.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.progress_indicator",
+      "object_id": "progress_indicator",
+      "variant_ref": "progress_indicator.standard.neutral.loading",
+      "surface": "shell_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "loading",
+      "acceptance_criteria_refs": [
+        "progress_indicator.registry.vr03_shell_only",
+        "progress_indicator.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.metric_tile",
+      "object_id": "metric_tile",
+      "variant_ref": "metric_tile.standard.neutral.default",
+      "surface": "dark_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "metric_tile.registry.vr03_shell_only",
+        "metric_tile.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.empty_state_panel",
+      "object_id": "empty_state_panel",
+      "variant_ref": "empty_state_panel.standard.neutral.empty",
+      "surface": "shell_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "empty",
+      "acceptance_criteria_refs": [
+        "empty_state_panel.registry.vr03_shell_only",
+        "empty_state_panel.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.section_header",
+      "object_id": "section_header",
+      "variant_ref": "section_header.standard.neutral.default",
+      "surface": "shell_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "section_header.registry.vr03_shell_only",
+        "section_header.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.filter_chip",
+      "object_id": "filter_chip",
+      "variant_ref": "filter_chip.compact.neutral.selected",
+      "surface": "shell_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "selected",
+      "acceptance_criteria_refs": [
+        "filter_chip.registry.vr03_shell_only",
+        "filter_chip.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "registry.vr03.search_input_shell",
+      "object_id": "search_input_shell",
+      "variant_ref": "search_input_shell.standard.neutral.default",
+      "surface": "shell_panel",
+      "route": "/atlas/registry/vr03",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "search_input_shell.registry.vr03_shell_only",
+        "search_input_shell.registry.no_render_import"
       ],
       "implementation_mapping": [
         {

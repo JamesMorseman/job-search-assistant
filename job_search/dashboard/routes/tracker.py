@@ -1,7 +1,8 @@
 """Application Tracker screen — read and actions (Phase 5 Packages 5a/5b).
 
-Read paths call `TrackerService.list_tracker_rows()` and
-`TrackerService.list_due_followups()` only. Mutation paths call
+Read paths call `TrackerService.list_tracker_rows()`,
+`TrackerService.list_due_followups()`, and
+`TrackerService.list_upcoming_followups()` only. Mutation paths call
 `TrackerService.transition_job()` and `TrackerService.resolve_followup()`
 exclusively — no alternate transition or resolution path exists in this
 module.
@@ -66,6 +67,7 @@ def application_tracker(
     try:
         rows = tracker_service.list_tracker_rows(states=states)
         followups = tracker_service.list_due_followups()
+        upcoming_followups = tracker_service.list_upcoming_followups()
     except Exception:
         logger.exception("application_tracker: TrackerService failed")
         return templates.TemplateResponse(
@@ -81,6 +83,7 @@ def application_tracker(
         {
             "rows": rows,
             "followups": followups,
+            "upcoming_followups": upcoming_followups,
             "valid_transitions": VALID_TRANSITIONS,
             "error": error,
             "tracked_states": _TRACKED_STATES,

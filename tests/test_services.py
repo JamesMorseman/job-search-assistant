@@ -350,6 +350,54 @@ def test_list_due_followups_returns_scheduled_item(db):
 # ── TrackerService actions (Package 3b) ──────────────────────────────────
 
 
+def test_list_upcoming_followups_returns_next_seven_days_only(db):
+    _insert_job(db, "j1")
+    _insert_job(db, "j2")
+    _insert_job(db, "j3")
+
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO followup_queue (canonical_job_id, action_type, due_date) VALUES (?, ?, ?)",
+            ("j1", "check_status", "2026-06-24"),
+        )
+        conn.execute(
+            "INSERT INTO followup_queue (canonical_job_id, action_type, due_date) VALUES (?, ?, ?)",
+            ("j2", "check_status", "2026-06-23"),
+        )
+        conn.execute(
+            "INSERT INTO followup_queue (canonical_job_id, action_type, due_date) VALUES (?, ?, ?)",
+            ("j3", "check_status", "2026-07-01"),
+        )
+
+    upcoming = TrackerService().list_upcoming_followups(as_of="2026-06-23")
+
+    assert [item.canonical_job_id for item in upcoming] == ["j1"]
+
+
+def test_list_upcoming_followups_excludes_resolved_items(db):
+    _insert_job(db, "j1")
+
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO followup_queue (canonical_job_id, action_type, due_date, resolved) "
+            "VALUES (?, ?, ?, 1)",
+            ("j1", "check_status", "2026-06-24"),
+        )
+
+    assert TrackerService().list_upcoming_followups(as_of="2026-06-23") == []
+
+
+def test_list_upcoming_followups_does_not_mutate_state(db):
+    _insert_job(db, "j1")
+    _advance(db, "j1", "presented", "selected", "applied")
+
+    before = JobsService().get_job_detail("j1").app_state
+    TrackerService().list_upcoming_followups(as_of="2026-06-23")
+    after = JobsService().get_job_detail("j1").app_state
+
+    assert before == after == "applied"
+
+
 def test_transition_job_valid_transition_succeeds(db):
     _insert_job(db, "j1")
     _advance(db, "j1", "presented")
