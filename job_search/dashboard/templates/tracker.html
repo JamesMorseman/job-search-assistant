@@ -126,4 +126,38 @@
     <p data-testid="followups-empty-state">No follow-ups are currently due.</p>
     {% endif %}
 </section>
+
+<section data-testid="upcoming-followups-section">
+    <h3>Upcoming Follow-ups</h3>
+    <p>Next 7 days</p>
+    {% if upcoming_followups %}
+    <table>
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Title</th>
+                <th>Action</th>
+                <th>Due Date</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in upcoming_followups %}
+            <tr data-testid="upcoming-followup-row">
+                <td data-testid="upcoming-followup-company">{{ item.company }}</td>
+                <td>
+                    <a data-testid="upcoming-followup-job-detail-link"
+                       href="/dashboard/jobs/{{ item.canonical_job_id }}">{{ item.title }}</a>
+                </td>
+                <td data-testid="upcoming-followup-action-type">{{ item.action_type }}</td>
+                <td data-testid="upcoming-followup-due-date">{{ item.due_date }}</td>
+                <td data-testid="upcoming-followup-note">{{ item.note or "" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p data-testid="upcoming-followups-empty-state">No follow-ups are due in the next 7 days.</p>
+    {% endif %}
+</section>
 {% endblock %}
