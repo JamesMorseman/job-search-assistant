@@ -16,9 +16,9 @@ export type RecommendationCardProps = {
 };
 
 const PRIORITY_CONFIDENCE_LABEL: Record<RecommendationCardPriority, string> = {
-  high: "High Confidence",
-  medium: "Medium Confidence",
-  low: "Low Confidence",
+  high: "High Advisory Signal",
+  medium: "Medium Advisory Signal",
+  low: "Low Advisory Signal",
 };
 
 const PRIORITY_CONFIDENCE_PERCENT: Record<RecommendationCardPriority, number> = {

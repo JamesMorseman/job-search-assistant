@@ -65,6 +65,13 @@ def test_surface_renders_error_state():
     assert "Unable to load this opportunity" in SURFACE_TSX
 
 
+def test_surface_uses_advisory_match_and_stored_score_language():
+    assert "High Advisory Match" in SURFACE_TSX
+    assert "Stored Match Score" in SURFACE_TSX
+    assert "Exceptional Match" not in SURFACE_TSX
+    assert "Atlas Confidence" not in SURFACE_TSX
+
+
 def test_no_workspace_placeholder_calls_fetch_directly():
     workspace_dir = FRONTEND_SRC / "workspaces"
     for path in workspace_dir.glob("*.tsx"):

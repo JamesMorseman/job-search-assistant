@@ -121,6 +121,11 @@ def test_radar_renders_error_state():
     assert "Unable to load opportunities" in RADAR_TSX
 
 
+def test_radar_uses_advisory_match_language():
+    assert "High Advisory Match" in RADAR_TSX
+    assert "Exceptional Match" not in RADAR_TSX
+
+
 def test_radar_renders_empty_state():
     assert "No signals detected" in RADAR_TSX
     assert "No opportunities match your search or filter" in RADAR_TSX

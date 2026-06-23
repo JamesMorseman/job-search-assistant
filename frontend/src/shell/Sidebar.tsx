@@ -87,7 +87,7 @@ export default function Sidebar() {
       <div className="atlas-sidebar-footer">
         <span className="atlas-sidebar-footer-dot" aria-hidden="true" />
         <span>ATLAS Local</span>
-        <strong>Runtime Demo Ready</strong>
+        <strong>Internal Demo Check</strong>
       </div>
     </aside>
   );

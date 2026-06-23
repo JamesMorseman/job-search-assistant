@@ -21,6 +21,9 @@ ATLAS_API_PY = (ROOT / "job_search" / "dashboard" / "routes" / "atlas_api.py").r
 )
 DEPS_PY = (ROOT / "job_search" / "dashboard" / "deps.py").read_text(encoding="utf-8")
 SCHEMA_SQL = (ROOT / "job_search" / "db" / "schema.sql").read_text(encoding="utf-8")
+RECOMMENDATION_CARD_TSX = (
+    ROOT / "frontend" / "src" / "workspaces" / "RecommendationCard.tsx"
+).read_text(encoding="utf-8")
 
 
 class FakeRecommendationService:
@@ -140,3 +143,10 @@ def test_recommendations_endpoint_is_get_only_and_uses_existing_context_services
 def test_recommendations_package_does_not_add_schema_or_persistence():
     assert "recommendations" not in SCHEMA_SQL.lower()
     assert "recommendation" not in SCHEMA_SQL.lower()
+
+
+def test_recommendation_card_uses_advisory_signal_labels():
+    assert "High Advisory Signal" in RECOMMENDATION_CARD_TSX
+    assert "Medium Advisory Signal" in RECOMMENDATION_CARD_TSX
+    assert "Low Advisory Signal" in RECOMMENDATION_CARD_TSX
+    assert "High Confidence" not in RECOMMENDATION_CARD_TSX

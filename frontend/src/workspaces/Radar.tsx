@@ -22,7 +22,7 @@ function signalLabel(score: number | null): string {
     return "Unscored";
   }
   if (score >= 0.85) {
-    return "Exceptional Match";
+    return "High Advisory Match";
   }
   if (score >= 0.7) {
     return "Strong Signal";
@@ -96,7 +96,7 @@ function lastSeenDate(opportunity: AtlasOpportunitySummary): string | null {
 }
 
 const STRENGTH_ORDER = [
-  "Exceptional Match",
+  "High Advisory Match",
   "Strong Signal",
   "Relevant Signal",
   "Emerging Signal",

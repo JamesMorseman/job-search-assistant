@@ -64,6 +64,8 @@ def test_sidebar_uses_runtime_label_not_desktop_package_badge():
     assert "Desktop Shell" not in SIDEBAR_TSX
     assert "Package 1" not in SIDEBAR_TSX
     assert "ATLAS Local" in SIDEBAR_TSX
+    assert "Internal Demo Check" in SIDEBAR_TSX
+    assert "Runtime Demo Ready" not in SIDEBAR_TSX
 
 
 def test_context_panel_stub_is_local_context_support_not_placeholder():

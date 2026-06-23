@@ -85,7 +85,7 @@ function detailSignalLabel(score: number | null): string {
     return "Unscored";
   }
   if (score >= 0.85) {
-    return "Exceptional Match";
+    return "High Advisory Match";
   }
   if (score >= 0.7) {
     return "Strong Signal";
@@ -265,8 +265,8 @@ function ConfidenceModule({ opportunity }: { opportunity: AtlasOpportunityDetail
   const percent = confidencePercent(opportunity.match_score);
   if (percent === null) {
     return (
-      <div className="atlas-detail-confidence atlas-detail-confidence-unscored" aria-label="Atlas confidence">
-        <p className="atlas-detail-confidence-label">Atlas Confidence</p>
+      <div className="atlas-detail-confidence atlas-detail-confidence-unscored" aria-label="Stored match score">
+        <p className="atlas-detail-confidence-label">Stored Match Score</p>
         <p className="atlas-detail-confidence-empty">Not yet scored</p>
       </div>
     );
@@ -275,13 +275,13 @@ function ConfidenceModule({ opportunity }: { opportunity: AtlasOpportunityDetail
   return (
     <div
       className="atlas-detail-confidence"
-      aria-label="Atlas confidence"
+      aria-label="Stored match score"
       style={{ "--atlas-confidence-percent": `${percent}%` } as Record<string, string>}
     >
       <div className="atlas-detail-confidence-ring">
         <span className="atlas-detail-confidence-value">{percent}</span>
       </div>
-      <p className="atlas-detail-confidence-label">Atlas Confidence</p>
+      <p className="atlas-detail-confidence-label">Stored Match Score</p>
     </div>
   );
 }
