@@ -1,5 +1,7 @@
 # Environment & secrets
 .env
+.env.*
+!/.env.example
 *.env
 secrets/
 credentials.json
@@ -13,6 +15,10 @@ profile/*_profile.yaml
 
 # Private source material — PII documents; never commit
 source_material/
+
+# Local agent/runtime state
+.claude/
+.codex/
 
 # Source research docs that may contain personal candidate context
 docs/city_guide.pdf
@@ -46,6 +52,11 @@ env/
 # Generated documents (Drive is canonical)
 output/
 generated/
+artifacts/phase1_review/
+*.docx
+
+# Frontend build output
+frontend/dist/
 
 # Logs
 *.log

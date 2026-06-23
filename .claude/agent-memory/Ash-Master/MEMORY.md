@@ -1,1 +1,0 @@
-- [ATLAS frontend runtime facts](reference_atlas_frontend_runtime.md) — canonical start command, real SPA routes, build/output paths, no screenshot infra
