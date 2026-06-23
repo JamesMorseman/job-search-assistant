@@ -146,5 +146,10 @@ enforce service boundaries such as sole-write-path patterns and route isolation.
   desktop packaging.
 - Intelligence Workspace, Professional Graph, Career Memory, Forecasting, and
   multi-user or enterprise collaboration surfaces.
-- Public release, distribution, or publication without a future privacy and
-  governance approval gate.
+
+### Pending Release Gate
+
+Public release, distribution, or publication beyond Build 1's
+recruiter/portfolio audience is a pending governance gate, not a deferred
+product feature. It is not authorized without a future privacy and governance
+approval gate.

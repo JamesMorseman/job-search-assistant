@@ -39,9 +39,9 @@ what deserves attention next.
 
 ## Local-First Identity
 
-SQLite is the operational source of truth. The system is designed around a
-private local runtime, with external services treated as integrations rather
-than the primary source of operational state.
+SQLite is the operational source of truth. The system is deliberately
+architected around a local-first runtime, with external services treated as
+integrations rather than the primary source of operational state.
 
 This local-first design supports privacy, auditability, and practical
 iteration. Generated documents, private profile facts, credentials, local
@@ -53,6 +53,10 @@ The accepted implementation includes Phases 1-6, ATLAS Desktop Packages 1-11,
 and Phase 7 Package 1. Phase 7 Package 2 creates draft public documentation
 skeletons only.
 
-This document is a portfolio-preparation draft. It does not authorize public
-release, publication, or distribution. Future release requires a separate
-privacy/redaction review and Project Master approval.
+This document describes ATLAS as implemented for Build 1, the
+public/recruiter-facing portfolio career-services build. Build 1
+documentation, implementation acceptance, and visual pass are reviewed
+separately and are not yet recorded. This document does not, by itself,
+authorize public release, publication, or distribution. Broader public
+distribution beyond Build 1's recruiter/portfolio audience remains a separate,
+later decision requiring privacy/redaction review and Project Master approval.

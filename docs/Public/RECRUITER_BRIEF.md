@@ -1,7 +1,7 @@
 # Recruiter Brief
 
 ATLAS is a local-first Career Intelligence / Career Mission Control system. It
-organizes a career search into a private operating system: finding
+organizes a career search into a local-first operating system: finding
 opportunities, evaluating fit, generating application materials after review,
 tracking progress, and surfacing what needs attention next.
 
@@ -49,7 +49,12 @@ decision point explicit.
 
 ## Short Summary
 
-ATLAS is a private Career Intelligence / Career Mission Control system that
-combines Python, SQLite, FastAPI, React/Vite, and LLM-assisted workflows to
-support opportunity discovery, evaluation, application document generation,
+ATLAS is a local-first Career Intelligence / Career Mission Control system
+that combines Python, SQLite, FastAPI, React/Vite, and LLM-assisted workflows
+to support opportunity discovery, evaluation, application document generation,
 tracking, analytics, and focused decision-making.
+
+This document is a portfolio description of ATLAS as implemented for Build 1.
+It does not authorize public release or distribution. Recruiter-presentable
+status depends on a separate documentation, implementation, and visual review
+that is not yet recorded.

@@ -89,4 +89,10 @@ Atlas, Focus objects, Focus resolution/archive, and Desktop v1 hardening.
 - Google Drive native document import workflow if needed.
 - Intelligence Workspace, Professional Graph, Career Memory, Forecasting, and
   multi-user/collaboration surfaces.
-- Public release readiness review and publication approval.
+
+## Pending Release Gate
+
+Distribution beyond Build 1's recruiter/portfolio audience is not authorized
+by this inventory. Public release readiness review and publication approval
+are a separate governance gate, not an unbuilt product feature, and remain
+outstanding.
