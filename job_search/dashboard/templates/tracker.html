@@ -14,7 +14,7 @@
     <nav data-testid="tracker-state-filters" aria-label="Filter by stage">
         Stage:
         <a data-testid="tracker-state-filter-all" href="/dashboard/tracker"
-           {% if not selected_state %}aria-current="true"{% endif %}>All</a>
+           {% if not selected_state %}aria-current="true"{% endif %}>All active</a>
         {% for st in tracked_states %}
         <a data-testid="tracker-state-filter-{{ st }}" href="/dashboard/tracker?state={{ st }}"
            {% if selected_state == st %}aria-current="true"{% endif %}>{{ st }}</a>
@@ -79,7 +79,7 @@
     {% if selected_state %}
     <p data-testid="tracker-empty-state">No applications are currently in the "{{ selected_state }}" stage.</p>
     {% else %}
-    <p data-testid="tracker-empty-state">No applications are currently being tracked.</p>
+    <p data-testid="tracker-empty-state">No active applications are currently being tracked.</p>
     {% endif %}
     {% endif %}
 </section>
