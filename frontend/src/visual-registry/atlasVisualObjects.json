@@ -247,6 +247,115 @@
           "notes": "Registry target only; no import in this package."
         }
       ]
+    },
+    {
+      "object_id": "context_rail",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "contextual rail surface",
+      "variant_axes": [
+        "size",
+        "density",
+        "state",
+        "surface",
+        "emphasis"
+      ],
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "accent": "token.color.accent.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "context_rail.registry.additive_closed_list",
+          "statement": "VR02 adds context_rail to the existing registry without replacing prior approved objects."
+        },
+        {
+          "id": "context_rail.registry.no_render_import",
+          "statement": "The registry stays data-only and is not imported by render code in this first E3."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Additive closed-list approved object definition only; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "status_metric",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "status metric surface",
+      "variant_axes": [
+        "size",
+        "density",
+        "tier",
+        "state",
+        "surface",
+        "emphasis"
+      ],
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "value": "token.color.text.primary",
+        "accent": "token.color.accent.secondary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "status_metric.registry.additive_closed_list",
+          "statement": "VR02 adds status_metric to the existing registry without replacing prior approved objects."
+        },
+        {
+          "id": "status_metric.registry.symbolic_metrics",
+          "statement": "The metric stays symbolic and does not encode score, threshold, or severity semantics."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Additive closed-list approved object definition only; no live binding."
+        }
+      ]
+    },
+    {
+      "object_id": "atlas_mark",
+      "schema_version": "ATLAS_VISUAL_OBJECT_REGISTRY_V1",
+      "status": "candidate",
+      "semantic_role": "symbolic brand mark",
+      "variant_axes": [
+        "size",
+        "state",
+        "surface",
+        "emphasis"
+      ],
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "mark": "token.color.accent.primary",
+        "edge": "token.border.selected",
+        "label": "token.color.text.primary"
+      },
+      "acceptance_criteria": [
+        {
+          "id": "atlas_mark.registry.additive_closed_list",
+          "statement": "VR02 adds atlas_mark to the existing registry without replacing prior approved objects."
+        },
+        {
+          "id": "atlas_mark.registry.symbolic_identity",
+          "statement": "The mark stays symbolic and does not assert identity acceptance, logo anatomy, motion, glow, or screenshot readiness."
+        }
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Additive closed-list approved object definition only; no live binding."
+        }
+      ]
     }
   ],
   "variants": [
@@ -778,6 +887,100 @@
           "notes": "Registry target only; no import in this package."
         }
       ]
+    },
+    {
+      "variant_ref": "context_rail.workspace.neutral.default",
+      "object_id": "context_rail",
+      "axis_values": {
+        "size": "workspace",
+        "density": "expanded",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "accent": "token.color.accent.primary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "context_rail.registry.additive_closed_list",
+        "context_rail.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "status_metric.standard.neutral.default",
+      "object_id": "status_metric",
+      "axis_values": {
+        "size": "standard",
+        "density": "comfortable",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "medium"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "border": "token.border.soft",
+        "label": "token.color.text.secondary",
+        "value": "token.color.text.primary",
+        "accent": "token.color.accent.secondary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "status_metric.registry.additive_closed_list",
+        "status_metric.registry.symbolic_metrics"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "variant_ref": "atlas_mark.compact.neutral.default",
+      "object_id": "atlas_mark",
+      "axis_values": {
+        "size": "compact",
+        "density": "compact",
+        "tier": "neutral",
+        "motion": "static",
+        "state": "default",
+        "surface": "shell_panel",
+        "emphasis": "high"
+      },
+      "token_bindings": {
+        "surface": "token.surface.shell_panel",
+        "mark": "token.color.accent.primary",
+        "edge": "token.border.selected",
+        "label": "token.color.text.primary"
+      },
+      "state_overrides": {},
+      "acceptance_criteria_refs": [
+        "atlas_mark.registry.additive_closed_list",
+        "atlas_mark.registry.symbolic_identity"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Variant stays registry-only and does not bind render code."
+        }
+      ]
     }
   ],
   "screen_instances": [
@@ -922,6 +1125,63 @@
           "target": "frontend/src/shell/IconButton.tsx",
           "kind": "future-implementation-map",
           "notes": "Registry target only; no import in this package."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.context_rail.primary",
+      "object_id": "context_rail",
+      "variant_ref": "context_rail.workspace.neutral.default",
+      "surface": "shell_panel",
+      "route": "/atlas/context-rail",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "context_rail.registry.additive_closed_list",
+        "context_rail.registry.no_render_import"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "dashboard.status_metric.primary",
+      "object_id": "status_metric",
+      "variant_ref": "status_metric.standard.neutral.default",
+      "surface": "shell_panel",
+      "route": "/atlas/status-metric",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "status_metric.registry.additive_closed_list",
+        "status_metric.registry.symbolic_metrics"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
+        }
+      ]
+    },
+    {
+      "instance_id": "brand.atlas_mark.primary",
+      "object_id": "atlas_mark",
+      "variant_ref": "atlas_mark.compact.neutral.default",
+      "surface": "shell_panel",
+      "route": "/atlas/brand",
+      "state": "default",
+      "acceptance_criteria_refs": [
+        "atlas_mark.registry.additive_closed_list",
+        "atlas_mark.registry.symbolic_identity"
+      ],
+      "implementation_mapping": [
+        {
+          "target": "frontend/src/visual-registry/atlasVisualObjects.json",
+          "kind": "registry-data",
+          "notes": "Instance stays registry-only and does not bind render code."
         }
       ]
     }

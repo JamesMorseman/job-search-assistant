@@ -160,7 +160,7 @@ notes
 
 ## First E3 object set
 
-The initial candidate object set is limited to:
+The initial candidate object set is the existing registry foundation:
 
 ```text
 radar_workspace
@@ -168,24 +168,35 @@ radar_sweep_mark
 signal_card
 ```
 
-These objects define the first registry foundation for the Radar surface and
-its two primary visual object families.
+These objects remain in the main registry. VR02 does not replace the registry;
+it adds the additive expansion below.
 
-## Panel/badge/control expansion object set
+## VR02 additive expansion object set
 
-A later, separate data-only package (W4-VISUAL-REGISTRY-EXPANSION-01) extends
-the registry foundation above with panel, badge, and control object families.
-These objects remain `candidate` status and stay data-only, with no render,
-CSS, layout, or motion runtime changes:
+VR02 adds the following approved objects to the existing main registry:
 
 ```text
-panel_surface
-tier_badge
-status_badge
-action_button
-icon_button
+context_rail
+status_metric
+atlas_mark
 ```
 
-These objects reuse the existing variant axis vocabulary and token namespace
-established by the first E3 object set. No new axis values, raw literals, or
-schema structure changes were introduced for this expansion.
+The registry inclusion is data/schema only and does not authorize any
+acceptance gate.
+
+## Deferred shell object set
+
+The chat-side shell objects are deferred to VR03 or later:
+
+```text
+recommendation_card.shell_only
+pipeline_status_item.shell_only
+progress_indicator
+metric_tile
+empty_state_panel
+section_header
+filter_chip
+search_input_shell
+```
+
+These deferred objects remain outside the VR02 additive registry.
