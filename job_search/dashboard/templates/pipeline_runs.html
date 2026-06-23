@@ -5,6 +5,14 @@
 {% block content %}
 <h2>Pipeline Runs</h2>
 
+<section data-testid="pipeline-runs-summary">
+    <p>Total runs: <span data-testid="pipeline-summary-total">{{ summary.total_runs }}</span></p>
+    <p>Running: <span data-testid="pipeline-summary-running">{{ summary.running_count }}</span></p>
+    <p>Failed: <span data-testid="pipeline-summary-failed">{{ summary.failed_count }}</span></p>
+    <p>Last run: <span data-testid="pipeline-summary-last-run">{{ summary.last_run_at or "—" }}</span></p>
+    <p>Last successful run: <span data-testid="pipeline-summary-last-success">{{ summary.last_successful_run_at or "—" }}</span></p>
+</section>
+
 {% if statuses or run_types %}
 <nav data-testid="pipeline-runs-filters" aria-label="Filter pipeline runs">
     {% if statuses %}

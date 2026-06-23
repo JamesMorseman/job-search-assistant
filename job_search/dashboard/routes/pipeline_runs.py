@@ -35,6 +35,7 @@ def pipeline_runs(
         runs = svc.list_recent_runs(status=status or None, run_type=run_type or None)
         statuses = svc.list_distinct_statuses()
         run_types = svc.list_distinct_run_types()
+        summary = svc.get_summary()
     except Exception:
         logger.exception("pipeline_runs: PipelineService.list_recent_runs() failed")
         return templates.TemplateResponse(
@@ -51,6 +52,7 @@ def pipeline_runs(
             "runs": runs,
             "statuses": statuses,
             "run_types": run_types,
+            "summary": summary,
             "selected_status": status or "",
             "selected_run_type": run_type or "",
         },
