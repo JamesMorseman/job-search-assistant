@@ -1808,6 +1808,19 @@ def test_source_health_renders_200_with_mixed_sources(client, db):
     assert "error" in resp.text
 
 
+def test_source_health_renders_severity_labels(client, db):
+    _insert_firm(db, "f1", "Acme Corp")
+    _insert_firm(db, "f2", "Globex")
+    _insert_source_run(db, "greenhouse", firm_id="f1", status="ok")
+    _insert_source_run(db, "lever", firm_id="f2", status="error", error_class="persistent")
+
+    resp = client.get("/dashboard/source-health")
+    assert resp.status_code == 200
+    assert 'data-testid="source-severity"' in resp.text
+    assert "healthy" in resp.text
+    assert "critical" in resp.text
+
+
 # Case 5: open circuit_state on firm renders as quarantined (circuit_state drives it)
 def test_source_health_open_circuit_renders_as_quarantined(client, db):
     _insert_firm(db, "f1", "Acme Corp", circuit_state="open",
@@ -1902,6 +1915,30 @@ def test_source_health_service_testable_with_real_sqlite(db):
     assert len(report.sources) == 1
     assert report.sources[0].source == "greenhouse"
     assert report.sources[0].records_fetched == 5
+
+
+def test_source_health_service_derives_severity_from_existing_fields(db):
+    _insert_firm(db, "f1", "Healthy Firm")
+    _insert_firm(db, "f2", "Error Firm")
+    _insert_firm(db, "f3", "Empty Firm")
+    _insert_firm(db, "f4", "Failure Firm", consecutive_failures=2)
+    _insert_firm(db, "f5", "Quarantine Firm", circuit_state="open", quarantine_until="2099-01-01T00:00:00")
+    _insert_firm(db, "f6", "Unknown Firm")
+    _insert_source_run(db, "healthy", firm_id="f1", status="ok")
+    _insert_source_run(db, "error", firm_id="f2", status="error")
+    _insert_source_run(db, "empty", firm_id="f3", status="empty")
+    _insert_source_run(db, "failures", firm_id="f4", status="ok")
+    _insert_source_run(db, "quarantine", firm_id="f5", status="ok")
+    _insert_source_run(db, "unknown", firm_id="f6", status="paused")
+
+    report = SourceHealthService(db_path=db).get_report()
+    severity_by_source = {source.source: source.severity for source in report.sources}
+    assert severity_by_source["healthy"] == "healthy"
+    assert severity_by_source["error"] == "critical"
+    assert severity_by_source["empty"] == "warning"
+    assert severity_by_source["failures"] == "warning"
+    assert severity_by_source["quarantine"] == "critical"
+    assert severity_by_source["unknown"] == "unknown"
 
 
 # Case 13: Source Health nav link is active (not "(not yet implemented)")

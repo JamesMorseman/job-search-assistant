@@ -51,6 +51,7 @@
             <th>Firm</th>
             <th>Last Run</th>
             <th>Status</th>
+            <th>Severity</th>
             <th>Records Fetched</th>
             <th>Error Class</th>
             <th>Circuit State</th>
@@ -66,6 +67,7 @@
             </td>
             <td data-testid="run-at">{{ s.run_at or "—" }}</td>
             <td data-testid="status">{{ s.status or "—" }}</td>
+            <td data-testid="source-severity">{{ s.severity }}</td>
             <td data-testid="records-fetched">
                 {% if s.records_fetched is none %}—{% else %}{{ s.records_fetched }}{% endif %}
             </td>

@@ -38,6 +38,7 @@ class SourceRunSummary(BaseModel):
     # Derived
     is_quarantined: bool
     quarantine_active: bool
+    severity: str
 
 
 class GlobalHealthSummary(BaseModel):
@@ -65,6 +66,21 @@ def _is_quarantine_active(quarantine_until: str | None, circuit_state: str | Non
         return until > datetime.now(tz=timezone.utc)
     except ValueError:
         return True
+
+
+def _source_severity(
+    status: str | None,
+    *,
+    quarantine_active: bool,
+    consecutive_failures: int | None,
+) -> str:
+    if quarantine_active or status in {"error", "quarantined"}:
+        return "critical"
+    if status == "empty" or (consecutive_failures or 0) > 0:
+        return "warning"
+    if status == "ok":
+        return "healthy"
+    return "unknown"
 
 
 class SourceHealthService:
@@ -156,6 +172,11 @@ class SourceHealthService:
                     ats_tier=row["ats_tier"],
                     is_quarantined=is_quarantined,
                     quarantine_active=quarantine_active,
+                    severity=_source_severity(
+                        row["status"],
+                        quarantine_active=quarantine_active,
+                        consecutive_failures=row["consecutive_failures"],
+                    ),
                 )
             )
         return result
