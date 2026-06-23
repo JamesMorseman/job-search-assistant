@@ -99,11 +99,12 @@ test("schema doc describes the required registry structure", () => {
   assert.match(schemaDoc, /radar_workspace/);
   assert.match(schemaDoc, /radar_sweep_mark/);
   assert.match(schemaDoc, /signal_card/);
-  assert.match(schemaDoc, /panel_surface/);
-  assert.match(schemaDoc, /tier_badge/);
-  assert.match(schemaDoc, /status_badge/);
-  assert.match(schemaDoc, /action_button/);
-  assert.match(schemaDoc, /icon_button/);
+  assert.match(schemaDoc, /context_rail/);
+  assert.match(schemaDoc, /status_metric/);
+  assert.match(schemaDoc, /atlas_mark/);
+  assert.match(schemaDoc, /recommendation_card\.shell_only/);
+  assert.match(schemaDoc, /pipeline_status_item\.shell_only/);
+  assert.match(schemaDoc, /search_input_shell/);
 });
 
 test("registry schema is well-formed", () => {
@@ -121,12 +122,15 @@ test("registry has the required foundation and expansion objects", () => {
     registry.objects.map((entry: any) => entry.object_id).sort(),
     [
       "action_button",
+      "atlas_mark",
+      "context_rail",
       "icon_button",
       "panel_surface",
       "radar_sweep_mark",
       "radar_workspace",
       "signal_card",
       "status_badge",
+      "status_metric",
       "tier_badge",
     ],
   );
