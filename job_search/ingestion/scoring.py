@@ -500,6 +500,12 @@ DEGREE_RELATED = re.compile(
     re.IGNORECASE,
 )
 
+# Clearance values that mean "no clearance required" — treated as no knockout issue
+# even though the field is non-empty. Normalized via .strip().lower() before matching.
+_NO_CLEARANCE_VALUES: frozenset[str] = frozenset({
+    "none", "", "n/a", "na", "not required", "no clearance", "no clearance required",
+})
+
 
 @dataclass
 class ScoringContext:
@@ -652,8 +658,9 @@ class Scorer:
             issues.append("PE license required — not yet eligible")
         if ko.min_years and ko.min_years > 2:
             issues.append(f"Min {ko.min_years:.0f} years required — new grad")
-        if ko.clearance and ko.clearance.lower() not in ("none", ""):
-            issues.append(f"Security clearance required: {ko.clearance}")
+        clearance = (ko.clearance or "").strip()
+        if clearance and clearance.lower() not in _NO_CLEARANCE_VALUES:
+            issues.append(f"Security clearance required: {clearance}")
         return len(issues) == 0, issues
 
     def _classify_stretch(self, job: CanonicalJob, text: str) -> StretchCategory:

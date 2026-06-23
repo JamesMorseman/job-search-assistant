@@ -451,3 +451,138 @@ def test_rotation_boilerplate_jd_scores_lower_than_structured_program_jd():
         _TRAJECTORY_COMPILED,
     )
     assert boilerplate.score < structured.score
+
+
+# ── Group J: Knockout clearance-field edge cases ──────────────────────────────
+# job.knockout.clearance is free text from job postings; "no clearance required"
+# can show up in many equivalent forms. These must not be treated as a knockout.
+
+def test_knockout_clearance_none_string_no_issue():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job()
+    job.knockout = KnockoutFields(clearance="None")
+    job = scorer.score(job)
+    assert "Security clearance required: None" not in (job.knockout.clearance or "")
+    # No knockout issue means base is not halved — score should match the
+    # no-knockout-issue baseline used by test_structural_seattle_high_score.
+    assert job.match_score >= 0.70
+
+
+def test_knockout_clearance_whitespace_only_no_issue():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job()
+    job.knockout = KnockoutFields(clearance="   ")
+    job = scorer.score(job)
+    assert job.match_score >= 0.70
+
+
+def test_knockout_clearance_na_variants_no_issue():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    for value in ("N/A", "n/a", "NA", "Not Required", "No Clearance", "No Clearance Required"):
+        job = make_job()
+        job.knockout = KnockoutFields(clearance=value)
+        job = scorer.score(job)
+        assert job.match_score >= 0.70, f"clearance={value!r} should not knock out"
+
+
+def test_knockout_clearance_real_requirement_flagged():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job()
+    job.knockout = KnockoutFields(clearance="Secret")
+    job = scorer.score(job)
+    # Knockout halves the base contribution, so score should drop below the
+    # no-issue baseline.
+    clean_job = scorer.score(make_job())
+    assert job.match_score < clean_job.match_score
+
+
+def test_knockout_clearance_none_value_no_issue():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job()
+    job.knockout = KnockoutFields(clearance=None)
+    job = scorer.score(job)
+    assert job.match_score >= 0.70
+
+
+# ── Group K: min_years boundary ────────────────────────────────────────────────
+
+def test_knockout_min_years_at_boundary_two_no_issue():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job()
+    job.knockout = KnockoutFields(min_years=2)
+    clean_job = scorer.score(make_job())
+    job = scorer.score(job)
+    assert job.match_score == clean_job.match_score
+
+
+def test_knockout_min_years_above_boundary_flags_issue():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job()
+    job.knockout = KnockoutFields(min_years=2.5)
+    clean_job = scorer.score(make_job())
+    job = scorer.score(job)
+    assert job.match_score < clean_job.match_score
+
+
+def test_knockout_min_years_zero_no_issue():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job()
+    job.knockout = KnockoutFields(min_years=0)
+    clean_job = scorer.score(make_job())
+    job = scorer.score(job)
+    assert job.match_score == clean_job.match_score
+
+
+# ── Group L: stretch_category LONG_SHOT paths ─────────────────────────────────
+
+def test_stretch_long_shot_pe_required():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job(
+        description_normalized="structural design senior engineer no degree phrase here"
+    )
+    job.knockout = KnockoutFields(pe_required=True)
+    job = scorer.score(job)
+    assert job.stretch_category == StretchCategory.LONG_SHOT
+
+
+def test_stretch_long_shot_min_years_five_or_more():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job(
+        description_normalized="structural design senior engineer no degree phrase here"
+    )
+    job.knockout = KnockoutFields(min_years=5)
+    job = scorer.score(job)
+    assert job.stretch_category == StretchCategory.LONG_SHOT
+
+
+def test_stretch_qualified_min_years_below_five():
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job(
+        description_normalized="structural design senior engineer no degree phrase here"
+    )
+    job.knockout = KnockoutFields(min_years=4.9)
+    job = scorer.score(job)
+    assert job.stretch_category == StretchCategory.QUALIFIED
+
+
+def test_stretch_degree_related_takes_priority_over_pe_required():
+    # DEGREE_RELATED check happens before the pe_required LONG_SHOT check.
+    from job_search.models import KnockoutFields
+    scorer = Scorer()
+    job = make_job(
+        description_normalized="civil engineering technology bachelor degree structural"
+    )
+    job.knockout = KnockoutFields(pe_required=True)
+    job = scorer.score(job)
+    assert job.stretch_category == StretchCategory.QUALIFIED
