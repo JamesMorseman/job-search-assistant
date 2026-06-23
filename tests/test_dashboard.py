@@ -1216,7 +1216,7 @@ def test_tracker_renders_no_transition_form_for_terminal_state(client, db):
     _insert_job(db, "j1")
     _advance(db, "j1", "presented", "selected", "applied", "rejected")
 
-    resp = client.get("/dashboard/tracker")
+    resp = client.get("/dashboard/tracker?state=rejected")
     assert resp.status_code == 200
     assert 'data-testid="no-transitions"' in resp.text
 
@@ -1298,7 +1298,7 @@ def test_tracker_empty_state_when_no_tracked_applications(client, db):
     resp = client.get("/dashboard/tracker")
     assert resp.status_code == 200
     assert 'data-testid="tracker-empty-state"' in resp.text
-    assert "No applications are currently being tracked." in resp.text
+    assert "No active applications are currently being tracked." in resp.text
     assert "<table>" not in resp.text or 'data-testid="tracker-row"' not in resp.text
 
 
@@ -1427,7 +1427,7 @@ def test_tracker_uses_dependency_override_not_direct_construction(db):
 
     class _StubTrackerService:
         def list_tracker_rows(self, states=None):
-            calls.append("list_tracker_rows")
+            calls.append(("list_tracker_rows", states))
             return []
 
         def list_due_followups(self, as_of=None, include_resolved=False):
@@ -1443,7 +1443,10 @@ def test_tracker_uses_dependency_override_not_direct_construction(db):
         resp = client.get("/dashboard/tracker")
 
     assert resp.status_code == 200
-    assert "list_tracker_rows" in calls
+    assert (
+        "list_tracker_rows",
+        ("selected", "applied", "acknowledged", "screen", "interview", "offer"),
+    ) in calls
     assert "list_due_followups" in calls
     assert "list_upcoming_followups" in calls
 
@@ -2865,6 +2868,38 @@ def test_tracker_filters_by_stage(client, db):
     assert resp.status_code == 200
     assert "Globex Structural" in resp.text
     assert "Acme Engineering" not in resp.text
+
+
+def test_tracker_default_view_excludes_terminal_states(client, db):
+    _insert_job(db, "j1", company="Active Engineering")
+    _insert_job(db, "j2", company="Rejected Systems")
+    _insert_job(db, "j3", company="Ghosted Labs")
+    _advance(db, "j1", "presented", "selected", "applied")
+    _advance(db, "j2", "presented", "selected", "applied", "rejected")
+    _advance(db, "j3", "presented", "selected", "applied", "ghosted")
+
+    resp = client.get("/dashboard/tracker")
+    assert resp.status_code == 200
+    assert "Active Engineering" in resp.text
+    assert "Rejected Systems" not in resp.text
+    assert "Ghosted Labs" not in resp.text
+
+
+def test_tracker_terminal_states_remain_available_by_filter(client, db):
+    _insert_job(db, "j1", company="Rejected Systems")
+    _insert_job(db, "j2", company="Ghosted Labs")
+    _advance(db, "j1", "presented", "selected", "applied", "rejected")
+    _advance(db, "j2", "presented", "selected", "applied", "ghosted")
+
+    rejected_resp = client.get("/dashboard/tracker?state=rejected")
+    assert rejected_resp.status_code == 200
+    assert "Rejected Systems" in rejected_resp.text
+    assert "Ghosted Labs" not in rejected_resp.text
+
+    ghosted_resp = client.get("/dashboard/tracker?state=ghosted")
+    assert ghosted_resp.status_code == 200
+    assert "Ghosted Labs" in ghosted_resp.text
+    assert "Rejected Systems" not in ghosted_resp.text
 
 
 def test_tracker_stage_filter_ignores_invalid_state(client, db):

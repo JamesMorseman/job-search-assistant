@@ -55,6 +55,15 @@ _TRACKED_STATES = (
     "ghosted",
 )
 
+_DEFAULT_TRACKER_STATES = (
+    "selected",
+    "applied",
+    "acknowledged",
+    "screen",
+    "interview",
+    "offer",
+)
+
 
 @router.get("/tracker", response_class=HTMLResponse)
 def application_tracker(
@@ -63,7 +72,8 @@ def application_tracker(
     state: str | None = None,
     tracker_service: TrackerService = Depends(get_tracker_service),
 ) -> HTMLResponse:
-    states = (state,) if state in _TRACKED_STATES else None
+    selected_state = state if state in _TRACKED_STATES else ""
+    states = (selected_state,) if selected_state else _DEFAULT_TRACKER_STATES
     try:
         rows = tracker_service.list_tracker_rows(states=states)
         followups = tracker_service.list_due_followups()
@@ -87,7 +97,7 @@ def application_tracker(
             "valid_transitions": VALID_TRANSITIONS,
             "error": error,
             "tracked_states": _TRACKED_STATES,
-            "selected_state": state if state in _TRACKED_STATES else "",
+            "selected_state": selected_state,
         },
     )
 
