@@ -414,6 +414,11 @@ export default function Radar() {
       {state.status === "success" && opportunities.length === 0 && (
         <div className="atlas-radar-status">
           <p>No signals detected. Monitoring continues.</p>
+          <p className="atlas-radar-status-detail">
+            Run <code>jsa run</code> from the repository root to ingest postings, or
+            <code>jsa run --dry-run</code> to preview without writing any data. New signals
+            appear here automatically once a pipeline pass runs.
+          </p>
         </div>
       )}
 

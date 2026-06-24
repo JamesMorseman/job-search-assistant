@@ -190,6 +190,13 @@ def test_empty_states_exist():
     assert "No active Focus objects right now" in COMMAND_CENTER_TSX
 
 
+def test_empty_states_include_actionable_next_step_guidance():
+    """Build 1 onboarding polish: bare empty-state copy should now be
+    followed by guidance on what to do next, not left as a dead end."""
+    assert "jsa run" in COMMAND_CENTER_TSX
+    assert COMMAND_CENTER_TSX.count("atlas-cc-status-detail") >= 4
+
+
 # ── Boundary / scope enforcement ─────────────────────────────────────────
 
 

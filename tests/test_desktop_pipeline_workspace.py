@@ -173,6 +173,12 @@ def test_pipeline_renders_empty_state():
     assert "No pipeline runs recorded yet" in PIPELINE_TSX
 
 
+def test_pipeline_empty_state_includes_actionable_guidance():
+    """Build 1 onboarding polish: tell a first-time observer how to start
+    their first pipeline run, not just that none exist yet."""
+    assert "jsa run" in PIPELINE_TSX
+
+
 def test_pipeline_renders_run_status_counters_and_timestamps():
     assert "statusLabel" in PIPELINE_TSX
     for field in ["jobs_seen", "jobs_created", "jobs_updated", "jobs_presented", "errors_count"]:

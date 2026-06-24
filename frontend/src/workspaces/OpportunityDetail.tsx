@@ -6,6 +6,7 @@ export default function OpportunityDetail() {
       eyebrow="Opportunity Detail"
       title="No opportunity selected"
       intent="Select an opportunity to view details."
+      guidance="Open Radar or Pipeline and choose an opportunity to see its full detail here."
     />
   );
 }

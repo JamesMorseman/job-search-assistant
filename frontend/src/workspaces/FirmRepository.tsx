@@ -92,6 +92,11 @@ export default function FirmRepository() {
       {state.status === "success" && firms.length === 0 && (
         <div className="atlas-firm-repo-status">
           <p>No approved firms recorded yet.</p>
+          <p className="atlas-firm-repo-status-detail">
+            Approved firm profiles populate this list once added to the firm registry
+            (<code>config/firms.yaml</code>) and synced. See the classic dashboard's Firm
+            Repository for the current review workflow.
+          </p>
         </div>
       )}
 

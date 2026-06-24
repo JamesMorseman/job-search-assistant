@@ -104,6 +104,10 @@ export default function Pipeline() {
       {state.status === "success" && runs.length === 0 && (
         <div className="atlas-pipeline-status">
           <p>No pipeline runs recorded yet.</p>
+          <p className="atlas-pipeline-status-detail">
+            Run <code>jsa run</code> from the repository root to start your first pipeline pass.
+            Run history will appear here once at least one run completes.
+          </p>
         </div>
       )}
 

@@ -131,6 +131,12 @@ def test_radar_renders_empty_state():
     assert "No opportunities match your search or filter" in RADAR_TSX
 
 
+def test_radar_empty_state_includes_actionable_guidance():
+    """Build 1 onboarding polish: the zero-data empty state should tell a
+    first-time observer what to actually do, not just that monitoring continues."""
+    assert "jsa run" in RADAR_TSX
+
+
 def test_radar_does_not_implement_prohibited_behavior():
     prohibited_terms = [
         "Recommended for you",

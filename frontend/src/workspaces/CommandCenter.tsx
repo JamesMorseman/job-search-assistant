@@ -265,6 +265,10 @@ export default function CommandCenter() {
           {focusState.status === "success" && focusState.data?.length === 0 && (
             <div className="atlas-cc-status">
               <p>No active Focus objects right now.</p>
+              <p className="atlas-cc-status-detail">
+                Focus objects surface automatically as opportunities, pipeline runs, and
+                follow-ups need attention. Nothing to review at the moment.
+              </p>
             </div>
           )}
 
@@ -363,8 +367,12 @@ export default function CommandCenter() {
           {summaryState.status === "success" && summaryState.data && (
             <>
               {summaryState.data.total_opportunities === 0 ? (
-                <div className="atlas-cc-status">
+                <div className="atlas-cc-status atlas-cc-status-onboarding">
                   <p>No opportunities tracked yet.</p>
+                  <p className="atlas-cc-status-detail">
+                    Run <code>jsa run</code> from the repository root to ingest postings, or
+                    <code>jsa run --dry-run</code> to preview without writing any data.
+                  </p>
                 </div>
               ) : (
                 <>
@@ -404,6 +412,10 @@ export default function CommandCenter() {
           {pipelineState.status === "success" && !mostRecentRun && (
             <div className="atlas-cc-status">
               <p>No pipeline runs recorded yet.</p>
+              <p className="atlas-cc-status-detail">
+                Run <code>jsa run</code> to start your first pipeline pass, or view the Pipeline
+                workspace for full run history once one exists.
+              </p>
             </div>
           )}
 
@@ -466,6 +478,9 @@ export default function CommandCenter() {
             recommendationState.data?.length === 0 && (
               <div className="atlas-cc-status">
                 <p>No recommendations available yet.</p>
+                <p className="atlas-cc-status-detail">
+                  Recommendations build up as Atlas tracks more opportunities and pipeline runs.
+                </p>
               </div>
             )}
 
