@@ -61,6 +61,17 @@ export type ScorePreview = {
   notes: string[];
 };
 
+export type LocationEconomicsPreview = {
+  metro_name: string | null;
+  composite: number | null;
+  ranked: boolean;
+  match_kind: string;
+  headline: string;
+  dimension_notes: string[];
+  economics_notes: string[];
+  caveats: string[];
+};
+
 export type AtlasStageCount = {
   stage: string;
   count: number;

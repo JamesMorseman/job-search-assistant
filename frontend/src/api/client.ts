@@ -9,6 +9,7 @@ import type {
   AtlasSummary,
   FocusResolutionRecord,
   FocusResolutionRequest,
+  LocationEconomicsPreview,
   ScorePreview,
 } from "./types";
 
@@ -52,6 +53,12 @@ export function getOpportunity(jobId: string): Promise<AtlasOpportunityDetail> {
 
 export function getScorePreview(jobId: string): Promise<ScorePreview> {
   return fetchJson<ScorePreview>(`/opportunities/${encodeURIComponent(jobId)}/score-preview`);
+}
+
+export function getLocationEconomics(jobId: string): Promise<LocationEconomicsPreview> {
+  return fetchJson<LocationEconomicsPreview>(
+    `/opportunities/${encodeURIComponent(jobId)}/location-economics`,
+  );
 }
 
 export function getSummary(): Promise<AtlasSummary> {

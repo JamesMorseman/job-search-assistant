@@ -79,6 +79,16 @@ class LocationScorer:
             return self._fallback
         return self._compute_composite(metro.scores, scheme_name)
 
+    def get_metro(self, metro_id: str | None) -> MetroArea | None:
+        """Look up the full MetroArea (including raw economics fields) by id.
+
+        Read-only lookup against the already-loaded cities.yaml data — no IO,
+        no mutation. Returns None for an unranked/remote/unknown metro_id.
+        """
+        if not metro_id:
+            return None
+        return next((m for m in self._metros if m.id == metro_id), None)
+
     def _compute_composite(self, scores: DimensionScores, scheme: SchemeName) -> float:
         weights = self._schemes[scheme]
         weighted = scores.weighted_sum(weights)

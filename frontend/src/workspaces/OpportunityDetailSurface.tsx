@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { AtlasApiError, getOpportunity, getScorePreview } from "../api/client";
+import { AtlasApiError, getLocationEconomics, getOpportunity, getScorePreview } from "../api/client";
 import {
   DataState,
   errorState,
@@ -10,7 +10,7 @@ import {
   notFoundState,
   successState,
 } from "../api/state";
-import type { AtlasOpportunityDetail, ScorePreview } from "../api/types";
+import type { AtlasOpportunityDetail, LocationEconomicsPreview, ScorePreview } from "../api/types";
 import ContextModule, { ContextModuleEmpty } from "../shell/ContextModule";
 import { useContextPanel } from "../shell/ContextPanelContext";
 import {
@@ -414,6 +414,66 @@ function ScorePreviewModule({ jobId }: { jobId: string }) {
   );
 }
 
+function LocationEconomicsModule({ jobId }: { jobId: string }) {
+  const [state, setState] = useState<DataState<LocationEconomicsPreview>>(idleState());
+
+  useEffect(() => {
+    let cancelled = false;
+    setState(loadingState());
+
+    getLocationEconomics(jobId)
+      .then((preview) => {
+        if (!cancelled) {
+          setState(successState(preview));
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        const message = err instanceof Error ? err.message : "Failed to load location economics.";
+        setState(errorState(message));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId]);
+
+  if (state.status === "loading" || state.status === "idle") {
+    return <p className="atlas-detail-description">Loading location economics…</p>;
+  }
+  if (state.status === "error") {
+    return (
+      <p className="atlas-detail-description">
+        Location economics are unavailable right now{state.error ? `: ${state.error}` : "."}
+      </p>
+    );
+  }
+
+  const preview = state.data as LocationEconomicsPreview;
+
+  return (
+    <>
+      {preview.headline ? <p className="atlas-detail-description">{preview.headline}</p> : null}
+      {preview.dimension_notes.length > 0 || preview.economics_notes.length > 0 ? (
+        <ul className="atlas-detail-reasons" role="list">
+          {[...preview.dimension_notes, ...preview.economics_notes].map((note, index) => (
+            <li key={index}>{note}</li>
+          ))}
+        </ul>
+      ) : null}
+      {preview.caveats.length > 0 ? (
+        <ul className="atlas-detail-reasons" role="list">
+          {preview.caveats.map((caveat, index) => (
+            <li key={index}>{caveat}</li>
+          ))}
+        </ul>
+      ) : null}
+    </>
+  );
+}
+
 function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportunityDetail }) {
   const hasRationale =
     opportunity.llm_grade != null || opportunity.llm_fit_score != null || opportunity.llm_rationale != null;
@@ -506,6 +566,7 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
         <a href="#atlas-detail-requirements">Requirements</a>
         <a href="#atlas-detail-fit-context">Fit Context</a>
         <a href="#atlas-detail-score-preview">Score Preview</a>
+        <a href="#atlas-detail-location-economics">Location Economics</a>
         <a href="#atlas-detail-signal-context">Signal Context</a>
         <a href="#atlas-detail-job-details">Job Details</a>
       </nav>
@@ -611,6 +672,18 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
           recompute scoring when this section is viewed — it only formats already-stored values.
         </p>
         <ScorePreviewModule jobId={opportunity.job_id} />
+      </section>
+
+      <section
+        className="atlas-detail-section atlas-detail-metrics"
+        aria-labelledby="atlas-detail-location-economics"
+      >
+        <h2 id="atlas-detail-location-economics">Location Economics</h2>
+        <p className="atlas-detail-description">
+          Advisory context on relocation/cost-of-living tradeoffs for this opportunity's location.
+          These figures are reference estimates, not a personalized financial projection.
+        </p>
+        <LocationEconomicsModule jobId={opportunity.job_id} />
       </section>
 
       <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-signal-context">

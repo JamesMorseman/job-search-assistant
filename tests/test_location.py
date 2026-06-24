@@ -180,3 +180,27 @@ def test_location_score_normalized_property(scorer):
     s = scorer.score("Cleveland", "OH")
     assert 0.0 <= s.normalized <= 1.0
     assert abs(s.normalized - s.composite / 100.0) < 1e-9
+
+
+# ── get_metro lookup (Build 1 location-economics rationale wiring) ───────────
+
+def test_get_metro_returns_full_metro_area(scorer):
+    metro = scorer.get_metro("cleveland_oh")
+    assert metro is not None
+    assert metro.id == "cleveland_oh"
+    assert metro.name
+
+
+def test_get_metro_returns_none_for_unknown_id(scorer):
+    assert scorer.get_metro("not_a_real_metro") is None
+
+
+def test_get_metro_returns_none_for_none_input(scorer):
+    assert scorer.get_metro(None) is None
+
+
+def test_get_metro_does_not_mutate_internal_state(scorer):
+    before = list(scorer._metros)
+    scorer.get_metro("cleveland_oh")
+    after = list(scorer._metros)
+    assert before == after
