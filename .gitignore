@@ -48,6 +48,7 @@ env/
 *.db-journal
 *.sqlite
 *.sqlite3
+*.pre-recovery-backup
 
 # Generated documents (Drive is canonical)
 output/
