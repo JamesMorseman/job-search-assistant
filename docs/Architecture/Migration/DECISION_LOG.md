@@ -5780,3 +5780,88 @@ Rejected decisions are owned by `PROJECT_HISTORY.md`. See that document's
   4. `/atlas` routing remains isolated.
   5. Focus resolution and archive behavior stay bounded to the Focus domain.
   6. No unrelated surface changes are introduced.
+
+### Build 1 Package 0 — Application Pathway and Base Resume Library Requirements Accepted
+
+- Status: accepted
+- Area: roadmap / product / Build 1
+- Date: June 2026
+- Track: B
+- Gate classification: `E3_DOCS_SPEC_ONLY_PACKAGE_0`
+- Spec reference:
+  `artifacts/packages/B1_PACKAGE_0_APPLICATION_PATHWAY_AND_BASE_RESUME_SPEC.md`
+- Roadmap reference: `docs/Architecture/build_1_completion_roadmap.md` Section 19
+- Rationale: Two newly accepted Build 1 critical requirements are recorded into
+  repo truth via a docs/spec-only Package 0, **before** any code implementation,
+  per Leah's decision that the Package 0 spec must precede code. This entry is
+  the governance acceptance record; the spec artifact and roadmap Section 19
+  carry the full detail.
+
+  **Requirement BUILD1-REQ-APPLICATION-PATHWAY:** The dashboard must provide a
+  real application pathway through an external apply/posting URL at minimum,
+  plus workspace/material links when available.
+
+  - External apply/posting URL is required for Build 1.
+  - Direct one-click apply inside ATLAS is rejected/deferred for Build 1.
+  - Opening an apply/posting URL or a workspace is navigation-only.
+  - Selecting a job or base resume is not generation authorization.
+  - Resume/cover generation requires explicit user confirmation after posting
+    review (explicit apply-intent gate required).
+  - Generated materials are drafts requiring human review, not submission-ready
+    or recruiter-ready artifacts.
+
+  **Requirement BUILD1-REQ-BASE-RESUME-LIBRARY:** Build 1 must include an
+  evidence-governed base resume library used as tailoring input.
+
+  - Approved categories: structural engineering, site/civil land development,
+    water resources / stormwater, environmental engineering, construction
+    project engineering, general civil / technical analyst fallback.
+  - Deferred categories (not Build 1 scope): transportation/traffic,
+    geotechnical, operations / project controls.
+  - Base resume selection/recommendation is advisory and user-overridable.
+  - Manual base resume selection is required for unreachable postings.
+  - Base resume selection alone must not generate documents.
+  - No real private resume contents, Drive URLs, generated materials,
+    credentials, or profile PII may be committed.
+
+  **Claim / quality policy (Cait):** Generated materials are evidence-backed
+  drafts requiring human review; the general fallback is hardened to general
+  civil / technical analyst fallback; ATS/recruiter/submission-ready guarantees
+  are rejected; unsupported credentials, licensure, experience, tool mastery,
+  and work-authorization claims are prohibited; user approval is a timestamped
+  review/submission note, not a system readiness certification.
+
+  **Architecture constraints (Leah):** Decouple navigation from generation;
+  apply/posting URL, workspace, and material reference fields must be nullable
+  and backward-compatible; Drive/document links are privacy-sensitive private
+  metadata stored as provider-neutral references plus metadata; the Package 0
+  spec precedes code implementation.
+
+  **Package sequencing:**
+
+  1. Package 0 — application pathway and base resume spec (docs/spec-only; this
+     decision plus the spec artifact and roadmap Section 19).
+  2. Package 1 — application pathway data/UI links (nullable,
+     backward-compatible apply/posting URL and workspace/material references;
+     navigation-only).
+  3. Package 2 — base resume library selector (advisory, user-overridable;
+     metadata plus `document_ref`; manual selection for unreachable postings).
+  4. Package 3 — generation intent-gate integration (explicit user confirmation
+     after posting review; drafts only).
+
+  **Conservative defaults (open questions resolved non-blocking):**
+  provider-neutral `workspace_url`/`workspace_ref`; provider-neutral
+  `document_ref` with metadata; blank workspace creation is an explicit user
+  action; cover letter available but not default-generated; freshness triggers
+  are base resume version change, profile/evidence snapshot change, posting
+  snapshot change, and user-marked stale state; user approval representation is
+  a timestamped review/submission note; base resume storage is metadata plus a
+  linked source document reference with no private resume content committed.
+
+  **Non-authorization notice:** This Package 0 decision is docs/spec-only. It
+  does not authorize implementation, staging, commits, push, PR, merge,
+  source/frontend/backend/test/data/profile mutation, dependency changes, an
+  unfiltered pytest run, resume/cover-letter generation, real application
+  material creation, visual pass, implementation acceptance, release readiness,
+  public/recruiter release, full public release, Rin sync, P7P6, or
+  screenshots/media capture. Packages 1–3 each require separate authorization.

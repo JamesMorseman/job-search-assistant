@@ -824,3 +824,92 @@ gates could ever be considered, not to clear any of them.
   "non_authorization_notice": true
 }
 ```
+
+---
+
+## 19. Accepted Build 1 Requirement Deltas — Application Pathway and Base Resume Library
+
+This section records two newly accepted Build 1 critical requirements added after
+the original Section 6–12 lanes were authored. They are recorded here in repo
+truth via docs/spec-only Package 0
+(`B1_PACKAGE_0_APPLICATION_PATHWAY_AND_BASE_RESUME_SPEC_UPDATE`) **before** any
+code implementation, per Leah's audit decision that the Package 0 spec must
+precede code. The full specification lives at
+`artifacts/packages/B1_PACKAGE_0_APPLICATION_PATHWAY_AND_BASE_RESUME_SPEC.md`;
+the governance decision entries live in
+`docs/Architecture/Migration/DECISION_LOG.md`. This section is a summary index,
+not a substitute for either.
+
+These deltas do **not** authorize any implementation, commit, stage, push, PR,
+merge, or any blocked gate in Section 17. Implementation is split into Packages
+1–3, each separately authorized later.
+
+### 19.1 BUILD1-REQ-APPLICATION-PATHWAY (Lane A / Lane B boundary)
+
+The dashboard must provide a real application pathway through an external
+apply/posting URL at minimum, plus workspace/material links when available.
+
+- External apply/posting URL is **required** for Build 1.
+- Direct one-click apply inside ATLAS is **rejected/deferred** for Build 1.
+- Opening an apply/posting URL or a workspace is **navigation-only**.
+- Selecting a job or base resume is **not** generation authorization.
+- Resume/cover generation requires **explicit user confirmation after posting
+  review**; an explicit apply-intent gate is required.
+- Generated materials are **drafts requiring human review** — not
+  submission-ready or recruiter-ready.
+
+### 19.2 BUILD1-REQ-BASE-RESUME-LIBRARY (Lane B)
+
+Build 1 must include an evidence-governed base resume library used as tailoring
+input.
+
+- Approved categories: `structural_engineering`,
+  `site_civil_land_development`, `water_resources_stormwater`,
+  `environmental_engineering`, `construction_project_engineering`,
+  `general_civil_technical_analyst_fallback`.
+- Deferred categories (not Build 1 scope): `transportation_traffic`,
+  `geotechnical`, `operations_project_controls`.
+- Base resume selection/recommendation is **advisory and user-overridable**.
+- Manual base resume selection is **required for unreachable postings**.
+- Base resume selection alone **must not generate documents**.
+- No real private resume contents, Drive URLs, generated materials,
+  credentials, or profile PII may be committed.
+
+### 19.3 Claim / quality policy (Cait)
+
+Generated materials are evidence-backed drafts requiring human review; the
+general fallback is hardened to general civil / technical analyst fallback;
+ATS/recruiter/submission-ready guarantees are rejected; unsupported credentials,
+licensure, experience, tool mastery, and work-authorization claims are
+prohibited. User approval is a timestamped review/submission note, not a system
+readiness certification.
+
+### 19.4 Architecture constraints (Leah)
+
+Decouple navigation from generation; apply/posting URL, workspace, and material
+reference fields must be nullable and backward-compatible; Drive/document links
+are privacy-sensitive private metadata stored as provider-neutral references
+plus metadata; Package 0 spec precedes code implementation.
+
+### 19.5 Package sequencing
+
+- **Package 0** — application pathway and base resume spec (docs/spec-only;
+  this delta + the spec artifact + the DECISION_LOG entries).
+- **Package 1** — application pathway data/UI links (nullable,
+  backward-compatible apply/posting URL and workspace/material references,
+  navigation-only).
+- **Package 2** — base resume library selector (advisory, user-overridable;
+  metadata plus `document_ref`; manual selection for unreachable postings).
+- **Package 3** — generation intent-gate integration (explicit user
+  confirmation after posting review; drafts only).
+
+### 19.6 Conservative defaults (open questions resolved non-blocking)
+
+Workspace reference: provider-neutral `workspace_url`/`workspace_ref`. Base
+resume reference: provider-neutral `document_ref` with metadata. Blank workspace
+creation: explicit user action. Cover letter: available but not
+default-generated. Freshness triggers: base resume version change,
+profile/evidence snapshot change, posting snapshot change, user-marked stale
+state. User approval representation: timestamped review/submission note, not a
+system readiness certification. Base resume storage: metadata plus linked source
+document reference, no private resume content committed.
