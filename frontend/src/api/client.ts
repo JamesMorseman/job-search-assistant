@@ -9,6 +9,7 @@ import type {
   AtlasSummary,
   FocusResolutionRecord,
   FocusResolutionRequest,
+  ScorePreview,
 } from "./types";
 
 const API_BASE = "/atlas/api";
@@ -47,6 +48,10 @@ export function getOpportunities(limit?: number): Promise<AtlasOpportunityListRe
 
 export function getOpportunity(jobId: string): Promise<AtlasOpportunityDetail> {
   return fetchJson<AtlasOpportunityDetail>(`/opportunities/${encodeURIComponent(jobId)}`);
+}
+
+export function getScorePreview(jobId: string): Promise<ScorePreview> {
+  return fetchJson<ScorePreview>(`/opportunities/${encodeURIComponent(jobId)}/score-preview`);
 }
 
 export function getSummary(): Promise<AtlasSummary> {

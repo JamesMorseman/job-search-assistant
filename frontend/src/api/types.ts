@@ -44,6 +44,23 @@ export type AtlasOpportunityListResponse = {
   limit: number;
 };
 
+export type ScoreComponentPreview = {
+  name: string;
+  label: string;
+  score: number;
+  weight: number | null;
+  contribution: number | null;
+  top_reasons: string[];
+  summary: string;
+};
+
+export type ScorePreview = {
+  overall_score: number | null;
+  components: ScoreComponentPreview[];
+  headline: string;
+  notes: string[];
+};
+
 export type AtlasStageCount = {
   stage: string;
   count: number;

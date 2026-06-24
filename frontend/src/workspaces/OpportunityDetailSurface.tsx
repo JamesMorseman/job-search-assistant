@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { AtlasApiError, getOpportunity } from "../api/client";
+import { AtlasApiError, getOpportunity, getScorePreview } from "../api/client";
 import {
   DataState,
   errorState,
@@ -10,7 +10,7 @@ import {
   notFoundState,
   successState,
 } from "../api/state";
-import type { AtlasOpportunityDetail } from "../api/types";
+import type { AtlasOpportunityDetail, ScorePreview } from "../api/types";
 import ContextModule, { ContextModuleEmpty } from "../shell/ContextModule";
 import { useContextPanel } from "../shell/ContextPanelContext";
 import {
@@ -341,6 +341,79 @@ function RelatedAndContextRail({ opportunity }: { opportunity: AtlasOpportunityD
   );
 }
 
+function percentLabel(score: number): string {
+  return `${Math.round(score * 100)}%`;
+}
+
+function ScorePreviewModule({ jobId }: { jobId: string }) {
+  const [state, setState] = useState<DataState<ScorePreview>>(idleState());
+
+  useEffect(() => {
+    let cancelled = false;
+    setState(loadingState());
+
+    getScorePreview(jobId)
+      .then((preview) => {
+        if (!cancelled) {
+          setState(successState(preview));
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        const message = err instanceof Error ? err.message : "Failed to load score preview.";
+        setState(errorState(message));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId]);
+
+  if (state.status === "loading" || state.status === "idle") {
+    return <p className="atlas-detail-description">Loading score preview…</p>;
+  }
+  if (state.status === "error") {
+    return (
+      <p className="atlas-detail-description">
+        Score preview is unavailable right now{state.error ? `: ${state.error}` : "."}
+      </p>
+    );
+  }
+
+  const preview = state.data as ScorePreview;
+  if (preview.components.length === 0) {
+    return <p className="atlas-detail-description">No score breakdown is available for this opportunity yet.</p>;
+  }
+
+  return (
+    <>
+      {preview.headline ? <p className="atlas-detail-description">{preview.headline}</p> : null}
+      <div className="atlas-detail-stat-grid">
+        {preview.components.map((component) => (
+          <div className="atlas-detail-stat" key={component.name}>
+            <dt>{component.label}</dt>
+            <dd>{percentLabel(component.score)}</dd>
+            {component.top_reasons.length > 0 ? (
+              <p className="atlas-detail-status-detail">{component.top_reasons.join(", ")}</p>
+            ) : component.summary ? (
+              <p className="atlas-detail-status-detail">{component.summary}</p>
+            ) : null}
+          </div>
+        ))}
+      </div>
+      {preview.notes.length > 0 ? (
+        <ul className="atlas-detail-reasons" role="list">
+          {preview.notes.map((note, index) => (
+            <li key={index}>{note}</li>
+          ))}
+        </ul>
+      ) : null}
+    </>
+  );
+}
+
 function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportunityDetail }) {
   const hasRationale =
     opportunity.llm_grade != null || opportunity.llm_fit_score != null || opportunity.llm_rationale != null;
@@ -432,6 +505,7 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
         <a href="#atlas-detail-overview">Overview</a>
         <a href="#atlas-detail-requirements">Requirements</a>
         <a href="#atlas-detail-fit-context">Fit Context</a>
+        <a href="#atlas-detail-score-preview">Score Preview</a>
         <a href="#atlas-detail-signal-context">Signal Context</a>
         <a href="#atlas-detail-job-details">Job Details</a>
       </nav>
@@ -528,6 +602,15 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
             <dd>{opportunity.career_trajectory_score}</dd>
           </div>
         </div>
+      </section>
+
+      <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-score-preview">
+        <h2 id="atlas-detail-score-preview">Score Preview</h2>
+        <p className="atlas-detail-description">
+          A read-only explanation of how the stored match score above breaks down. Atlas does not
+          recompute scoring when this section is viewed — it only formats already-stored values.
+        </p>
+        <ScorePreviewModule jobId={opportunity.job_id} />
       </section>
 
       <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-signal-context">

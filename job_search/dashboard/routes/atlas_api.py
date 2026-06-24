@@ -30,6 +30,8 @@ from job_search.services.focus_resolution import (
 )
 from job_search.services.pipeline import PipelineRun, PipelineService
 from job_search.services.recommendations import Recommendation, RecommendationService
+from job_search.services.score_preview_service import build_score_preview_for_opportunity
+from job_search.reporting.score_preview import ScorePreview
 
 router = APIRouter()
 
@@ -87,6 +89,22 @@ def get_opportunity(
     if opportunity is None:
         raise HTTPException(status_code=404, detail="Opportunity not found")
     return opportunity
+
+
+@router.get("/opportunities/{job_id}/score-preview", response_model=ScorePreview)
+def get_opportunity_score_preview(
+    job_id: str,
+    service: AtlasDataService = Depends(get_atlas_data_service),
+) -> ScorePreview:
+    """Read-only explanation of how this opportunity's match score breaks down.
+
+    Built entirely from already-persisted score data (no re-scoring, no DB
+    writes) — see job_search.services.score_preview_service for details.
+    """
+    opportunity = service.get_opportunity(job_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    return build_score_preview_for_opportunity(opportunity)
 
 
 @router.get("/summary", response_model=AtlasSummary)
