@@ -13,6 +13,7 @@ from job_search.services.atlas import (
 from job_search.services.focus import FocusService
 import job_search.services.focus as focus_module
 from job_search.services.pipeline import PipelineRun
+from job_search.services.tracker import FollowUpItem
 
 
 def _summary(*, total: int = 3, selected: int = 1) -> AtlasSummary:
@@ -65,6 +66,29 @@ def _run(*, errors: int = 0, created: int = 0) -> PipelineRun:
         errors_count=errors,
         metadata_json=None,
         notes=None,
+    )
+
+
+def _followup(
+    *,
+    id: int = 1,
+    company: str = "Acme Engineering",
+    title: str = "Civil Engineer",
+    action_type: str = "send_followup_email",
+    due_date: str = "2026-06-20",
+    note: str | None = None,
+) -> FollowUpItem:
+    return FollowUpItem(
+        id=id,
+        canonical_job_id=f"job-{id}",
+        company=company,
+        title=title,
+        app_state="applied",
+        apply_url=None,
+        action_type=action_type,
+        due_date=due_date,
+        resolved=False,
+        note=note,
     )
 
 
@@ -275,3 +299,89 @@ def test_no_stage_focus_emitted_when_all_attention_stage_counts_are_zero():
     # through to the monitoring fallback rather than an active stage focus.
     assert len(focuses) == 1
     assert focuses[0].resolution_state == "monitoring"
+
+
+# ── Build 1: due follow-ups surfaced as Focus objects ────────────────────────
+
+def test_due_followup_becomes_highest_priority_focus():
+    service = FocusService()
+
+    focuses = service.list_active_focuses(
+        summary=_summary(total=5, selected=2),
+        opportunities=_opportunities(),
+        most_recent_run=_run(errors=1, created=3),
+        due_followups=[_followup(id=42, due_date="2026-06-20")],
+    )
+
+    assert focuses[0].source_object == "followup:42"
+    assert focuses[0].resolution_state == "active"
+    assert focuses[0].attention_horizon == "now"
+    assert "Acme Engineering" in focuses[0].focus_statement
+    assert "2026-06-20" in focuses[0].reason
+
+
+def test_followup_focus_includes_note_when_present():
+    service = FocusService()
+
+    focuses = service.list_active_focuses(
+        summary=_summary(total=1, selected=0),
+        opportunities=_opportunities(),
+        most_recent_run=None,
+        due_followups=[_followup(note="Called once already, no response.")],
+    )
+
+    assert "Called once already, no response." in focuses[0].reason
+
+
+def test_multiple_due_followups_each_become_a_focus_in_due_date_order():
+    service = FocusService()
+
+    focuses = service.list_active_focuses(
+        summary=_summary(total=1, selected=0),
+        opportunities=_opportunities(),
+        most_recent_run=None,
+        due_followups=[
+            _followup(id=1, company="Acme Engineering", due_date="2026-06-18"),
+            _followup(id=2, company="Beta Engineering", due_date="2026-06-19"),
+        ],
+    )
+
+    sources = [f.source_object for f in focuses]
+    assert sources[:2] == ["followup:1", "followup:2"]
+
+
+def test_followup_focuses_are_truncated_by_max_focuses():
+    service = FocusService()
+
+    focuses = service.list_active_focuses(
+        summary=_summary(total=5, selected=2),
+        opportunities=_opportunities(),
+        most_recent_run=_run(errors=1, created=3),
+        due_followups=[
+            _followup(id=1, due_date="2026-06-18"),
+            _followup(id=2, due_date="2026-06-19"),
+            _followup(id=3, due_date="2026-06-20"),
+        ],
+    )
+
+    assert len(focuses) == FocusService.MAX_FOCUSES
+    assert all(f.source_object.startswith("followup:") for f in focuses)
+
+
+def test_no_due_followups_does_not_change_existing_behavior():
+    service = FocusService()
+
+    with_none = service.list_active_focuses(
+        summary=_summary(total=5, selected=2),
+        opportunities=_opportunities(),
+        most_recent_run=_run(errors=1, created=3),
+        due_followups=None,
+    )
+    with_empty = service.list_active_focuses(
+        summary=_summary(total=5, selected=2),
+        opportunities=_opportunities(),
+        most_recent_run=_run(errors=1, created=3),
+    )
+
+    assert with_none == with_empty
+    assert with_none[0].focus_statement == "Pipeline run completed with errors"

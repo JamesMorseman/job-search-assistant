@@ -14,6 +14,7 @@ from job_search.dashboard.deps import (
     get_focus_service,
     get_pipeline_service,
     get_recommendation_service,
+    get_tracker_service,
 )
 from job_search.services.ask_atlas import AskAtlasInvestigation, AskAtlasService
 from job_search.services.atlas import (
@@ -34,6 +35,7 @@ from job_search.services.location_economics_service import (
 from job_search.services.pipeline import PipelineRun, PipelineService
 from job_search.services.recommendations import Recommendation, RecommendationService
 from job_search.services.score_preview_service import build_score_preview_for_opportunity
+from job_search.services.tracker import TrackerService
 from job_search.reporting.location_economics_preview import LocationEconomicsPreview
 from job_search.reporting.score_preview import ScorePreview
 
@@ -167,14 +169,17 @@ def list_focuses(
     pipeline_service: PipelineService = Depends(get_pipeline_service),
     focus_service: FocusService = Depends(get_focus_service),
     focus_resolution_service: FocusResolutionService = Depends(get_focus_resolution_service),
+    tracker_service: TrackerService = Depends(get_tracker_service),
 ) -> FocusList:
     summary = atlas_service.get_summary()
     opportunities = atlas_service.list_opportunities(limit=3)
     most_recent_run = next(iter(pipeline_service.list_recent_runs(limit=1)), None)
+    due_followups = tracker_service.list_due_followups()
     focuses = focus_service.list_active_focuses(
         summary=summary,
         opportunities=opportunities,
         most_recent_run=most_recent_run,
+        due_followups=due_followups,
     )
     resolved = focus_resolution_service.resolved_source_objects()
     return FocusList(

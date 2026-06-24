@@ -43,8 +43,8 @@ class FakeFocusService:
     def __init__(self):
         self.calls = []
 
-    def list_active_focuses(self, *, summary, opportunities, most_recent_run):
-        self.calls.append((summary, opportunities, most_recent_run))
+    def list_active_focuses(self, *, summary, opportunities, most_recent_run, due_followups=None):
+        self.calls.append((summary, opportunities, most_recent_run, due_followups))
         return [
             AtlasFocus(
                 focus_statement="Review new Radar intake",
@@ -127,15 +127,16 @@ def test_focuses_endpoint_returns_read_only_focus_shape(client, app, db):
         }
     ]
     assert "T" in body["generated_at"]
-    summary, opportunities, most_recent_run = fake.calls[0]
+    summary, opportunities, most_recent_run, due_followups = fake.calls[0]
     assert summary.total_opportunities == 1
     assert opportunities.limit == 3
     assert most_recent_run.id == run_id
+    assert due_followups == []
 
 
 def test_focuses_endpoint_allows_empty_focuses(client, app):
     class EmptyFocusService:
-        def list_active_focuses(self, *, summary, opportunities, most_recent_run):
+        def list_active_focuses(self, *, summary, opportunities, most_recent_run, due_followups=None):
             return []
 
     app.dependency_overrides[get_focus_service] = lambda: EmptyFocusService()
@@ -182,6 +183,56 @@ def test_resolved_focus_is_excluded_from_active_focus_list(client, app, db):
 
     assert resp.status_code == 200
     assert resp.json()["focuses"] == []
+
+
+def test_focuses_endpoint_surfaces_real_due_followup_end_to_end(client, db):
+    """Build 1: a real followup_queue row (no fake FocusService override)
+    must surface through the live /atlas/api/focuses endpoint as a Focus.
+    """
+    import sqlite3
+
+    _insert_job(db, "job-1", company="Acme Engineering", title="Civil Engineer I")
+    conn = sqlite3.connect(db)
+    conn.execute(
+        "INSERT INTO followup_queue (canonical_job_id, action_type, due_date) VALUES (?, ?, ?)",
+        ("job-1", "check_status", "2026-01-01"),
+    )
+    conn.commit()
+    conn.close()
+
+    resp = client.get("/atlas/api/focuses")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    followup_focuses = [f for f in body["focuses"] if f["source_object"].startswith("followup:")]
+    assert len(followup_focuses) == 1
+    assert "Acme Engineering" in followup_focuses[0]["focus_statement"]
+    assert followup_focuses[0]["resolution_state"] == "active"
+
+
+def test_focuses_endpoint_does_not_surface_resolved_or_future_followups(client, db):
+    import sqlite3
+
+    _insert_job(db, "job-1")
+    _insert_job(db, "job-2")
+    conn = sqlite3.connect(db)
+    conn.execute(
+        "INSERT INTO followup_queue (canonical_job_id, action_type, due_date, resolved) "
+        "VALUES (?, ?, ?, 1)",
+        ("job-1", "check_status", "2026-01-01"),
+    )
+    conn.execute(
+        "INSERT INTO followup_queue (canonical_job_id, action_type, due_date) VALUES (?, ?, ?)",
+        ("job-2", "check_status", "2099-01-01"),
+    )
+    conn.commit()
+    conn.close()
+
+    resp = client.get("/atlas/api/focuses")
+
+    body = resp.json()
+    followup_focuses = [f for f in body["focuses"] if f["source_object"].startswith("followup:")]
+    assert followup_focuses == []
 
 
 def test_focus_archive_endpoint_lists_resolutions_newest_first(client, app, db):

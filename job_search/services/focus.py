@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from job_search.services.atlas import AtlasOpportunityList, AtlasSummary
 from job_search.services.pipeline import PipelineRun
+from job_search.services.tracker import FollowUpItem
 
 FocusResolutionState = Literal["active", "monitoring"]
 
@@ -85,8 +86,25 @@ class FocusService:
         summary: AtlasSummary,
         opportunities: AtlasOpportunityList,
         most_recent_run: PipelineRun | None,
+        due_followups: list[FollowUpItem] | None = None,
     ) -> list[AtlasFocus]:
         focuses: list[AtlasFocus] = []
+
+        for item in due_followups or []:
+            focuses.append(
+                AtlasFocus(
+                    focus_statement=f"Follow up: {item.company} - {item.title}",
+                    reason=(
+                        f"A {item.action_type.replace('_', ' ')} follow-up for this opportunity was "
+                        f"due {item.due_date}."
+                        + (f" Note: {item.note}" if item.note else "")
+                    ),
+                    source_object=f"followup:{item.id}",
+                    attention_horizon="now",
+                    next_action="Open the Application Tracker to resolve or reschedule this follow-up.",
+                    resolution_state="active",
+                )
+            )
 
         if most_recent_run and most_recent_run.errors_count > 0:
             focuses.append(
