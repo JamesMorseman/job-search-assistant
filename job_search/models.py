@@ -117,6 +117,16 @@ class CanonicalJob(BaseModel):
     app_state: AppState = AppState.DISCOVERED
     ats_type: ATSType = ATSType.UNKNOWN
 
+    # Application pathway (Build 1 Package 1 — navigation-only metadata; see
+    # BUILD1-REQ-APPLICATION-PATHWAY). None of these fields are ever set as a
+    # side effect of generation, navigation, or base-resume selection.
+    workspace_url: str | None = None
+    workspace_provider: str | None = None
+    workspace_label: str | None = None
+    application_status: str = "not_applied"
+    pathway_updated_at: str | None = None
+    material_generation_status: str = "not_started"
+
     @model_validator(mode="after")
     def compute_id_and_hash(self) -> CanonicalJob:
         if not self.canonical_job_id:
@@ -165,6 +175,12 @@ class CanonicalJob(BaseModel):
             "trajectory_reasons": self.trajectory_reasons,
             "app_state": self.app_state.value,
             "ats_type": self.ats_type.value,
+            "workspace_url": self.workspace_url,
+            "workspace_provider": self.workspace_provider,
+            "workspace_label": self.workspace_label,
+            "application_status": self.application_status,
+            "pathway_updated_at": self.pathway_updated_at,
+            "material_generation_status": self.material_generation_status,
         }
 
 

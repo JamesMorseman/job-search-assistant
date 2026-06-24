@@ -85,6 +85,16 @@ CREATE TABLE IF NOT EXISTS jobs (
     llm_model           TEXT,
     -- Application state
     app_state           TEXT DEFAULT 'discovered', -- see state machine
+    -- Application pathway (Build 1 Package 1 — navigation-only metadata;
+    -- nullable/backward-compatible per docs/Architecture/Migration/DECISION_LOG.md
+    -- BUILD1-REQ-APPLICATION-PATHWAY). Opening apply_url, opening a workspace,
+    -- or setting these fields never triggers document generation.
+    workspace_url        TEXT,                    -- provider-neutral workspace/folder reference
+    workspace_provider   TEXT,                    -- e.g. "google_drive"; null if unknown/unset
+    workspace_label      TEXT,                     -- user-facing label for the workspace link
+    application_status   TEXT DEFAULT 'not_applied', -- not_applied|applied (user-logged, post-submission only)
+    pathway_updated_at   TEXT,                     -- ISO datetime; null until a pathway field is first set
+    material_generation_status TEXT DEFAULT 'not_started', -- not_started|base_selected|confirmation_required|generating|generated_draft_review_required|failed_error|stale_missing
     -- Metadata
     ats_type            TEXT,
     created_at          TEXT DEFAULT (datetime('now')),
@@ -126,6 +136,27 @@ CREATE INDEX IF NOT EXISTS idx_generated_docs_job_type_generated
     ON generated_docs(canonical_job_id, doc_type, generated_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS idx_generated_docs_job_generated
     ON generated_docs(canonical_job_id, generated_at DESC, id DESC);
+
+-- ── Base resume selections (Build 1 Package 2) ───────────────────────────────
+-- Records an advisory or manual base-resume-category selection for a job.
+-- Selection alone never generates documents (see BUILD1-REQ-BASE-RESUME-LIBRARY).
+-- Metadata/reference-first: category + document_ref only, never real resume
+-- content. Append-only history mirrors generated_docs; latest selection per
+-- job is query-derived (ORDER BY selected_at DESC, id DESC), never mutated.
+CREATE TABLE IF NOT EXISTS base_resume_selections (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    canonical_job_id TEXT NOT NULL REFERENCES jobs(canonical_job_id),
+    category         TEXT NOT NULL,               -- one of the approved base resume categories
+    document_ref     TEXT,                        -- provider-neutral reference to the source document; never real content
+    selection_mode    TEXT NOT NULL,               -- recommended|manual
+    confidence       REAL,                        -- 0.0-1.0, null for manual selections
+    reason           TEXT,                        -- short human-readable rationale for this category choice
+    selected_by_user  INTEGER NOT NULL DEFAULT 0,  -- boolean: 1 if the user made/confirmed the choice
+    selected_at      TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_base_resume_selections_job_selected
+    ON base_resume_selections(canonical_job_id, selected_at DESC, id DESC);
 
 -- ── Keyword extraction per job ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS job_keywords (

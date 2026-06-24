@@ -15,6 +15,13 @@ _JOBS_ADDED_COLUMNS: dict[str, str] = {
     "llm_model": "TEXT",
     "benefit_reasons": "TEXT",
     "trajectory_reasons": "TEXT",
+    # Build 1 Package 1 — application pathway (nullable/backward-compatible)
+    "workspace_url": "TEXT",
+    "workspace_provider": "TEXT",
+    "workspace_label": "TEXT",
+    "application_status": "TEXT DEFAULT 'not_applied'",
+    "pathway_updated_at": "TEXT",
+    "material_generation_status": "TEXT DEFAULT 'not_started'",
 }
 
 _FIRMS_ADDED_COLUMNS: dict[str, str] = {

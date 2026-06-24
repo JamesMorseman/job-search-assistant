@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -282,19 +283,24 @@ def test_focuses_endpoint_is_get_only_and_uses_existing_read_boundaries():
         assert verb not in ATLAS_API_PY
 
 
-def test_focus_resolution_endpoint_is_the_only_authorized_mutation_route():
+def test_focus_resolution_endpoint_is_the_only_authorized_focus_mutation_route():
     """Package 10's definition entry authorizes read/write `/atlas/api`
     endpoints for the bounded Focus lifecycle only. `/focuses/resolutions`
-    must be the sole POST route in the ATLAS API; every other surface
-    (opportunities, summary, pipeline, recommendations, ask-atlas) remains
-    GET-only.
+    must be the sole Focus-lifecycle POST route in the ATLAS API.
+
+    Build 1 Packages 1-3 (application pathway, base resume selection,
+    generation intent gate) separately and explicitly authorized new POST
+    routes under `/opportunities/{job_id}/...` — see
+    docs/Architecture/build_1_completion_roadmap.md Section 19 and
+    artifacts/packages/B1_PACKAGE_0_APPLICATION_PATHWAY_AND_BASE_RESUME_SPEC.md.
+    This test was narrowed from "the only POST route in the whole API" (its
+    pre-Build-1 scope) to "the only POST route for the Focus surface
+    specifically" so it keeps catching real Focus-surface scope creep
+    without re-blocking the separately authorized Build 1 surface.
     """
-    post_routes = [
-        line.strip()
-        for line in ATLAS_API_PY.splitlines()
-        if line.strip().startswith('@router.post(')
-    ]
-    assert post_routes == ['@router.post("/focuses/resolutions", response_model=FocusResolutionRecord)']
+    post_route_paths = sorted(re.findall(r'@router\.post\(\s*\n?\s*"([^"]+)"', ATLAS_API_PY))
+    focus_post_routes = [path for path in post_route_paths if path.startswith("/focuses")]
+    assert focus_post_routes == ["/focuses/resolutions"]
     assert '@router.get("/focuses/archive"' in ATLAS_API_PY
     assert "get_focus_resolution_service" in DEPS_PY
     assert "FocusResolutionService()" in DEPS_PY

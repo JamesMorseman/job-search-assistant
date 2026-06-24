@@ -12,6 +12,7 @@ from sqlite3 import Row
 from pydantic import BaseModel
 
 from job_search.db import get_db
+from job_search.reporting.documents import get_latest_generated_docs
 from job_search.services.jobs import _parse_json_list
 
 
@@ -30,6 +31,20 @@ class AtlasOpportunitySummary(BaseModel):
     match_score: float | None
     stretch_category: str | None
     llm_grade: str | None
+
+
+class AtlasGeneratedMaterialLink(BaseModel):
+    """Read-only pointer to the latest generated document of one type.
+
+    Sourced from the existing `generated_docs` history via
+    `job_search.reporting.documents.get_latest_generated_docs` — this DTO
+    never re-derives or duplicates that lookup, it only shapes it for the
+    ATLAS API response.
+    """
+
+    doc_type: str
+    drive_url: str | None
+    generated_at: str | None
 
 
 class AtlasOpportunityDetail(AtlasOpportunitySummary):
@@ -54,6 +69,14 @@ class AtlasOpportunityDetail(AtlasOpportunitySummary):
     ko_clearance: str | None
     ko_relocation: str | None
     ko_degree_required: str | None
+    # Application pathway (Build 1 Package 1 — navigation-only, read-only here)
+    workspace_url: str | None
+    workspace_provider: str | None
+    workspace_label: str | None
+    application_status: str
+    pathway_updated_at: str | None
+    material_generation_status: str
+    generated_materials: list[AtlasGeneratedMaterialLink]
 
 
 class AtlasStageCount(BaseModel):
@@ -91,9 +114,24 @@ def _row_to_summary(row: Row) -> AtlasOpportunitySummary:
     )
 
 
-def _row_to_detail(row: Row) -> AtlasOpportunityDetail:
+def _row_keys(row: Row) -> set[str]:
+    return set(row.keys())
+
+
+def _row_to_detail(row: Row, generated_docs: dict[str, Row | None] | None = None) -> AtlasOpportunityDetail:
     summary = _row_to_summary(row)
     description = row["description_normalized"] or row["description_raw"]
+    keys = _row_keys(row)
+    generated_docs = generated_docs or {}
+    generated_materials = [
+        AtlasGeneratedMaterialLink(
+            doc_type=doc_type,
+            drive_url=doc_row["drive_url"] if doc_row is not None else None,
+            generated_at=doc_row["generated_at"] if doc_row is not None else None,
+        )
+        for doc_type, doc_row in generated_docs.items()
+        if doc_row is not None
+    ]
     return AtlasOpportunityDetail(
         **summary.model_dump(),
         firm_id=row["firm_id"],
@@ -117,6 +155,16 @@ def _row_to_detail(row: Row) -> AtlasOpportunityDetail:
         ko_clearance=row["ko_clearance"],
         ko_relocation=row["ko_relocation"],
         ko_degree_required=row["ko_degree_required"],
+        workspace_url=row["workspace_url"] if "workspace_url" in keys else None,
+        workspace_provider=row["workspace_provider"] if "workspace_provider" in keys else None,
+        workspace_label=row["workspace_label"] if "workspace_label" in keys else None,
+        application_status=(row["application_status"] if "application_status" in keys else None) or "not_applied",
+        pathway_updated_at=row["pathway_updated_at"] if "pathway_updated_at" in keys else None,
+        material_generation_status=(
+            (row["material_generation_status"] if "material_generation_status" in keys else None)
+            or "not_started"
+        ),
+        generated_materials=generated_materials,
     )
 
 
@@ -164,9 +212,10 @@ class AtlasDataService:
                 """,
                 (job_id,),
             ).fetchone()
-        if row is None:
-            return None
-        return _row_to_detail(row)
+            if row is None:
+                return None
+            generated_docs = get_latest_generated_docs(db, job_id)
+        return _row_to_detail(row, generated_docs=generated_docs)
 
     def get_summary(self) -> AtlasSummary:
         with get_db() as db:

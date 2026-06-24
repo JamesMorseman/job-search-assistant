@@ -1,7 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { AtlasApiError, getLocationEconomics, getOpportunity, getScorePreview } from "../api/client";
+import {
+  AtlasApiError,
+  confirmGeneration,
+  getBaseResumeCategories,
+  getBaseResumeRecommendation,
+  getBaseResumeSelectionOrNull,
+  getLocationEconomics,
+  getOpportunity,
+  getScorePreview,
+  markOpportunityApplied,
+  recordBaseResumeSelection,
+  requestGenerationConfirmation,
+  setOpportunityWorkspaceLink,
+} from "../api/client";
 import {
   DataState,
   errorState,
@@ -10,7 +23,14 @@ import {
   notFoundState,
   successState,
 } from "../api/state";
-import type { AtlasOpportunityDetail, LocationEconomicsPreview, ScorePreview } from "../api/types";
+import type {
+  AtlasOpportunityDetail,
+  BaseResumeCategory,
+  BaseResumeRecommendation,
+  BaseResumeSelectionRecord,
+  LocationEconomicsPreview,
+  ScorePreview,
+} from "../api/types";
 import ContextModule, { ContextModuleEmpty } from "../shell/ContextModule";
 import { useContextPanel } from "../shell/ContextPanelContext";
 import {
@@ -474,7 +494,486 @@ function LocationEconomicsModule({ jobId }: { jobId: string }) {
   );
 }
 
-function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportunityDetail }) {
+const MATERIAL_GENERATION_STATUS_LABELS: Record<string, string> = {
+  not_started: "Not started",
+  base_selected: "Base resume selected",
+  confirmation_required: "Confirmation required",
+  generating: "Generating draft",
+  generated_draft_review_required: "Draft ready — review required",
+  failed_error: "Generation failed",
+  stale_missing: "Draft may be stale",
+};
+
+function materialGenerationStatusLabel(status: string): string {
+  return MATERIAL_GENERATION_STATUS_LABELS[status] ?? status;
+}
+
+const DOC_TYPE_LABELS: Record<string, string> = {
+  resume: "Resume",
+  cover_letter: "Cover Letter",
+};
+
+function docTypeLabel(docType: string): string {
+  return DOC_TYPE_LABELS[docType] ?? docType;
+}
+
+// Base Resume selector module (Build 1 Package 2). Advisory and
+// user-overridable: showing a recommendation or recording a selection never
+// generates a document. Manual selection is required when the posting is
+// unreachable (no apply URL / no description) — the recommendation
+// endpoint already reports that case via `posting_reachable: false`, and
+// this component always lets the user pick a category manually regardless
+// of what was recommended.
+function BaseResumeSelectorModule({ opportunity }: { opportunity: AtlasOpportunityDetail }) {
+  const [categoriesState, setCategoriesState] = useState<DataState<BaseResumeCategory[]>>(idleState());
+  const [recommendationState, setRecommendationState] = useState<DataState<BaseResumeRecommendation>>(
+    idleState(),
+  );
+  const [selectionState, setSelectionState] = useState<DataState<BaseResumeSelectionRecord>>(idleState());
+  const [manualCategoryId, setManualCategoryId] = useState("");
+  const [confirmState, setConfirmState] = useState<DataState<true>>(idleState());
+
+  useEffect(() => {
+    let cancelled = false;
+    setCategoriesState(loadingState());
+    getBaseResumeCategories()
+      .then((response) => {
+        if (!cancelled) {
+          setCategoriesState(successState(response.categories));
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load base resume categories.";
+        setCategoriesState(errorState(message));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setRecommendationState(loadingState());
+    getBaseResumeRecommendation(opportunity.job_id)
+      .then((recommendation) => {
+        if (!cancelled) {
+          setRecommendationState(successState(recommendation));
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load a base resume recommendation.";
+        setRecommendationState(errorState(message));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [opportunity.job_id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getBaseResumeSelectionOrNull(opportunity.job_id)
+      .then((record) => {
+        if (!cancelled) {
+          setSelectionState(record ? successState(record) : idleState());
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load base resume selection.";
+        setSelectionState(errorState(message));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [opportunity.job_id]);
+
+  const confirmRecommendation = () => {
+    if (recommendationState.status !== "success" || !recommendationState.data) {
+      return;
+    }
+    const recommendation = recommendationState.data;
+    setConfirmState(loadingState());
+    recordBaseResumeSelection(opportunity.job_id, {
+      category_id: recommendation.category_id,
+      selection_mode: "recommended",
+      confidence: recommendation.confidence,
+      reason: recommendation.reason,
+    })
+      .then((record) => {
+        setConfirmState(successState(true));
+        setSelectionState(successState(record));
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to record base resume selection.";
+        setConfirmState(errorState(message));
+      });
+  };
+
+  const selectManually = () => {
+    if (!manualCategoryId) {
+      setConfirmState(errorState("Choose a category before selecting it manually."));
+      return;
+    }
+    setConfirmState(loadingState());
+    recordBaseResumeSelection(opportunity.job_id, {
+      category_id: manualCategoryId,
+      selection_mode: "manual",
+    })
+      .then((record) => {
+        setConfirmState(successState(true));
+        setSelectionState(successState(record));
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to record base resume selection.";
+        setConfirmState(errorState(message));
+      });
+  };
+
+  const categories = categoriesState.status === "success" ? categoriesState.data ?? [] : [];
+
+  return (
+    <div className="atlas-detail-pathway-row">
+      <p className="atlas-detail-pathway-row-label">Base Resume</p>
+      <p className="atlas-detail-pathway-helper">
+        A base resume category is an advisory tailoring starting point. Choosing or confirming one never
+        generates a document on its own.
+      </p>
+
+      {selectionState.status === "success" && selectionState.data ? (
+        <p className="atlas-detail-pathway-status">
+          Current selection: {selectionState.data.category_id} ({selectionState.data.selection_mode})
+        </p>
+      ) : selectionState.status === "error" ? (
+        <p className="atlas-detail-pathway-error">{selectionState.error}</p>
+      ) : (
+        <p className="atlas-detail-pathway-empty">No base resume category selected yet.</p>
+      )}
+
+      {recommendationState.status === "loading" || recommendationState.status === "idle" ? (
+        <p className="atlas-detail-pathway-empty">Loading a recommendation…</p>
+      ) : recommendationState.status === "error" ? (
+        <p className="atlas-detail-pathway-error">{recommendationState.error}</p>
+      ) : recommendationState.data ? (
+        <div className="atlas-detail-pathway-recommendation">
+          <p>
+            {recommendationState.data.posting_reachable
+              ? `Recommended: ${recommendationState.data.label}`
+              : "Posting unreachable — manual selection is required."}
+          </p>
+          <p className="atlas-detail-pathway-helper">{recommendationState.data.reason}</p>
+          {recommendationState.data.posting_reachable ? (
+            <button type="button" onClick={confirmRecommendation} disabled={confirmState.status === "loading"}>
+              {confirmState.status === "loading" ? "Saving…" : "Use recommended category"}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {categoriesState.status === "loading" || categoriesState.status === "idle" ? (
+        <p className="atlas-detail-pathway-empty">Loading base resume categories…</p>
+      ) : categoriesState.status === "error" ? (
+        <p className="atlas-detail-pathway-error">{categoriesState.error}</p>
+      ) : (
+        <div className="atlas-detail-pathway-form">
+          <label htmlFor="atlas-pathway-manual-category">Choose a category manually</label>
+          <select
+            id="atlas-pathway-manual-category"
+            value={manualCategoryId}
+            onChange={(event) => setManualCategoryId(event.target.value)}
+          >
+            <option value="">Select a category…</option>
+            {categories.map((category) => (
+              <option key={category.category_id} value={category.category_id}>
+                {category.label}
+              </option>
+            ))}
+          </select>
+          <button type="button" onClick={selectManually} disabled={confirmState.status === "loading"}>
+            Select manually
+          </button>
+        </div>
+      )}
+      {confirmState.status === "error" ? (
+        <p className="atlas-detail-pathway-error">{confirmState.error}</p>
+      ) : null}
+      {confirmState.status === "success" ? (
+        <p className="atlas-detail-pathway-success">Base resume selection recorded.</p>
+      ) : null}
+    </div>
+  );
+}
+
+// Application Pathway module (Build 1 Package 1). Strictly navigation/
+// logging-only: opening the apply URL, opening the workspace link, and
+// setting/recording a workspace reference never generate documents. The
+// only generation-adjacent thing shown here is a read-only link to a
+// material that was already produced through the existing generation
+// boundary — this module never calls a generation endpoint itself.
+function ApplicationPathwayModule({
+  opportunity,
+  onPathwayUpdate,
+}: {
+  opportunity: AtlasOpportunityDetail;
+  onPathwayUpdate: (patch: Partial<AtlasOpportunityDetail>) => void;
+}) {
+  const [workspaceUrlInput, setWorkspaceUrlInput] = useState("");
+  const [workspaceLabelInput, setWorkspaceLabelInput] = useState("");
+  const [workspaceSaveState, setWorkspaceSaveState] = useState<DataState<true>>(idleState());
+  const [appliedLogState, setAppliedLogState] = useState<DataState<true>>(idleState());
+  const [generationGateState, setGenerationGateState] = useState<DataState<true>>(idleState());
+
+  // Two explicit, separate user actions — opening this page or any link
+  // above never reaches either of these. Requesting confirmation only
+  // updates status; confirming is the one action that actually generates a
+  // draft, and it always requires the gate to already be in
+  // "confirmation_required" first.
+  const handleRequestConfirmation = () => {
+    setGenerationGateState(loadingState());
+    requestGenerationConfirmation(opportunity.job_id)
+      .then((state) => {
+        setGenerationGateState(idleState());
+        onPathwayUpdate({ material_generation_status: state.material_generation_status });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to request generation confirmation.";
+        setGenerationGateState(errorState(message));
+      });
+  };
+
+  const handleConfirmGeneration = () => {
+    setGenerationGateState(loadingState());
+    confirmGeneration(opportunity.job_id)
+      .then((result) => {
+        setGenerationGateState(successState(true));
+        onPathwayUpdate({ material_generation_status: result.material_generation_status });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Generation failed.";
+        setGenerationGateState(errorState(message));
+        onPathwayUpdate({ material_generation_status: "failed_error" });
+      });
+  };
+
+  const handleSaveWorkspaceLink = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = workspaceUrlInput.trim();
+    if (!trimmed) {
+      setWorkspaceSaveState(errorState("Enter a workspace link before saving."));
+      return;
+    }
+    setWorkspaceSaveState(loadingState());
+    setOpportunityWorkspaceLink(opportunity.job_id, {
+      workspace_url: trimmed,
+      workspace_label: workspaceLabelInput.trim() || null,
+    })
+      .then((state) => {
+        setWorkspaceSaveState(successState(true));
+        onPathwayUpdate({
+          workspace_url: state.workspace_url,
+          workspace_provider: state.workspace_provider,
+          workspace_label: state.workspace_label,
+          pathway_updated_at: state.pathway_updated_at,
+        });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to save workspace link.";
+        setWorkspaceSaveState(errorState(message));
+      });
+  };
+
+  const handleLogApplied = () => {
+    setAppliedLogState(loadingState());
+    markOpportunityApplied(opportunity.job_id)
+      .then((state) => {
+        setAppliedLogState(successState(true));
+        onPathwayUpdate({
+          application_status: state.application_status,
+          pathway_updated_at: state.pathway_updated_at,
+        });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to log application status.";
+        setAppliedLogState(errorState(message));
+      });
+  };
+
+  const alreadyApplied = opportunity.application_status === "applied";
+
+  return (
+    <section className="atlas-detail-section atlas-detail-pathway" aria-labelledby="atlas-detail-pathway">
+      <h2 id="atlas-detail-pathway">Application Pathway</h2>
+      <p className="atlas-detail-description">
+        Review the original posting, set up a workspace for your materials, and generate drafts only
+        when you are ready. Opening links here never starts generation on its own.
+      </p>
+
+      <div className="atlas-detail-pathway-row">
+        <p className="atlas-detail-pathway-row-label">Posting</p>
+        {opportunity.apply_url ? (
+          <a
+            href={opportunity.apply_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open original posting (opens in a new tab)"
+          >
+            Open original posting ↗
+          </a>
+        ) : (
+          <p className="atlas-detail-pathway-empty">
+            No apply/posting URL is recorded for this opportunity yet.
+          </p>
+        )}
+      </div>
+
+      <div className="atlas-detail-pathway-row">
+        <p className="atlas-detail-pathway-row-label">Workspace</p>
+        {opportunity.workspace_url ? (
+          <a
+            href={opportunity.workspace_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open application workspace (opens in a new tab)"
+          >
+            {opportunity.workspace_label || "Open workspace"} ↗
+          </a>
+        ) : (
+          <p className="atlas-detail-pathway-empty">No workspace link saved yet.</p>
+        )}
+        <form className="atlas-detail-pathway-form" onSubmit={handleSaveWorkspaceLink}>
+          <label htmlFor="atlas-pathway-workspace-url">
+            {opportunity.workspace_url ? "Update workspace link" : "Save a workspace link"}
+          </label>
+          <input
+            id="atlas-pathway-workspace-url"
+            type="url"
+            placeholder="Paste application workspace link"
+            value={workspaceUrlInput}
+            onChange={(event) => setWorkspaceUrlInput(event.target.value)}
+          />
+          <input
+            id="atlas-pathway-workspace-label"
+            type="text"
+            placeholder="Label (optional)"
+            value={workspaceLabelInput}
+            onChange={(event) => setWorkspaceLabelInput(event.target.value)}
+          />
+          <button type="submit" disabled={workspaceSaveState.status === "loading"}>
+            {workspaceSaveState.status === "loading" ? "Saving…" : "Save workspace link"}
+          </button>
+        </form>
+        {workspaceSaveState.status === "error" ? (
+          <p className="atlas-detail-pathway-error">{workspaceSaveState.error}</p>
+        ) : null}
+        {workspaceSaveState.status === "success" ? (
+          <p className="atlas-detail-pathway-success">Workspace link saved.</p>
+        ) : null}
+      </div>
+
+      <BaseResumeSelectorModule opportunity={opportunity} />
+
+      <div className="atlas-detail-pathway-row">
+        <p className="atlas-detail-pathway-row-label">Materials</p>
+        <p className="atlas-detail-pathway-status">
+          Draft status: {materialGenerationStatusLabel(opportunity.material_generation_status)}
+        </p>
+        {opportunity.generated_materials.length > 0 ? (
+          <ul className="atlas-detail-pathway-materials" role="list">
+            {opportunity.generated_materials.map((material) => (
+              <li key={material.doc_type}>
+                {material.drive_url ? (
+                  <a href={material.drive_url} target="_blank" rel="noopener noreferrer">
+                    {docTypeLabel(material.doc_type)} draft ↗
+                  </a>
+                ) : (
+                  <span>{docTypeLabel(material.doc_type)} draft (no link recorded)</span>
+                )}
+                {material.generated_at ? (
+                  <span className="atlas-detail-pathway-materials-meta"> · generated {material.generated_at}</span>
+                ) : null}
+                <span className="atlas-detail-pathway-materials-meta"> · draft, review required</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="atlas-detail-pathway-empty">
+            No resume or cover-letter draft has been generated for this opportunity yet.
+          </p>
+        )}
+
+        <div className="atlas-detail-pathway-generation-gate">
+          {opportunity.material_generation_status === "confirmation_required" ? (
+            <>
+              <p className="atlas-detail-pathway-helper">
+                Ready to generate a draft resume and cover letter for this opportunity. Nothing has been
+                generated yet — confirm below only after you have reviewed the posting.
+              </p>
+              <button
+                type="button"
+                onClick={handleConfirmGeneration}
+                disabled={generationGateState.status === "loading"}
+              >
+                {generationGateState.status === "loading" ? "Generating…" : "Confirm and generate drafts"}
+              </button>
+            </>
+          ) : opportunity.material_generation_status === "generating" ? (
+            <p className="atlas-detail-pathway-status">Generating drafts…</p>
+          ) : (
+            <button
+              type="button"
+              onClick={handleRequestConfirmation}
+              disabled={generationGateState.status === "loading"}
+            >
+              Prepare to generate drafts
+            </button>
+          )}
+        </div>
+        <p className="atlas-detail-pathway-helper">
+          Generation always requires your explicit confirmation. Opening the posting, the workspace
+          link, or choosing a base resume above never starts generation on its own.
+        </p>
+        {generationGateState.status === "error" ? (
+          <p className="atlas-detail-pathway-error">{generationGateState.error}</p>
+        ) : null}
+      </div>
+
+      <div className="atlas-detail-pathway-row">
+        <p className="atlas-detail-pathway-row-label">Application status</p>
+        <p className="atlas-detail-pathway-status">
+          {alreadyApplied ? "Logged as applied" : "Not yet logged as applied"}
+          {opportunity.pathway_updated_at ? ` · updated ${opportunity.pathway_updated_at}` : ""}
+        </p>
+        <button
+          type="button"
+          onClick={handleLogApplied}
+          disabled={alreadyApplied || appliedLogState.status === "loading"}
+        >
+          {alreadyApplied
+            ? "Already logged"
+            : appliedLogState.status === "loading"
+              ? "Logging…"
+              : "Log as applied"}
+        </button>
+        <p className="atlas-detail-pathway-helper">
+          This only records that you already submitted an application elsewhere. Atlas never submits
+          an application for you.
+        </p>
+        {appliedLogState.status === "error" ? (
+          <p className="atlas-detail-pathway-error">{appliedLogState.error}</p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function OpportunityDetailContent({
+  opportunity,
+  onPathwayUpdate,
+}: {
+  opportunity: AtlasOpportunityDetail;
+  onPathwayUpdate: (patch: Partial<AtlasOpportunityDetail>) => void;
+}) {
   const hasRationale =
     opportunity.llm_grade != null || opportunity.llm_fit_score != null || opportunity.llm_rationale != null;
   const benefitReasons = formatReasons(opportunity.benefit_reasons);
@@ -563,6 +1062,7 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
 
       <nav className="atlas-detail-segments" aria-label="Opportunity detail sections">
         <a href="#atlas-detail-overview">Overview</a>
+        <a href="#atlas-detail-pathway">Application Pathway</a>
         <a href="#atlas-detail-requirements">Requirements</a>
         <a href="#atlas-detail-fit-context">Fit Context</a>
         <a href="#atlas-detail-score-preview">Score Preview</a>
@@ -608,6 +1108,8 @@ function OpportunityDetailContent({ opportunity }: { opportunity: AtlasOpportuni
           <p className="atlas-detail-description">{opportunity.description}</p>
         ) : null}
       </section>
+
+      <ApplicationPathwayModule opportunity={opportunity} onPathwayUpdate={onPathwayUpdate} />
 
       <section className="atlas-detail-section atlas-detail-metrics" aria-labelledby="atlas-detail-requirements">
         <h2 id="atlas-detail-requirements">Requirements</h2>
@@ -770,6 +1272,15 @@ export default function OpportunityDetailSurface() {
     };
   }, [jobId]);
 
+  const handlePathwayUpdate = (patch: Partial<AtlasOpportunityDetail>) => {
+    setState((current) => {
+      if (current.status !== "success" || !current.data) {
+        return current;
+      }
+      return successState({ ...current.data, ...patch });
+    });
+  };
+
   useEffect(() => {
     if (state.status === "success" && state.data) {
       const opportunity = state.data;
@@ -802,5 +1313,10 @@ export default function OpportunityDetailSurface() {
   if (state.status === "error") {
     return <ErrorView message={state.error} />;
   }
-  return <OpportunityDetailContent opportunity={state.data as AtlasOpportunityDetail} />;
+  return (
+    <OpportunityDetailContent
+      opportunity={state.data as AtlasOpportunityDetail}
+      onPathwayUpdate={handlePathwayUpdate}
+    />
+  );
 }

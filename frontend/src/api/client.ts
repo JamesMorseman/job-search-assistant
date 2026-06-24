@@ -1,4 +1,5 @@
 import type {
+  ApplicationPathwayState,
   AskAtlasInvestigationResponse,
   AtlasFocusArchiveResponse,
   AtlasFocusListResponse,
@@ -7,12 +8,20 @@ import type {
   AtlasPipelineRunsResponse,
   AtlasRecommendationsResponse,
   AtlasSummary,
+  BaseResumeCategoryListResponse,
+  BaseResumeRecommendation,
+  BaseResumeSelectionRecord,
+  ConfirmGenerationRequest,
   FirmDetail,
   FirmListResponse,
   FocusResolutionRecord,
   FocusResolutionRequest,
+  GenerationConfirmationResult,
+  GenerationIntentState,
   LocationEconomicsPreview,
+  RecordBaseResumeSelectionRequest,
   ScorePreview,
+  SetWorkspaceLinkRequest,
 } from "./types";
 
 const API_BASE = "/atlas/api";
@@ -51,6 +60,102 @@ export function getOpportunities(limit?: number): Promise<AtlasOpportunityListRe
 
 export function getOpportunity(jobId: string): Promise<AtlasOpportunityDetail> {
   return fetchJson<AtlasOpportunityDetail>(`/opportunities/${encodeURIComponent(jobId)}`);
+}
+
+export function setOpportunityWorkspaceLink(
+  jobId: string,
+  request: SetWorkspaceLinkRequest,
+): Promise<ApplicationPathwayState> {
+  return fetchJson<ApplicationPathwayState>(
+    `/opportunities/${encodeURIComponent(jobId)}/pathway/workspace-link`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+}
+
+export function markOpportunityApplied(jobId: string): Promise<ApplicationPathwayState> {
+  return fetchJson<ApplicationPathwayState>(
+    `/opportunities/${encodeURIComponent(jobId)}/pathway/mark-applied`,
+    { method: "POST" },
+  );
+}
+
+export function getBaseResumeCategories(): Promise<BaseResumeCategoryListResponse> {
+  return fetchJson<BaseResumeCategoryListResponse>("/base-resume-categories");
+}
+
+export function getBaseResumeRecommendation(jobId: string): Promise<BaseResumeRecommendation> {
+  return fetchJson<BaseResumeRecommendation>(
+    `/opportunities/${encodeURIComponent(jobId)}/base-resume-recommendation`,
+  );
+}
+
+export function getBaseResumeSelection(jobId: string): Promise<BaseResumeSelectionRecord> {
+  return fetchJson<BaseResumeSelectionRecord>(
+    `/opportunities/${encodeURIComponent(jobId)}/base-resume-selection`,
+  );
+}
+
+/**
+ * Same as `getBaseResumeSelection`, but treats "no selection recorded yet"
+ * (404) as `null` instead of throwing — the common, expected case for an
+ * opportunity that has not had a base resume chosen yet, not an error.
+ */
+export async function getBaseResumeSelectionOrNull(
+  jobId: string,
+): Promise<BaseResumeSelectionRecord | null> {
+  try {
+    return await getBaseResumeSelection(jobId);
+  } catch (err: unknown) {
+    if (err instanceof AtlasApiError && err.status === 404) {
+      return null;
+    }
+    throw err;
+  }
+}
+
+export function recordBaseResumeSelection(
+  jobId: string,
+  request: RecordBaseResumeSelectionRequest,
+): Promise<BaseResumeSelectionRecord> {
+  return fetchJson<BaseResumeSelectionRecord>(
+    `/opportunities/${encodeURIComponent(jobId)}/base-resume-selection`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+}
+
+export function requestGenerationConfirmation(jobId: string): Promise<GenerationIntentState> {
+  return fetchJson<GenerationIntentState>(
+    `/opportunities/${encodeURIComponent(jobId)}/generation/request-confirmation`,
+    { method: "POST" },
+  );
+}
+
+export function confirmGeneration(
+  jobId: string,
+  request: ConfirmGenerationRequest = {},
+): Promise<GenerationConfirmationResult> {
+  return fetchJson<GenerationConfirmationResult>(
+    `/opportunities/${encodeURIComponent(jobId)}/generation/confirm`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+}
+
+export function getGenerationStatus(jobId: string): Promise<GenerationIntentState> {
+  return fetchJson<GenerationIntentState>(
+    `/opportunities/${encodeURIComponent(jobId)}/generation/status`,
+  );
 }
 
 export function getScorePreview(jobId: string): Promise<ScorePreview> {

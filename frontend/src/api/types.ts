@@ -15,6 +15,23 @@ export type AtlasOpportunitySummary = {
   llm_grade: string | null;
 };
 
+export type AtlasGeneratedMaterialLink = {
+  doc_type: string;
+  drive_url: string | null;
+  generated_at: string | null;
+};
+
+export type ApplicationStatus = "not_applied" | "applied";
+
+export type MaterialGenerationStatus =
+  | "not_started"
+  | "base_selected"
+  | "confirmation_required"
+  | "generating"
+  | "generated_draft_review_required"
+  | "failed_error"
+  | "stale_missing";
+
 export type AtlasOpportunityDetail = AtlasOpportunitySummary & {
   firm_id: string | null;
   location_country: string | null;
@@ -37,6 +54,94 @@ export type AtlasOpportunityDetail = AtlasOpportunitySummary & {
   ko_clearance: string | null;
   ko_relocation: string | null;
   ko_degree_required: string | null;
+  // Application pathway (Build 1 Package 1) — navigation-only metadata.
+  workspace_url: string | null;
+  workspace_provider: string | null;
+  workspace_label: string | null;
+  application_status: ApplicationStatus;
+  pathway_updated_at: string | null;
+  material_generation_status: MaterialGenerationStatus;
+  generated_materials: AtlasGeneratedMaterialLink[];
+};
+
+export type SetWorkspaceLinkRequest = {
+  workspace_url: string;
+  workspace_provider?: string | null;
+  workspace_label?: string | null;
+};
+
+export type ApplicationPathwayState = {
+  canonical_job_id: string;
+  workspace_url: string | null;
+  workspace_provider: string | null;
+  workspace_label: string | null;
+  application_status: ApplicationStatus;
+  pathway_updated_at: string | null;
+};
+
+// Build 1 Package 2 — base resume library / selector
+
+export type BaseResumeCategory = {
+  category_id: string;
+  label: string;
+  role_families: string[];
+  selection_cues: string[];
+  excluded_cues: string[];
+  rationale: string;
+  coursework_optional: boolean;
+};
+
+export type BaseResumeCategoryListResponse = {
+  categories: BaseResumeCategory[];
+};
+
+export type BaseResumeRecommendation = {
+  category_id: string;
+  label: string;
+  confidence: number;
+  reason: string;
+  posting_reachable: boolean;
+};
+
+export type BaseResumeSelectionMode = "recommended" | "manual";
+
+export type RecordBaseResumeSelectionRequest = {
+  category_id: string;
+  selection_mode: BaseResumeSelectionMode;
+  confidence?: number | null;
+  reason?: string | null;
+};
+
+export type BaseResumeSelectionRecord = {
+  id: number;
+  canonical_job_id: string;
+  category_id: string;
+  document_ref: string | null;
+  selection_mode: BaseResumeSelectionMode;
+  confidence: number | null;
+  reason: string | null;
+  selected_by_user: boolean;
+  selected_at: string;
+};
+
+// Build 1 Package 3 — generation intent gate
+
+export type GenerationIntentState = {
+  canonical_job_id: string;
+  material_generation_status: MaterialGenerationStatus;
+  pathway_updated_at: string | null;
+};
+
+export type ConfirmGenerationRequest = {
+  generate_resume?: boolean;
+  generate_cover_letter?: boolean;
+};
+
+export type GenerationConfirmationResult = {
+  canonical_job_id: string;
+  material_generation_status: MaterialGenerationStatus;
+  resume_url: string | null;
+  cover_url: string | null;
 };
 
 export type AtlasOpportunityListResponse = {

@@ -16,12 +16,15 @@ from __future__ import annotations
 
 from job_search.services.ask_atlas import AskAtlasService
 from job_search.services.atlas import AtlasDataService
+from job_search.services.base_resume_selection import BaseResumeSelectionService
 from job_search.services.documents import DocumentsService
 from job_search.services.firms import FirmsService
 from job_search.services.focus import FocusService
 from job_search.services.focus_resolution import FocusResolutionService
+from job_search.services.generation_intent import GenerationIntentService
 from job_search.services.jobs import JobsService
 from job_search.services.metrics import MetricsService
+from job_search.services.pathway import ApplicationPathwayService
 from job_search.services.pipeline import PipelineService
 from job_search.services.recommendations import RecommendationService
 from job_search.services.source_health import SourceHealthService
@@ -74,3 +77,15 @@ def get_firms_service() -> FirmsService:
 
 def get_source_health_service() -> SourceHealthService:
     return SourceHealthService()
+
+
+def get_application_pathway_service() -> ApplicationPathwayService:
+    return ApplicationPathwayService()
+
+
+def get_base_resume_selection_service() -> BaseResumeSelectionService:
+    return BaseResumeSelectionService()
+
+
+def get_generation_intent_service() -> GenerationIntentService:
+    return GenerationIntentService()
