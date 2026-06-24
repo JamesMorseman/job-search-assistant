@@ -4,6 +4,7 @@ import AtlasMark from "./AtlasMark";
 import {
   AskAtlasIcon,
   CommandCenterIcon,
+  FirmsIcon,
   MissionExecuteIcon,
   MissionInterpretIcon,
   MissionScanIcon,
@@ -32,6 +33,7 @@ const navGroups = [
     items: [
       { label: "Pipeline", path: "/pipeline", Icon: PipelineIcon },
       { label: "Opportunity Detail", path: "/opportunity-detail", Icon: OpportunityDetailIcon },
+      { label: "Firm Repository", path: "/firms", Icon: FirmsIcon },
       { label: "Ask Atlas", path: "/ask-atlas", Icon: AskAtlasIcon },
     ],
   },

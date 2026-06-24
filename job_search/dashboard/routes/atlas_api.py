@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from job_search.dashboard.deps import (
     get_atlas_data_service,
     get_ask_atlas_service,
+    get_firms_service,
     get_focus_resolution_service,
     get_focus_service,
     get_pipeline_service,
@@ -23,6 +24,7 @@ from job_search.services.atlas import (
     AtlasOpportunityList,
     AtlasSummary,
 )
+from job_search.services.firms import FirmDetail, FirmsService, FirmSummary
 from job_search.services.focus import AtlasFocus, FocusService
 from job_search.services.focus_resolution import (
     FocusResolutionAction,
@@ -72,6 +74,10 @@ class FocusResolutionRequest(BaseModel):
 class FocusArchiveList(BaseModel):
     resolutions: list[FocusResolutionRecord]
     limit: int
+
+
+class FirmList(BaseModel):
+    firms: list[FirmSummary]
 
 
 def _now_iso() -> str:
@@ -131,6 +137,33 @@ def get_opportunity_location_economics(
     if opportunity is None:
         raise HTTPException(status_code=404, detail="Opportunity not found")
     return build_location_economics_preview_for_opportunity(opportunity)
+
+
+@router.get("/firms", response_model=FirmList)
+def list_firms(
+    manual_priority: str | None = None,
+    service: FirmsService = Depends(get_firms_service),
+) -> FirmList:
+    """Read-only Firm Repository listing, reusing the existing FirmsService.
+
+    Same data/boundary as the legacy dashboard's /dashboard/firms screen —
+    no new firm-intelligence logic is introduced here. Covers only approved
+    firms (the set already synced to SQLite); draft/unapproved firm
+    profiles remain filesystem-only and are not surfaced by this route,
+    matching the legacy dashboard's own documented scope note.
+    """
+    return FirmList(firms=service.list_firms(manual_priority=manual_priority))
+
+
+@router.get("/firms/{firm_id}", response_model=FirmDetail)
+def get_firm(
+    firm_id: str,
+    service: FirmsService = Depends(get_firms_service),
+) -> FirmDetail:
+    firm = service.get_firm(firm_id)
+    if firm is None:
+        raise HTTPException(status_code=404, detail="Firm not found")
+    return firm
 
 
 @router.get("/summary", response_model=AtlasSummary)

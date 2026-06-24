@@ -72,6 +72,52 @@ export type LocationEconomicsPreview = {
   caveats: string[];
 };
 
+export type FirmSummary = {
+  firm_id: string;
+  name: string;
+  ats_tier: string;
+  manual_priority: string;
+  employee_count: string | null;
+  enr_rank: number | null;
+  disciplines: string[];
+  known_benefit_count: number;
+  open_job_count: number;
+};
+
+export type FirmStatus = {
+  firm_id: string;
+  ats_tier: string;
+  circuit_state: string;
+  quarantine_until: string | null;
+  consecutive_failures: number;
+  last_successful_fetch: string | null;
+  last_fingerprinted: string | null;
+  last_verified: string | null;
+};
+
+export type FirmDetail = {
+  firm_id: string;
+  name: string;
+  website: string | null;
+  careers_url: string | null;
+  aliases: string[];
+  ats_type: string | null;
+  ats_tier: string;
+  enr_rank: number | null;
+  employee_count: string | null;
+  disciplines: string[];
+  benefits: Record<string, unknown>;
+  trajectory: Record<string, unknown>;
+  manual_priority: string;
+  reputation_notes: string | null;
+  last_verified: string | null;
+  status: FirmStatus;
+};
+
+export type FirmListResponse = {
+  firms: FirmSummary[];
+};
+
 export type AtlasStageCount = {
   stage: string;
   count: number;

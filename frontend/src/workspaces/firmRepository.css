@@ -1,0 +1,130 @@
+.atlas-firm-repo {
+  display: grid;
+  gap: 22px;
+}
+
+.atlas-firm-repo-eyebrow {
+  margin: 0 0 6px;
+  color: var(--atlas-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.atlas-firm-repo-header h2 {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 26px;
+}
+
+.atlas-firm-repo-description {
+  margin: 8px 0 0;
+  color: var(--atlas-muted);
+  font-size: 13px;
+  max-width: 640px;
+}
+
+.atlas-firm-repo-status {
+  padding: 28px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius);
+  background: rgba(13, 18, 27, 0.78);
+  color: var(--atlas-muted);
+}
+
+.atlas-firm-repo-status-error p:first-child {
+  color: var(--atlas-text);
+  font-weight: 700;
+}
+
+.atlas-firm-repo-status-detail {
+  margin-top: 8px;
+  color: var(--atlas-soft);
+  font-size: 13px;
+}
+
+.atlas-firm-repo-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-firm-card {
+  padding: 18px;
+  border: var(--atlas-card-border);
+  border-radius: var(--atlas-radius);
+  background: var(--atlas-card-bg);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge);
+}
+
+.atlas-firm-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.atlas-firm-name {
+  color: var(--atlas-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.atlas-firm-priority {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.atlas-firm-priority-high {
+  color: var(--atlas-accent-strong);
+  background: rgba(88, 166, 255, 0.12);
+  border: 1px solid rgba(88, 166, 255, 0.35);
+}
+
+.atlas-firm-priority-neutral {
+  color: var(--atlas-muted);
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid var(--atlas-line-soft);
+}
+
+.atlas-firm-priority-low {
+  color: #f08a8a;
+  background: rgba(240, 138, 138, 0.1);
+  border: 1px solid rgba(240, 138, 138, 0.32);
+}
+
+.atlas-firm-disciplines {
+  margin: 8px 0 0;
+  color: var(--atlas-soft);
+  font-size: 13px;
+}
+
+.atlas-firm-counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.atlas-firm-counters dt {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-firm-counters dd {
+  margin: 2px 0 0;
+  color: var(--atlas-text);
+  font-size: 16px;
+  font-weight: 700;
+}

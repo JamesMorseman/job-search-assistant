@@ -54,6 +54,16 @@ export function OpportunityDetailIcon({ className }: IconProps) {
   );
 }
 
+export function FirmsIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="3" y="7" width="14" height="10" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M7.5 7V4.8a1.2 1.2 0 0 1 1.2-1.2h2.6a1.2 1.2 0 0 1 1.2 1.2V7" stroke="currentColor" strokeWidth="1.2" />
+      <line x1="3" y1="11.5" x2="17" y2="11.5" stroke="currentColor" strokeWidth="1" strokeOpacity="0.6" />
+    </svg>
+  );
+}
+
 export function AskAtlasIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">

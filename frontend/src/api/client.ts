@@ -7,6 +7,8 @@ import type {
   AtlasPipelineRunsResponse,
   AtlasRecommendationsResponse,
   AtlasSummary,
+  FirmDetail,
+  FirmListResponse,
   FocusResolutionRecord,
   FocusResolutionRequest,
   LocationEconomicsPreview,
@@ -63,6 +65,19 @@ export function getLocationEconomics(jobId: string): Promise<LocationEconomicsPr
 
 export function getSummary(): Promise<AtlasSummary> {
   return fetchJson<AtlasSummary>("/summary");
+}
+
+export function getFirms(manualPriority?: string): Promise<FirmListResponse> {
+  const search = new URLSearchParams();
+  if (manualPriority !== undefined) {
+    search.set("manual_priority", manualPriority);
+  }
+  const query = search.toString();
+  return fetchJson<FirmListResponse>(`/firms${query ? `?${query}` : ""}`);
+}
+
+export function getFirm(firmId: string): Promise<FirmDetail> {
+  return fetchJson<FirmDetail>(`/firms/${encodeURIComponent(firmId)}`);
 }
 
 export function getPipelineRuns(limit?: number): Promise<AtlasPipelineRunsResponse> {
