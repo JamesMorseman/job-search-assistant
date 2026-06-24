@@ -79,6 +79,30 @@ def init_db():
 
 
 @cli.command()
+def backup():
+    """Create a timestamped local backup of the database and generated artifacts.
+
+    Read-only with respect to the source database and artifacts — writes a
+    new copy under output/backups/<timestamp>/ and never modifies the
+    original data.
+    """
+    from job_search.services.backup import create_backup
+
+    result = create_backup()
+    if result.db_backup_path is not None:
+        console.print(f"[green]Database backed up to:[/green] {result.db_backup_path}")
+    else:
+        console.print(
+            f"[yellow]No database found at {result.source_db_path or settings.DB_PATH} — skipped DB backup.[/yellow]"
+        )
+    if result.artifact_dirs_copied:
+        console.print(f"[green]Artifacts copied:[/green] {', '.join(result.artifact_dirs_copied)}")
+    console.print(f"[bold]Backup directory:[/bold] {result.backup_dir}")
+    if not result.ok:
+        console.print("[yellow]Nothing was found to back up.[/yellow]")
+
+
+@cli.command()
 @click.option("--dry-run", is_flag=True, default=False, help="Fetch but do not write to DB.")
 def ingest(dry_run: bool):
     """Run daily job ingestion from all sources."""
