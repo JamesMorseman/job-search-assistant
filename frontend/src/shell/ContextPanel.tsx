@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { getPipelineRuns, getRecommendations, getSummary } from "../api/client";
-import { type DataState, idleState, loadingState, successState } from "../api/state";
-import type { AtlasPipelineRun, AtlasRecommendation, AtlasSummary } from "../api/types";
+import { getOpportunity, getPipelineRuns, getRecommendations, getSummary } from "../api/client";
+import { type DataState, errorState, idleState, loadingState, successState } from "../api/state";
+import type {
+  AtlasOpportunityDetail,
+  AtlasPipelineRun,
+  AtlasRecommendation,
+  AtlasSummary,
+} from "../api/types";
 import ContextModule, { ContextModuleEmpty } from "./ContextModule";
 import { useContextPanel } from "./ContextPanelContext";
 import {
@@ -13,6 +18,54 @@ import {
   ModuleRelatedIcon,
   ModuleSignalIcon,
 } from "./NavIcons";
+
+function formatPercent(value: number | null): string {
+  if (value === null) {
+    return "Not scored";
+  }
+  return `${Math.round(value * 100)}%`;
+}
+
+function reasonText(value: unknown): string | null {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  for (const key of ["summary", "reason", "label", "key"]) {
+    const item = record[key];
+    if (typeof item === "string" && item.trim()) {
+      return item;
+    }
+  }
+  return null;
+}
+
+function reasonList(values: unknown[], fallback: string): string[] {
+  const reasons = values.map(reasonText).filter((value): value is string => Boolean(value));
+  return reasons.length > 0 ? reasons.slice(0, 3) : [fallback];
+}
+
+function nextAction(detail: AtlasOpportunityDetail): string {
+  if (detail.material_generation_status === "failed_error") {
+    return "Resolve generation setup and retry draft generation from Opportunity Detail.";
+  }
+  if (detail.material_generation_status === "generated_draft_review_required") {
+    return "Review generated drafts before any external application step.";
+  }
+  if (detail.material_generation_status === "confirmation_required") {
+    return "Confirm generation only after the posting and base resume choice look right.";
+  }
+  if (!detail.apply_url) {
+    return "Review the source record because no direct apply link is recorded.";
+  }
+  if (detail.application_status === "applied") {
+    return "Check follow-up timing and keep the tracker current.";
+  }
+  return "Open Opportunity Detail to review the posting, base resume, and apply link.";
+}
 
 /**
  * Global right-rail context panel (P7P5E). Renders through the shared
@@ -49,6 +102,36 @@ export default function ContextPanel() {
   const [recommendationState, setRecommendationState] = useState<
     DataState<AtlasRecommendation[]>
   >(idleState());
+  const [detailState, setDetailState] = useState<DataState<AtlasOpportunityDetail>>(idleState());
+
+  useEffect(() => {
+    if (!isRadar) {
+      setDetailState(idleState());
+      return;
+    }
+    if (!preview) {
+      setDetailState(idleState());
+      return;
+    }
+    let cancelled = false;
+    setDetailState(loadingState());
+
+    getOpportunity(preview.jobId)
+      .then((detail) => {
+        if (!cancelled) {
+          setDetailState(successState(detail));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDetailState(errorState("Opportunity detail is unavailable."));
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isRadar, preview]);
 
   useEffect(() => {
     if (!isRadar) {
@@ -194,6 +277,100 @@ export default function ContextPanel() {
           </div>
         </dl>
       </ContextModule>
+
+      {isRadar && detailState.status === "loading" && (
+        <ContextModule icon={<ModuleContextIcon />} label="Opportunity Intelligence">
+          <p className="atlas-cmod-lede">Loading detailed signal context...</p>
+        </ContextModule>
+      )}
+
+      {isRadar && detailState.status === "success" && detailState.data && (
+        <>
+          <ContextModule icon={<ModuleSignalIcon />} label="Score Rationale">
+            <dl className="atlas-context-rich-grid">
+              <div>
+                <dt>Match Score</dt>
+                <dd>{formatPercent(detailState.data.match_score)}</dd>
+              </div>
+              <div>
+                <dt>LLM Grade</dt>
+                <dd>{detailState.data.llm_grade ?? "Not graded"}</dd>
+              </div>
+              <div>
+                <dt>Benefit</dt>
+                <dd>{formatPercent(detailState.data.benefit_score)}</dd>
+              </div>
+              <div>
+                <dt>Trajectory</dt>
+                <dd>{formatPercent(detailState.data.career_trajectory_score)}</dd>
+              </div>
+            </dl>
+            <p className="atlas-cmod-lede">
+              {detailState.data.llm_rationale ??
+                "Score uses persisted local match, benefit, and trajectory evidence."}
+            </p>
+          </ContextModule>
+
+          <ContextModule icon={<ModuleProgressionIcon />} label="Pathway State">
+            <dl className="atlas-context-rich-grid">
+              <div>
+                <dt>Application</dt>
+                <dd>{detailState.data.application_status}</dd>
+              </div>
+              <div>
+                <dt>Drafts</dt>
+                <dd>{detailState.data.material_generation_status}</dd>
+              </div>
+              <div>
+                <dt>Apply Link</dt>
+                <dd>{detailState.data.apply_url ? "Recorded" : "Missing"}</dd>
+              </div>
+              <div>
+                <dt>Workspace</dt>
+                <dd>{detailState.data.workspace_url ? "Linked" : "Not linked"}</dd>
+              </div>
+            </dl>
+            <p className="atlas-context-next-action">{nextAction(detailState.data)}</p>
+          </ContextModule>
+
+          <ContextModule icon={<ModuleRelatedIcon />} label="Benefits / Risks">
+            <div className="atlas-context-rich-section">
+              <p>Benefits</p>
+              <ul role="list">
+                {reasonList(detailState.data.benefit_reasons, "No benefit evidence recorded yet.").map(
+                  (reason) => (
+                    <li key={reason}>{reason}</li>
+                  ),
+                )}
+              </ul>
+            </div>
+            <div className="atlas-context-rich-section">
+              <p>Risks</p>
+              <ul role="list">
+                {[
+                  detailState.data.ko_work_auth ? `Work authorization: ${detailState.data.ko_work_auth}` : null,
+                  detailState.data.ko_min_years !== null ? `Minimum years: ${detailState.data.ko_min_years}` : null,
+                  detailState.data.ko_pe_required ? "PE required" : null,
+                  detailState.data.ko_eit_required ? "EIT required" : null,
+                  detailState.data.ko_clearance ? `Clearance: ${detailState.data.ko_clearance}` : null,
+                  detailState.data.ko_relocation ? `Relocation: ${detailState.data.ko_relocation}` : null,
+                ]
+                  .filter((item): item is string => Boolean(item))
+                  .slice(0, 4)
+                  .map((risk) => (
+                    <li key={risk}>{risk}</li>
+                  ))}
+                {!detailState.data.ko_work_auth &&
+                  detailState.data.ko_min_years === null &&
+                  !detailState.data.ko_pe_required &&
+                  !detailState.data.ko_eit_required &&
+                  !detailState.data.ko_clearance &&
+                  !detailState.data.ko_relocation && <li>No hard risk flags recorded yet.</li>}
+              </ul>
+            </div>
+          </ContextModule>
+        </>
+      )}
 
       {isRadar && (
         <ContextModule icon={<ModuleRelatedIcon />} label="Related Objects">

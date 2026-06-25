@@ -20,6 +20,7 @@ _JOBS_ADDED_COLUMNS: dict[str, str] = {
     "workspace_provider": "TEXT",
     "workspace_label": "TEXT",
     "application_status": "TEXT DEFAULT 'not_applied'",
+    "application_deadline": "TEXT",
     "pathway_updated_at": "TEXT",
     "material_generation_status": "TEXT DEFAULT 'not_started'",
 }
@@ -30,6 +31,10 @@ _FIRMS_ADDED_COLUMNS: dict[str, str] = {
     "trajectory_json": "TEXT DEFAULT '{}'",
     "manual_priority": "TEXT DEFAULT 'neutral'",
     "last_verified": "TEXT",
+}
+
+_GENERATED_DOCS_ADDED_COLUMNS: dict[str, str] = {
+    "local_path": "TEXT",
 }
 
 _ADDED_INDEXES: tuple[str, ...] = (
@@ -56,6 +61,12 @@ def _apply_migrations(conn: sqlite3.Connection) -> None:
         for col, decl in _FIRMS_ADDED_COLUMNS.items():
             if col not in existing_firms:
                 conn.execute(f"ALTER TABLE firms ADD COLUMN {col} {decl}")
+
+    existing_generated_docs = {row[1] for row in conn.execute("PRAGMA table_info(generated_docs)")}
+    if existing_generated_docs:
+        for col, decl in _GENERATED_DOCS_ADDED_COLUMNS.items():
+            if col not in existing_generated_docs:
+                conn.execute(f"ALTER TABLE generated_docs ADD COLUMN {col} {decl}")
 
     for sql in _ADDED_INDEXES:
         conn.execute(sql)

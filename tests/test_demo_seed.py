@@ -37,7 +37,8 @@ def test_seed_demo_database_creates_backup_and_current_schema_demo_rows(tmp_path
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     jobs = conn.execute(
-        "SELECT canonical_job_id, source, company, title, app_state FROM jobs ORDER BY canonical_job_id"
+        "SELECT canonical_job_id, source, source_job_id, company, title, app_state, apply_url, description_normalized "
+        "FROM jobs ORDER BY canonical_job_id"
     ).fetchall()
     runs = conn.execute(
         "SELECT run_type, status, source, trigger, jobs_seen, jobs_created, jobs_updated, jobs_presented, errors_count "
@@ -49,6 +50,15 @@ def test_seed_demo_database_creates_backup_and_current_schema_demo_rows(tmp_path
     assert {row["source"] for row in jobs} == {"demo"}
     assert all("Demo" in row["company"] or "Sample" in row["company"] or "Fictional" in row["company"] for row in jobs)
     assert {row["app_state"] for row in jobs} == {"discovered", "presented", "selected"}
+    exact_url_rows = [row for row in jobs if row["apply_url"]]
+    assert len(exact_url_rows) >= 5
+    for row in exact_url_rows:
+        assert row["apply_url"] == (
+            f"https://apply.atlas-demo.invalid/postings/{row['source_job_id']}"
+        )
+    fallback_rows = [row for row in jobs if not row["apply_url"]]
+    assert len(fallback_rows) == 1
+    assert fallback_rows[0]["description_normalized"].startswith("Fallback row:")
 
     latest = runs[0]
     assert latest["run_type"] == "full"

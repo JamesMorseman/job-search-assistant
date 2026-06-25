@@ -13,7 +13,9 @@ import {
   markOpportunityApplied,
   recordBaseResumeSelection,
   requestGenerationConfirmation,
+  setOpportunityApplicationDeadline,
   setOpportunityWorkspaceLink,
+  useSelectedBaseResume,
 } from "../api/client";
 import {
   DataState,
@@ -125,6 +127,24 @@ function formatRemoteFlag(remoteFlag: string): string {
 
 function formatDate(value: string | null): string {
   return value ?? "Not recorded";
+}
+
+function deadlineStatus(value: string | null): string {
+  if (!value) {
+    return "none";
+  }
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const [year, month, day] = value.split("-").map(Number);
+  const deadlineUtc = Date.UTC(year, (month || 1) - 1, day || 1);
+  const days = Math.ceil((deadlineUtc - todayUtc) / 86_400_000);
+  if (days < 0) {
+    return "overdue";
+  }
+  if (days <= 3) {
+    return "due soon";
+  }
+  return "upcoming";
 }
 
 function formatSalaryRange(min: number | null, max: number | null): string {
@@ -497,6 +517,7 @@ function LocationEconomicsModule({ jobId }: { jobId: string }) {
 const MATERIAL_GENERATION_STATUS_LABELS: Record<string, string> = {
   not_started: "Not started",
   base_selected: "Base resume selected",
+  using_base_resume: "Using selected base resume",
   confirmation_required: "Confirmation required",
   generating: "Generating draft",
   generated_draft_review_required: "Draft ready — review required",
@@ -517,6 +538,10 @@ function docTypeLabel(docType: string): string {
   return DOC_TYPE_LABELS[docType] ?? docType;
 }
 
+function localFileHref(path: string): string {
+  return `file:///${path.replace(/\\/g, "/")}`;
+}
+
 // Base Resume selector module (Build 1 Package 2). Advisory and
 // user-overridable: showing a recommendation or recording a selection never
 // generates a document. Manual selection is required when the posting is
@@ -524,7 +549,13 @@ function docTypeLabel(docType: string): string {
 // endpoint already reports that case via `posting_reachable: false`, and
 // this component always lets the user pick a category manually regardless
 // of what was recommended.
-function BaseResumeSelectorModule({ opportunity }: { opportunity: AtlasOpportunityDetail }) {
+function BaseResumeSelectorModule({
+  opportunity,
+  onPathwayUpdate,
+}: {
+  opportunity: AtlasOpportunityDetail;
+  onPathwayUpdate: (patch: Partial<AtlasOpportunityDetail>) => void;
+}) {
   const [categoriesState, setCategoriesState] = useState<DataState<BaseResumeCategory[]>>(idleState());
   const [recommendationState, setRecommendationState] = useState<DataState<BaseResumeRecommendation>>(
     idleState(),
@@ -604,6 +635,12 @@ function BaseResumeSelectorModule({ opportunity }: { opportunity: AtlasOpportuni
       .then((record) => {
         setConfirmState(successState(true));
         setSelectionState(successState(record));
+        return getOpportunity(opportunity.job_id).then((updated) => {
+          onPathwayUpdate({
+            base_resume_artifact: updated.base_resume_artifact,
+            material_generation_status: updated.material_generation_status,
+          });
+        });
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Failed to record base resume selection.";
@@ -624,6 +661,12 @@ function BaseResumeSelectorModule({ opportunity }: { opportunity: AtlasOpportuni
       .then((record) => {
         setConfirmState(successState(true));
         setSelectionState(successState(record));
+        return getOpportunity(opportunity.job_id).then((updated) => {
+          onPathwayUpdate({
+            base_resume_artifact: updated.base_resume_artifact,
+            material_generation_status: updated.material_generation_status,
+          });
+        });
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Failed to record base resume selection.";
@@ -642,9 +685,19 @@ function BaseResumeSelectorModule({ opportunity }: { opportunity: AtlasOpportuni
       </p>
 
       {selectionState.status === "success" && selectionState.data ? (
-        <p className="atlas-detail-pathway-status">
-          Current selection: {selectionState.data.category_id} ({selectionState.data.selection_mode})
-        </p>
+        <>
+          <p className="atlas-detail-pathway-status">
+            Current selection: {selectionState.data.category_id} ({selectionState.data.selection_mode})
+          </p>
+          {opportunity.base_resume_artifact ? (
+            <p className="atlas-detail-pathway-helper">
+              Artifact: {opportunity.base_resume_artifact.artifact_status}
+              {opportunity.base_resume_artifact.local_path
+                ? ` - ${opportunity.base_resume_artifact.local_path}`
+                : ""}
+            </p>
+          ) : null}
+        </>
       ) : selectionState.status === "error" ? (
         <p className="atlas-detail-pathway-error">{selectionState.error}</p>
       ) : (
@@ -721,8 +774,15 @@ function ApplicationPathwayModule({
   const [workspaceUrlInput, setWorkspaceUrlInput] = useState("");
   const [workspaceLabelInput, setWorkspaceLabelInput] = useState("");
   const [workspaceSaveState, setWorkspaceSaveState] = useState<DataState<true>>(idleState());
+  const [deadlineInput, setDeadlineInput] = useState(opportunity.application_deadline ?? "");
+  const [deadlineSaveState, setDeadlineSaveState] = useState<DataState<true>>(idleState());
   const [appliedLogState, setAppliedLogState] = useState<DataState<true>>(idleState());
   const [generationGateState, setGenerationGateState] = useState<DataState<true>>(idleState());
+  const [baseResumeUseState, setBaseResumeUseState] = useState<DataState<true>>(idleState());
+
+  useEffect(() => {
+    setDeadlineInput(opportunity.application_deadline ?? "");
+  }, [opportunity.job_id, opportunity.application_deadline]);
 
   // Two explicit, separate user actions — opening this page or any link
   // above never reaches either of these. Requesting confirmation only
@@ -747,12 +807,35 @@ function ApplicationPathwayModule({
     confirmGeneration(opportunity.job_id)
       .then((result) => {
         setGenerationGateState(successState(true));
-        onPathwayUpdate({ material_generation_status: result.material_generation_status });
+        return getOpportunity(opportunity.job_id).then((updated) => {
+          onPathwayUpdate({
+            material_generation_status: result.material_generation_status,
+            generated_materials: updated.generated_materials,
+            base_resume_artifact: updated.base_resume_artifact,
+          });
+        });
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Generation failed.";
         setGenerationGateState(errorState(message));
         onPathwayUpdate({ material_generation_status: "failed_error" });
+      });
+  };
+
+  const handleUseBaseResume = () => {
+    setBaseResumeUseState(loadingState());
+    useSelectedBaseResume(opportunity.job_id)
+      .then((result) => {
+        setBaseResumeUseState(successState(true));
+        onPathwayUpdate({
+          material_generation_status: result.material_generation_status,
+          pathway_updated_at: result.pathway_updated_at,
+          base_resume_artifact: result.artifact,
+        });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to use selected base resume.";
+        setBaseResumeUseState(errorState(message));
       });
   };
 
@@ -796,6 +879,43 @@ function ApplicationPathwayModule({
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Failed to log application status.";
         setAppliedLogState(errorState(message));
+      });
+  };
+
+  const handleSaveDeadline = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setDeadlineSaveState(loadingState());
+    setOpportunityApplicationDeadline(opportunity.job_id, {
+      application_deadline: deadlineInput.trim() || null,
+    })
+      .then((state) => {
+        setDeadlineSaveState(successState(true));
+        setDeadlineInput(state.application_deadline ?? "");
+        onPathwayUpdate({
+          application_deadline: state.application_deadline,
+          pathway_updated_at: state.pathway_updated_at,
+        });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to save application deadline.";
+        setDeadlineSaveState(errorState(message));
+      });
+  };
+
+  const handleClearDeadline = () => {
+    setDeadlineInput("");
+    setDeadlineSaveState(loadingState());
+    setOpportunityApplicationDeadline(opportunity.job_id, { application_deadline: null })
+      .then((state) => {
+        setDeadlineSaveState(successState(true));
+        onPathwayUpdate({
+          application_deadline: state.application_deadline,
+          pathway_updated_at: state.pathway_updated_at,
+        });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Failed to clear application deadline.";
+        setDeadlineSaveState(errorState(message));
       });
   };
 
@@ -871,7 +991,7 @@ function ApplicationPathwayModule({
         ) : null}
       </div>
 
-      <BaseResumeSelectorModule opportunity={opportunity} />
+      <BaseResumeSelectorModule opportunity={opportunity} onPathwayUpdate={onPathwayUpdate} />
 
       <div className="atlas-detail-pathway-row">
         <p className="atlas-detail-pathway-row-label">Materials</p>
@@ -882,13 +1002,20 @@ function ApplicationPathwayModule({
           <ul className="atlas-detail-pathway-materials" role="list">
             {opportunity.generated_materials.map((material) => (
               <li key={material.doc_type}>
-                {material.drive_url ? (
-                  <a href={material.drive_url} target="_blank" rel="noopener noreferrer">
+                {material.drive_url || material.local_path ? (
+                  <a
+                    href={material.drive_url ?? localFileHref(material.local_path as string)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {docTypeLabel(material.doc_type)} draft ↗
                   </a>
                 ) : (
                   <span>{docTypeLabel(material.doc_type)} draft (no link recorded)</span>
                 )}
+                {material.local_path ? (
+                  <span className="atlas-detail-pathway-materials-meta"> - {material.local_path}</span>
+                ) : null}
                 {material.generated_at ? (
                   <span className="atlas-detail-pathway-materials-meta"> · generated {material.generated_at}</span>
                 ) : null}
@@ -901,6 +1028,41 @@ function ApplicationPathwayModule({
             No resume or cover-letter draft has been generated for this opportunity yet.
           </p>
         )}
+
+        {opportunity.base_resume_artifact ? (
+          <div className="atlas-detail-pathway-generation-gate">
+            <p className="atlas-detail-pathway-helper">
+              Selected base resume: {opportunity.base_resume_artifact.artifact_status}
+              {opportunity.base_resume_artifact.local_path
+                ? ` - ${opportunity.base_resume_artifact.local_path}`
+                : ""}
+            </p>
+            {opportunity.base_resume_artifact.local_path ? (
+              <a
+                href={`/atlas/api/opportunities/${encodeURIComponent(opportunity.job_id)}/base-resume-artifact-file`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open selected base resume
+              </a>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleUseBaseResume}
+              disabled={baseResumeUseState.status === "loading"}
+            >
+              {baseResumeUseState.status === "loading"
+                ? "Using base resume..."
+                : "Use selected base resume without tailoring"}
+            </button>
+          </div>
+        ) : null}
+        {baseResumeUseState.status === "error" ? (
+          <p className="atlas-detail-pathway-error">{baseResumeUseState.error}</p>
+        ) : null}
+        {baseResumeUseState.status === "success" ? (
+          <p className="atlas-detail-pathway-success">Selected base resume is ready for this application.</p>
+        ) : null}
 
         <div className="atlas-detail-pathway-generation-gate">
           {opportunity.material_generation_status === "confirmation_required" ? (
@@ -935,6 +1097,36 @@ function ApplicationPathwayModule({
         </p>
         {generationGateState.status === "error" ? (
           <p className="atlas-detail-pathway-error">{generationGateState.error}</p>
+        ) : null}
+      </div>
+
+      <div className="atlas-detail-pathway-row">
+        <p className="atlas-detail-pathway-row-label">Application deadline</p>
+        <p className="atlas-detail-pathway-status">
+          {opportunity.application_deadline
+            ? `${opportunity.application_deadline} - ${deadlineStatus(opportunity.application_deadline)}`
+            : "No deadline set"}
+        </p>
+        <form className="atlas-detail-pathway-form" onSubmit={handleSaveDeadline}>
+          <label htmlFor="atlas-pathway-deadline">Deadline date</label>
+          <input
+            id="atlas-pathway-deadline"
+            type="date"
+            value={deadlineInput}
+            onChange={(event) => setDeadlineInput(event.target.value)}
+          />
+          <button type="submit" disabled={deadlineSaveState.status === "loading"}>
+            {deadlineSaveState.status === "loading" ? "Saving..." : "Save deadline"}
+          </button>
+          <button type="button" onClick={handleClearDeadline} disabled={deadlineSaveState.status === "loading"}>
+            Clear
+          </button>
+        </form>
+        {deadlineSaveState.status === "error" ? (
+          <p className="atlas-detail-pathway-error">{deadlineSaveState.error}</p>
+        ) : null}
+        {deadlineSaveState.status === "success" ? (
+          <p className="atlas-detail-pathway-success">Application deadline updated.</p>
         ) : null}
       </div>
 

@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from job_search.db import get_db
 from job_search.reporting.documents import get_latest_generated_docs
+from job_search.services.base_resume_selection import BaseResumeArtifact, BaseResumeSelectionService
 from job_search.services.jobs import _parse_json_list
 
 
@@ -44,6 +45,7 @@ class AtlasGeneratedMaterialLink(BaseModel):
 
     doc_type: str
     drive_url: str | None
+    local_path: str | None
     generated_at: str | None
 
 
@@ -74,9 +76,11 @@ class AtlasOpportunityDetail(AtlasOpportunitySummary):
     workspace_provider: str | None
     workspace_label: str | None
     application_status: str
+    application_deadline: str | None
     pathway_updated_at: str | None
     material_generation_status: str
     generated_materials: list[AtlasGeneratedMaterialLink]
+    base_resume_artifact: BaseResumeArtifact | None
 
 
 class AtlasStageCount(BaseModel):
@@ -118,7 +122,11 @@ def _row_keys(row: Row) -> set[str]:
     return set(row.keys())
 
 
-def _row_to_detail(row: Row, generated_docs: dict[str, Row | None] | None = None) -> AtlasOpportunityDetail:
+def _row_to_detail(
+    row: Row,
+    generated_docs: dict[str, Row | None] | None = None,
+    base_resume_artifact: BaseResumeArtifact | None = None,
+) -> AtlasOpportunityDetail:
     summary = _row_to_summary(row)
     description = row["description_normalized"] or row["description_raw"]
     keys = _row_keys(row)
@@ -127,6 +135,7 @@ def _row_to_detail(row: Row, generated_docs: dict[str, Row | None] | None = None
         AtlasGeneratedMaterialLink(
             doc_type=doc_type,
             drive_url=doc_row["drive_url"] if doc_row is not None else None,
+            local_path=doc_row["local_path"] if doc_row is not None else None,
             generated_at=doc_row["generated_at"] if doc_row is not None else None,
         )
         for doc_type, doc_row in generated_docs.items()
@@ -159,12 +168,14 @@ def _row_to_detail(row: Row, generated_docs: dict[str, Row | None] | None = None
         workspace_provider=row["workspace_provider"] if "workspace_provider" in keys else None,
         workspace_label=row["workspace_label"] if "workspace_label" in keys else None,
         application_status=(row["application_status"] if "application_status" in keys else None) or "not_applied",
+        application_deadline=row["application_deadline"] if "application_deadline" in keys else None,
         pathway_updated_at=row["pathway_updated_at"] if "pathway_updated_at" in keys else None,
         material_generation_status=(
             (row["material_generation_status"] if "material_generation_status" in keys else None)
             or "not_started"
         ),
         generated_materials=generated_materials,
+        base_resume_artifact=base_resume_artifact,
     )
 
 
@@ -215,7 +226,12 @@ class AtlasDataService:
             if row is None:
                 return None
             generated_docs = get_latest_generated_docs(db, job_id)
-        return _row_to_detail(row, generated_docs=generated_docs)
+        base_resume_artifact = BaseResumeSelectionService().get_latest_artifact(job_id)
+        return _row_to_detail(
+            row,
+            generated_docs=generated_docs,
+            base_resume_artifact=base_resume_artifact,
+        )
 
     def get_summary(self) -> AtlasSummary:
         with get_db() as db:

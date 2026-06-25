@@ -8,9 +8,12 @@ import type {
   AtlasPipelineRunsResponse,
   AtlasRecommendationsResponse,
   AtlasSummary,
+  BaseResumeCategory,
   BaseResumeCategoryListResponse,
   BaseResumeRecommendation,
+  BaseResumeSelectionListResponse,
   BaseResumeSelectionRecord,
+  BaseResumeUseResult,
   ConfirmGenerationRequest,
   FirmDetail,
   FirmListResponse,
@@ -19,8 +22,17 @@ import type {
   GenerationConfirmationResult,
   GenerationIntentState,
   LocationEconomicsPreview,
+  ManualPostingRequest,
+  ManualPostingResult,
   RecordBaseResumeSelectionRequest,
+  RunSweepRequest,
+  RunSweepResponse,
+  RuntimeConfigStatus,
+  ScanStatus,
+  ScoringSettingsResponse,
+  ScoringSettingsUpdate,
   ScorePreview,
+  SetApplicationDeadlineRequest,
   SetWorkspaceLinkRequest,
 } from "./types";
 
@@ -43,10 +55,47 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new AtlasApiError(`ATLAS API request failed: ${response.status}`, response.status);
+    const detail = await extractErrorDetail(response);
+    throw new AtlasApiError(
+      detail
+        ? `ATLAS API request failed: ${response.status}. ${detail}`
+        : `ATLAS API request failed: ${response.status}`,
+      response.status,
+    );
   }
 
   return response.json() as Promise<T>;
+}
+
+async function extractErrorDetail(response: Response): Promise<string | null> {
+  const contentType = response.headers.get("content-type") ?? "";
+  try {
+    if (contentType.includes("application/json")) {
+      const payload = (await response.json()) as unknown;
+      if (payload && typeof payload === "object" && "detail" in payload) {
+        const detail = (payload as { detail?: unknown }).detail;
+        if (typeof detail === "string") {
+          return detail;
+        }
+        if (Array.isArray(detail)) {
+          return detail
+            .map((item) => {
+              if (item && typeof item === "object" && "msg" in item) {
+                const msg = (item as { msg?: unknown }).msg;
+                return typeof msg === "string" ? msg : null;
+              }
+              return null;
+            })
+            .filter(Boolean)
+            .join("; ");
+        }
+      }
+    }
+    const text = await response.text();
+    return text.trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 export function getOpportunities(limit?: number): Promise<AtlasOpportunityListResponse> {
@@ -83,8 +132,36 @@ export function markOpportunityApplied(jobId: string): Promise<ApplicationPathwa
   );
 }
 
+export function setOpportunityApplicationDeadline(
+  jobId: string,
+  request: SetApplicationDeadlineRequest,
+): Promise<ApplicationPathwayState> {
+  return fetchJson<ApplicationPathwayState>(
+    `/opportunities/${encodeURIComponent(jobId)}/pathway/deadline`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+}
+
 export function getBaseResumeCategories(): Promise<BaseResumeCategoryListResponse> {
   return fetchJson<BaseResumeCategoryListResponse>("/base-resume-categories");
+}
+
+export function registerBaseResumeArtifact(
+  categoryId: string,
+  localPath: string,
+): Promise<BaseResumeCategory> {
+  return fetchJson<BaseResumeCategory>(
+    `/base-resume-categories/${encodeURIComponent(categoryId)}/artifact`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ local_path: localPath }),
+    },
+  );
 }
 
 export function getBaseResumeRecommendation(jobId: string): Promise<BaseResumeRecommendation> {
@@ -96,6 +173,17 @@ export function getBaseResumeRecommendation(jobId: string): Promise<BaseResumeRe
 export function getBaseResumeSelection(jobId: string): Promise<BaseResumeSelectionRecord> {
   return fetchJson<BaseResumeSelectionRecord>(
     `/opportunities/${encodeURIComponent(jobId)}/base-resume-selection`,
+  );
+}
+
+export function getBaseResumeSelections(limit?: number): Promise<BaseResumeSelectionListResponse> {
+  const search = new URLSearchParams();
+  if (limit !== undefined) {
+    search.set("limit", String(limit));
+  }
+  const query = search.toString();
+  return fetchJson<BaseResumeSelectionListResponse>(
+    `/base-resume-selections${query ? `?${query}` : ""}`,
   );
 }
 
@@ -134,6 +222,13 @@ export function recordBaseResumeSelection(
 export function requestGenerationConfirmation(jobId: string): Promise<GenerationIntentState> {
   return fetchJson<GenerationIntentState>(
     `/opportunities/${encodeURIComponent(jobId)}/generation/request-confirmation`,
+    { method: "POST" },
+  );
+}
+
+export function useSelectedBaseResume(jobId: string): Promise<BaseResumeUseResult> {
+  return fetchJson<BaseResumeUseResult>(
+    `/opportunities/${encodeURIComponent(jobId)}/generation/use-base-resume`,
     { method: "POST" },
   );
 }
@@ -192,6 +287,50 @@ export function getPipelineRuns(limit?: number): Promise<AtlasPipelineRunsRespon
   }
   const query = search.toString();
   return fetchJson<AtlasPipelineRunsResponse>(`/pipeline/runs${query ? `?${query}` : ""}`);
+}
+
+export function getScanStatus(): Promise<ScanStatus> {
+  return fetchJson<ScanStatus>("/pipeline/scan-status");
+}
+
+export function runSweep(request: RunSweepRequest): Promise<RunSweepResponse> {
+  return fetchJson<RunSweepResponse>("/pipeline/run-sweep", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+export function createManualPosting(request: ManualPostingRequest): Promise<ManualPostingResult> {
+  return fetchJson<ManualPostingResult>("/manual-postings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+export function getRuntimeConfigStatus(): Promise<RuntimeConfigStatus> {
+  return fetchJson<RuntimeConfigStatus>("/runtime/config-status");
+}
+
+export function getScoringSettings(): Promise<ScoringSettingsResponse> {
+  return fetchJson<ScoringSettingsResponse>("/settings/scoring");
+}
+
+export function saveScoringSettings(
+  request: ScoringSettingsUpdate,
+): Promise<ScoringSettingsResponse> {
+  return fetchJson<ScoringSettingsResponse>("/settings/scoring", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+export function resetScoringSettings(): Promise<ScoringSettingsResponse> {
+  return fetchJson<ScoringSettingsResponse>("/settings/scoring/reset", {
+    method: "POST",
+  });
 }
 
 export function getRecommendations(): Promise<AtlasRecommendationsResponse> {

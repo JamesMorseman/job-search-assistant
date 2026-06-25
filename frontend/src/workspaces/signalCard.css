@@ -370,7 +370,7 @@
 
 .atlas-signal-tier-exceptional {
   border-color: rgba(56, 211, 196, 0.55);
-  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge), 0 0 32px rgba(56, 211, 196, 0.16);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge), 0 0 42px rgba(56, 211, 196, 0.24);
 }
 
 .atlas-signal-tier-exceptional .atlas-signal-indicator {
@@ -390,6 +390,7 @@
 
 .atlas-signal-tier-strong {
   border-color: rgba(88, 166, 255, 0.32);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge), 0 0 28px rgba(88, 166, 255, 0.14);
 }
 
 .atlas-signal-tier-strong .atlas-signal-indicator {
@@ -410,6 +411,15 @@
   color: var(--atlas-accent);
   border-color: rgba(56, 211, 196, 0.3);
   background: rgba(56, 211, 196, 0.07);
+}
+
+.atlas-signal-tier-relevant {
+  border-color: rgba(56, 211, 196, 0.24);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge), 0 0 16px rgba(56, 211, 196, 0.08);
+}
+
+.atlas-signal-tier-emerging {
+  border-color: rgba(148, 163, 184, 0.22);
 }
 
 .atlas-signal-tier-emerging .atlas-signal-indicator {

@@ -51,6 +51,16 @@ class DailyReporter:
                 SELECT * FROM jobs
                 WHERE app_state = 'discovered'
                   AND match_score >= ?
+                  AND COALESCE(stretch_category, '') != 'long_shot'
+                  AND COALESCE(ko_pe_required, 0) != 1
+                  AND (ko_min_years IS NULL OR ko_min_years <= 2)
+                  AND (
+                    ko_clearance IS NULL
+                    OR lower(trim(ko_clearance)) IN (
+                      '', 'none', 'n/a', 'na', 'not required',
+                      'no clearance', 'no clearance required'
+                    )
+                  )
                 ORDER BY
                   CASE COALESCE(llm_grade, '')
                     WHEN 'Strong' THEN 3 WHEN 'Good' THEN 2
@@ -147,6 +157,8 @@ class DailyReporter:
             parts.append("EIT required")
         if job_dict.get("ko_min_years"):
             parts.append(f"Min {job_dict['ko_min_years']:.0f} yrs exp")
+        if job_dict.get("ko_clearance"):
+            parts.append(f"Clearance: {job_dict['ko_clearance']}")
         if job_dict.get("ko_degree_required"):
             parts.append(f"Degree: {job_dict['ko_degree_required']}")
         return "; ".join(parts)

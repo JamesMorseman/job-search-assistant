@@ -1974,7 +1974,7 @@ def test_source_health_global_bar_open_circuit_count(db):
 def test_source_health_global_bar_recent_error_count(db):
     _insert_firm(db, "f1", "Acme")
     _insert_source_run(db, "greenhouse", firm_id="f1", status="error",
-                       run_at="2026-06-16T10:00:00")
+                       run_at="2026-06-24T10:00:00")
     _insert_source_run(db, "lever", firm_id=None, status="error",
                        run_at="2025-01-01T00:00:00")  # older than 7 days
     svc = SourceHealthService(db_path=db)

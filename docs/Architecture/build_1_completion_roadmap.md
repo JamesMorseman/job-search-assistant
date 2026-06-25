@@ -913,3 +913,28 @@ profile/evidence snapshot change, posting snapshot change, user-marked stale
 state. User approval representation: timestamped review/submission note, not a
 system readiness certification. Base resume storage: metadata plus linked source
 document reference, no private resume content committed.
+
+## 20. Required Build 1 Core Scoring Blocker - B1-CORE-SCORING-BLOCKER-01
+
+Live base-CLI evidence on 2026-06-25 showed high deterministic matches for
+security-clearance and senior roles with empty knockout fields. Build 1 must
+not treat these as qualified top matches.
+
+Required before Build 1 acceptance:
+
+- Detect clearance requirements from job title and description text.
+- Detect senior, lead, principal, project-manager, and equivalent over-senior
+  role signals from title and description text.
+- Detect PE/licensure and minimum-years requirements when present.
+- Persist these findings into knockout fields or equivalent structured flags.
+- Prevent deterministic `match_score` from over-ranking clear clearance,
+  PE-required, and over-senior mismatch jobs unless James's profile satisfies
+  them.
+- Exclude or demote these roles from top recommendation/report/grading paths
+  and from top-match resume generation.
+- Add regression tests using the Markon, Wyetech, and Lumen examples or
+  equivalent fixtures.
+
+This blocker is core scoring scope, not desktop-only scope. Resolving it does
+not grant visual pass, governance acceptance, push authorization, or release
+authorization.

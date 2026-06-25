@@ -33,6 +33,33 @@ function priorityClass(priority: string): string {
   }
 }
 
+function formatBenefit(benefit: string): string {
+  return benefit
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function atsTierClass(tier: string): string {
+  switch (tier) {
+    case "green":
+      return "atlas-ats-tier-green";
+    case "yellow":
+      return "atlas-ats-tier-yellow";
+    case "red":
+      return "atlas-ats-tier-red";
+    default:
+      return "atlas-ats-tier-unknown";
+  }
+}
+
+const atsLegend = [
+  { tier: "green", label: "Direct/healthy ATS path" },
+  { tier: "yellow", label: "Watch for source drift or intermittent fetch issues" },
+  { tier: "red", label: "Quarantined or high-friction path" },
+  { tier: "unknown", label: "Needs verification" },
+];
+
 export default function FirmRepository() {
   const [state, setState] = useState<DataState<FirmSummary[]>>(idleState());
 
@@ -101,39 +128,69 @@ export default function FirmRepository() {
       )}
 
       {state.status === "success" && firms.length > 0 && (
-        <ul className="atlas-firm-repo-list" role="list">
-          {firms.map((firm) => (
-            <li key={firm.firm_id} className="atlas-firm-card" role="listitem">
-              <div className="atlas-firm-card-header">
-                <span className="atlas-firm-name">{firm.name}</span>
-                <span className={`atlas-firm-priority ${priorityClass(firm.manual_priority)}`}>
-                  {priorityLabel(firm.manual_priority)}
-                </span>
-              </div>
-              <p className="atlas-firm-disciplines">{formatDisciplines(firm.disciplines)}</p>
-              <dl className="atlas-firm-counters">
-                <div>
-                  <dt>ATS Tier</dt>
-                  <dd>{firm.ats_tier}</dd>
+        <>
+          <section className="atlas-ats-legend" aria-labelledby="ats-legend-title">
+            <div>
+              <p className="atlas-firm-repo-eyebrow">ATS Tier Legend</p>
+              <h3 id="ats-legend-title">Source Health</h3>
+            </div>
+            <ul role="list">
+              {atsLegend.map((item) => (
+                <li key={item.tier}>
+                  <span className={`atlas-ats-dot ${atsTierClass(item.tier)}`} aria-hidden="true" />
+                  <strong>{item.tier}</strong>
+                  <p>{item.label}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <ul className="atlas-firm-repo-list" role="list">
+            {firms.map((firm) => (
+              <li key={firm.firm_id} className="atlas-firm-card" role="listitem">
+                <div className="atlas-firm-card-header">
+                  <span className="atlas-firm-name">{firm.name}</span>
+                  <span className={`atlas-firm-priority ${priorityClass(firm.manual_priority)}`}>
+                    {priorityLabel(firm.manual_priority)}
+                  </span>
                 </div>
-                <div>
-                  <dt>Open Jobs</dt>
-                  <dd>{firm.open_job_count}</dd>
-                </div>
-                <div>
-                  <dt>Known Benefits</dt>
-                  <dd>{firm.known_benefit_count}</dd>
-                </div>
-                {firm.enr_rank != null ? (
+                <p className="atlas-firm-disciplines">{formatDisciplines(firm.disciplines)}</p>
+                <dl className="atlas-firm-counters">
                   <div>
-                    <dt>ENR Rank</dt>
-                    <dd>{firm.enr_rank}</dd>
+                    <dt>ATS Tier</dt>
+                    <dd className={atsTierClass(firm.ats_tier)}>{firm.ats_tier}</dd>
                   </div>
-                ) : null}
-              </dl>
-            </li>
-          ))}
-        </ul>
+                  <div>
+                    <dt>Open Jobs</dt>
+                    <dd>{firm.open_job_count}</dd>
+                  </div>
+                  <div>
+                    <dt>Known Benefits</dt>
+                    <dd>{firm.known_benefit_count}</dd>
+                  </div>
+                  {firm.enr_rank != null ? (
+                    <div>
+                      <dt>ENR Rank</dt>
+                      <dd>{firm.enr_rank}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+                <div className="atlas-firm-benefits">
+                  <p>Top Benefits</p>
+                  {firm.known_benefits.length > 0 ? (
+                    <ul role="list">
+                      {firm.known_benefits.slice(0, 3).map((benefit) => (
+                        <li key={benefit}>{formatBenefit(benefit)}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span>No benefits recorded.</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );

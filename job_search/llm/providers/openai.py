@@ -98,7 +98,11 @@ class OpenAIProvider:
                 data = json.loads(line)
                 custom_id = data["custom_id"]
                 if data.get("error"):
-                    logger.warning("LLM batch result %s errored: %s", custom_id, data["error"])
+                    logger.warning(
+                        "LLM batch result %s errored: %s",
+                        custom_id,
+                        self._sanitize(str(data["error"])),
+                    )
                     continue
                 body = data["response"]["body"]
                 choice = body["choices"][0]
@@ -122,7 +126,7 @@ class OpenAIProvider:
         content = self.client.files.content(status.error_file_id).read()
         text = content.decode("utf-8") if isinstance(content, bytes) else str(content)
         if text.strip():
-            logger.warning("LLM batch %s error file: %s", batch_id, text[:2000])
+            logger.warning("LLM batch %s error file: %s", batch_id, self._sanitize(text[:2000]))
         self._log_batch_error_details(status)
         return text
 
@@ -190,7 +194,11 @@ class OpenAIProvider:
         if status.error_file_id:
             logger.warning("LLM batch %s has error file %s", status.batch_id, status.error_file_id)
         if status.failure_details:
-            logger.warning("LLM batch %s failure details: %s", status.batch_id, status.failure_details)
+            logger.warning(
+                "LLM batch %s failure details: %s",
+                status.batch_id,
+                OpenAIProvider._sanitize(str(status.failure_details)),
+            )
 
     @classmethod
     def parse_batch_error_text(cls, text: str, limit: int = 5) -> list[dict[str, Any]]:

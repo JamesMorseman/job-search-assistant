@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
+import logging
+import re
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from datetime import datetime, timezone
 
 from job_search.dashboard.deps import (
     get_application_pathway_service,
+    get_atlas_scan_service,
     get_atlas_data_service,
     get_ask_atlas_service,
     get_base_resume_selection_service,
@@ -16,8 +22,11 @@ from job_search.dashboard.deps import (
     get_focus_resolution_service,
     get_focus_service,
     get_generation_intent_service,
+    get_manual_ingestion_service,
     get_pipeline_service,
     get_recommendation_service,
+    get_runtime_status_service,
+    get_scoring_settings_service,
     get_tracker_service,
 )
 from job_search.evidence.base_resume_library import BaseResumeCategory
@@ -30,10 +39,20 @@ from job_search.services.atlas import (
     AtlasSummary,
 )
 from job_search.services.base_resume_selection import (
+    BaseResumeArtifact,
     BaseResumeRecommendation,
     BaseResumeSelectionError,
     BaseResumeSelectionRecord,
     BaseResumeSelectionService,
+    BaseResumeSelectionSummary,
+    BaseResumeUseResult,
+)
+from job_search.services.desktop_scan import (
+    AtlasScanService,
+    RunSweepRequest,
+    RunSweepResponse,
+    ScanRequestError,
+    ScanStatus,
 )
 from job_search.services.generation_intent import (
     GenerationConfirmationResult,
@@ -51,6 +70,12 @@ from job_search.services.focus_resolution import (
 from job_search.services.location_economics_service import (
     build_location_economics_preview_for_opportunity,
 )
+from job_search.services.manual_ingestion import (
+    ManualIngestionError,
+    ManualIngestionService,
+    ManualPostingRequest,
+    ManualPostingResult,
+)
 from job_search.services.pathway import (
     ApplicationPathwayError,
     ApplicationPathwayService,
@@ -58,12 +83,19 @@ from job_search.services.pathway import (
 )
 from job_search.services.pipeline import PipelineRun, PipelineService
 from job_search.services.recommendations import Recommendation, RecommendationService
+from job_search.services.runtime_status import RuntimeConfigStatus, RuntimeStatusService
+from job_search.services.scoring_settings import (
+    ScoringSettingsResponse,
+    ScoringSettingsService,
+    ScoringSettingsUpdate,
+)
 from job_search.services.score_preview_service import build_score_preview_for_opportunity
 from job_search.services.tracker import TrackerService
 from job_search.reporting.location_economics_preview import LocationEconomicsPreview
 from job_search.reporting.score_preview import ScorePreview
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class PipelineRunList(BaseModel):
@@ -113,6 +145,10 @@ class MarkAppliedRequest(BaseModel):
     never triggers a submission itself."""
 
 
+class SetApplicationDeadlineRequest(BaseModel):
+    application_deadline: str | None = None
+
+
 class BaseResumeCategoryDTO(BaseModel):
     category_id: str
     label: str
@@ -120,11 +156,21 @@ class BaseResumeCategoryDTO(BaseModel):
     selection_cues: list[str]
     excluded_cues: list[str]
     rationale: str
+    document_ref: str
     coursework_optional: bool
+    artifact_status: str
+    artifact_path: str | None
+    artifact_note: str
+    artifact_download_url: str
 
 
 class BaseResumeCategoryList(BaseModel):
     categories: list[BaseResumeCategoryDTO]
+
+
+class BaseResumeSelectionList(BaseModel):
+    selections: list[BaseResumeSelectionSummary]
+    limit: int
 
 
 class RecordBaseResumeSelectionRequest(BaseModel):
@@ -134,12 +180,19 @@ class RecordBaseResumeSelectionRequest(BaseModel):
     reason: str | None = None
 
 
+class RegisterBaseResumeArtifactRequest(BaseModel):
+    local_path: str
+
+
 class ConfirmGenerationRequest(BaseModel):
     generate_resume: bool = True
     generate_cover_letter: bool = True
 
 
-def _category_to_dto(category: BaseResumeCategory) -> BaseResumeCategoryDTO:
+def _category_to_dto(
+    category: BaseResumeCategory,
+    artifact: BaseResumeArtifact,
+) -> BaseResumeCategoryDTO:
     return BaseResumeCategoryDTO(
         category_id=category.category_id,
         label=category.label,
@@ -147,12 +200,24 @@ def _category_to_dto(category: BaseResumeCategory) -> BaseResumeCategoryDTO:
         selection_cues=list(category.selection_cues),
         excluded_cues=list(category.excluded_cues),
         rationale=category.rationale,
+        document_ref=category.document_ref,
         coursework_optional=category.coursework_optional,
+        artifact_status=artifact.artifact_status,
+        artifact_path=artifact.local_path,
+        artifact_note=artifact.note,
+        artifact_download_url=f"/atlas/api/base-resume-categories/{category.category_id}/artifact-file",
     )
 
 
 def _now_iso() -> str:
     return datetime.now(tz=timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds")
+
+
+def _sanitize_provider_error(exc: Exception) -> str:
+    text = str(exc)
+    text = re.sub(r"sk-[A-Za-z0-9_-]+", "sk-REDACTED", text)
+    text = re.sub(r"Bearer\s+[A-Za-z0-9._-]+", "Bearer REDACTED", text, flags=re.IGNORECASE)
+    return text[:300]
 
 
 @router.get("/opportunities", response_model=AtlasOpportunityList)
@@ -261,13 +326,79 @@ def mark_opportunity_applied(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.post(
+    "/opportunities/{job_id}/pathway/deadline",
+    response_model=ApplicationPathwayState,
+)
+def set_opportunity_application_deadline(
+    job_id: str,
+    payload: SetApplicationDeadlineRequest,
+    atlas_service: AtlasDataService = Depends(get_atlas_data_service),
+    pathway_service: ApplicationPathwayService = Depends(get_application_pathway_service),
+) -> ApplicationPathwayState:
+    if atlas_service.get_opportunity(job_id) is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    try:
+        return pathway_service.set_application_deadline(job_id, payload.application_deadline)
+    except ApplicationPathwayError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.get("/base-resume-categories", response_model=BaseResumeCategoryList)
 def list_base_resume_categories(
     service: BaseResumeSelectionService = Depends(get_base_resume_selection_service),
 ) -> BaseResumeCategoryList:
     """Read-only listing of the approved base resume categories. Deferred
     categories are intentionally not included here."""
-    return BaseResumeCategoryList(categories=[_category_to_dto(c) for c in service.list_categories()])
+    return BaseResumeCategoryList(
+        categories=[
+            _category_to_dto(c, service.resolve_category_artifact(c.category_id))
+            for c in service.list_categories()
+        ]
+    )
+
+
+@router.post(
+    "/base-resume-categories/{category_id}/artifact",
+    response_model=BaseResumeCategoryDTO,
+)
+def register_base_resume_artifact(
+    category_id: str,
+    payload: RegisterBaseResumeArtifactRequest,
+    service: BaseResumeSelectionService = Depends(get_base_resume_selection_service),
+) -> BaseResumeCategoryDTO:
+    category = next((c for c in service.list_categories() if c.category_id == category_id), None)
+    if category is None:
+        raise HTTPException(status_code=404, detail="Base resume category not found")
+    try:
+        artifact = service.register_category_artifact(category_id, payload.local_path)
+    except BaseResumeSelectionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _category_to_dto(category, artifact)
+
+
+@router.get("/base-resume-categories/{category_id}/artifact-file")
+def download_base_resume_artifact(
+    category_id: str,
+    service: BaseResumeSelectionService = Depends(get_base_resume_selection_service),
+) -> FileResponse:
+    artifact = service.resolve_category_artifact(category_id)
+    if artifact.artifact_status not in {"configured", "generated", "local-only"} or not artifact.local_path:
+        raise HTTPException(status_code=404, detail=artifact.note)
+    path = Path(artifact.local_path)
+    return FileResponse(path, filename=path.name)
+
+
+@router.get("/base-resume-selections", response_model=BaseResumeSelectionList)
+def list_base_resume_selections(
+    limit: int = 20,
+    service: BaseResumeSelectionService = Depends(get_base_resume_selection_service),
+) -> BaseResumeSelectionList:
+    capped_limit = max(1, min(limit, 100))
+    return BaseResumeSelectionList(
+        selections=service.list_recent_selections(limit=capped_limit),
+        limit=capped_limit,
+    )
 
 
 @router.get(
@@ -348,6 +479,46 @@ def get_base_resume_selection(
     if record is None:
         raise HTTPException(status_code=404, detail="No base resume selection recorded for this opportunity")
     return record
+
+
+@router.post(
+    "/opportunities/{job_id}/generation/use-base-resume",
+    response_model=BaseResumeUseResult,
+)
+def use_selected_base_resume(
+    job_id: str,
+    atlas_service: AtlasDataService = Depends(get_atlas_data_service),
+    selection_service: BaseResumeSelectionService = Depends(get_base_resume_selection_service),
+) -> BaseResumeUseResult:
+    """Use the selected base resume artifact without tailoring.
+
+    This is the no-API fallback path: it never calls document generation and
+    never writes generated_docs rows. It only records that this opportunity
+    is proceeding with the selected base resume artifact.
+    """
+    if atlas_service.get_opportunity(job_id) is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    try:
+        return selection_service.use_selected_base_resume(job_id)
+    except BaseResumeSelectionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/opportunities/{job_id}/base-resume-artifact-file")
+def download_selected_base_resume_artifact(
+    job_id: str,
+    atlas_service: AtlasDataService = Depends(get_atlas_data_service),
+    selection_service: BaseResumeSelectionService = Depends(get_base_resume_selection_service),
+) -> FileResponse:
+    if atlas_service.get_opportunity(job_id) is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    artifact = selection_service.get_latest_artifact(job_id)
+    if artifact is None:
+        raise HTTPException(status_code=404, detail="No base resume selection recorded for this opportunity")
+    if artifact.artifact_status not in {"configured", "generated", "local-only"} or not artifact.local_path:
+        raise HTTPException(status_code=404, detail=artifact.note)
+    path = Path(artifact.local_path)
+    return FileResponse(path, filename=path.name)
 
 
 @router.post(
@@ -453,6 +624,35 @@ def list_pipeline_runs(
     return PipelineRunList(runs=service.list_recent_runs(limit=limit), limit=limit)
 
 
+@router.get("/pipeline/scan-status", response_model=ScanStatus)
+def get_pipeline_scan_status(
+    service: AtlasScanService = Depends(get_atlas_scan_service),
+) -> ScanStatus:
+    return service.get_status()
+
+
+@router.post("/pipeline/run-sweep", response_model=RunSweepResponse)
+def run_pipeline_sweep(
+    payload: RunSweepRequest,
+    service: AtlasScanService = Depends(get_atlas_scan_service),
+) -> RunSweepResponse:
+    try:
+        return service.run_sweep(run_type=payload.run_type, dry_run=payload.dry_run)
+    except ScanRequestError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/manual-postings", response_model=ManualPostingResult)
+def create_manual_posting(
+    payload: ManualPostingRequest,
+    service: ManualIngestionService = Depends(get_manual_ingestion_service),
+) -> ManualPostingResult:
+    try:
+        return service.ingest(payload)
+    except ManualIngestionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.get("/recommendations", response_model=RecommendationList)
 def get_recommendations(
     atlas_service: AtlasDataService = Depends(get_atlas_data_service),
@@ -461,12 +661,21 @@ def get_recommendations(
 ) -> RecommendationList:
     summary = atlas_service.get_summary()
     most_recent_run = next(iter(pipeline_service.list_recent_runs(limit=1)), None)
-    return RecommendationList(
-        recommendations=recommendation_service.generate(
+    generated_at = _now_iso()
+    try:
+        recommendations = recommendation_service.generate(
             summary=summary,
             most_recent_run=most_recent_run,
-        ),
-        generated_at=_now_iso(),
+        )
+    except Exception as exc:
+        logger.warning(
+            "Recommendation generation failed; returning safe fallback: %s",
+            _sanitize_provider_error(exc),
+        )
+        recommendations = []
+    return RecommendationList(
+        recommendations=recommendations,
+        generated_at=generated_at,
     )
 
 
@@ -538,6 +747,35 @@ def investigate_with_ask_atlas(
         ),
         generated_at=_now_iso(),
     )
+
+
+@router.get("/runtime/config-status", response_model=RuntimeConfigStatus)
+def get_runtime_config_status(
+    service: RuntimeStatusService = Depends(get_runtime_status_service),
+) -> RuntimeConfigStatus:
+    return service.get_config_status()
+
+
+@router.get("/settings/scoring", response_model=ScoringSettingsResponse)
+def get_scoring_settings(
+    service: ScoringSettingsService = Depends(get_scoring_settings_service),
+) -> ScoringSettingsResponse:
+    return service.get_settings()
+
+
+@router.post("/settings/scoring", response_model=ScoringSettingsResponse)
+def save_scoring_settings(
+    payload: ScoringSettingsUpdate,
+    service: ScoringSettingsService = Depends(get_scoring_settings_service),
+) -> ScoringSettingsResponse:
+    return service.save_settings(payload)
+
+
+@router.post("/settings/scoring/reset", response_model=ScoringSettingsResponse)
+def reset_scoring_settings(
+    service: ScoringSettingsService = Depends(get_scoring_settings_service),
+) -> ScoringSettingsResponse:
+    return service.reset_settings()
 
 
 @router.get("/{path:path}", include_in_schema=False)

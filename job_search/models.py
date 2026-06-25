@@ -124,6 +124,7 @@ class CanonicalJob(BaseModel):
     workspace_provider: str | None = None
     workspace_label: str | None = None
     application_status: str = "not_applied"
+    application_deadline: str | None = None
     pathway_updated_at: str | None = None
     material_generation_status: str = "not_started"
 
@@ -179,6 +180,7 @@ class CanonicalJob(BaseModel):
             "workspace_provider": self.workspace_provider,
             "workspace_label": self.workspace_label,
             "application_status": self.application_status,
+            "application_deadline": self.application_deadline,
             "pathway_updated_at": self.pathway_updated_at,
             "material_generation_status": self.material_generation_status,
         }

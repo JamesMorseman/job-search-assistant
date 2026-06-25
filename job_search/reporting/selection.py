@@ -15,7 +15,6 @@ Only step (2) consumes LLM tokens. Step (1) is pure DB/Sheet I/O.
 from __future__ import annotations
 
 import logging
-import tempfile
 from datetime import date
 from pathlib import Path
 
@@ -38,6 +37,8 @@ from job_search.models import AppState, ATSType, CanonicalJob
 from .sheets import SheetsLogger
 
 logger = logging.getLogger(__name__)
+
+GENERATED_APPLICATION_MATERIALS_DIR = Path("output/application_materials")
 
 
 # Sheet status values James writes → (target DB state, note)
@@ -123,6 +124,15 @@ class SelectionProcessor:
 
         with get_db() as db:
             jobs = self._fetch_jobs_needing_docs(db, job_ids, force)
+            eligible_jobs = []
+            for row in jobs:
+                reason = self._generation_block_reason(row)
+                if reason:
+                    logger.warning("Skipping doc generation for %s: %s", row["canonical_job_id"], reason)
+                    stats["skipped"] += 1
+                    continue
+                eligible_jobs.append(row)
+            jobs = eligible_jobs
             logger.info("Generating docs for %d selected jobs", len(jobs))
 
             if not jobs:
@@ -137,7 +147,7 @@ class SelectionProcessor:
                     job_obj = self._hydrate_canonical_job(job_row)
                     result = self._generator.generate(job_obj)
 
-                    resume_url, cover_url = self._upload_docs(
+                    resume_url, cover_url, resume_path, cover_path = self._upload_docs(
                         job_row, result, today=date.today().isoformat()
                     )
 
@@ -145,22 +155,22 @@ class SelectionProcessor:
                     db.execute(
                         """
                         INSERT INTO generated_docs
-                          (canonical_job_id, doc_type, drive_url, keyword_coverage,
+                          (canonical_job_id, doc_type, drive_url, local_path, keyword_coverage,
                            keywords_hit, keywords_missed, model_used)
-                        VALUES (?, 'resume', ?, ?, ?, ?, ?)
+                        VALUES (?, 'resume', ?, ?, ?, ?, ?, ?)
                         """,
                         (
-                            job_id, resume_url, result["keyword_coverage"],
+                            job_id, resume_url, resume_path, result["keyword_coverage"],
                             str(result["keywords_hit"]), str(result["keywords_missed"]),
                             generation_model,
                         ),
                     )
-                    if cover_url:
+                    if cover_url or cover_path:
                         db.execute(
                             "INSERT INTO generated_docs "
-                            "(canonical_job_id, doc_type, drive_url, model_used) "
-                            "VALUES (?, 'cover_letter', ?, ?)",
-                            (job_id, cover_url, generation_model),
+                            "(canonical_job_id, doc_type, drive_url, local_path, model_used) "
+                            "VALUES (?, 'cover_letter', ?, ?, ?)",
+                            (job_id, cover_url, cover_path, generation_model),
                         )
 
                     # Write doc links back to Sheet
@@ -176,6 +186,8 @@ class SelectionProcessor:
                         "title": job_row["title"],
                         "resume_url": resume_url,
                         "cover_url": cover_url,
+                        "resume_path": resume_path,
+                        "cover_path": cover_path,
                     })
 
                 except Exception as exc:
@@ -230,6 +242,24 @@ class SelectionProcessor:
                 filtered.append(row)
         return filtered
 
+    @staticmethod
+    def _generation_block_reason(row) -> str | None:
+        clearance = (row["ko_clearance"] or "").strip() if "ko_clearance" in row.keys() else ""
+        clearance_required = bool(
+            clearance
+            and clearance.lower()
+            not in {"", "none", "n/a", "na", "not required", "no clearance", "no clearance required"}
+        )
+        if row["stretch_category"] == "long_shot":
+            return "long_shot fit status"
+        if row["ko_pe_required"]:
+            return "PE license is required"
+        if clearance_required:
+            return f"security clearance is required ({clearance})"
+        if row["ko_min_years"] is not None and row["ko_min_years"] > 2:
+            return f"minimum years requirement exceeds current fit threshold ({row['ko_min_years']})"
+        return None
+
     def _hydrate_canonical_job(self, row) -> CanonicalJob:
         return CanonicalJob(
             source=row["source"],
@@ -245,36 +275,43 @@ class SelectionProcessor:
             ats_type=ATSType(row["ats_type"] or "unknown"),
         )
 
-    def _upload_docs(self, job_row, result, today: str) -> tuple[str | None, str | None]:
+    def _upload_docs(self, job_row, result, today: str) -> tuple[str | None, str | None, str, str]:
         safe_company = "".join(c for c in job_row["company"] if c.isalnum() or c in " -_")[:30]
         safe_title = "".join(c for c in job_row["title"] if c.isalnum() or c in " -_")[:30]
         prefix = f"{today}_{safe_company}_{safe_title}".replace(" ", "_")
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            resume_path = str(Path(tmpdir) / f"{prefix}_resume.docx")
-            cover_path = str(Path(tmpdir) / f"{prefix}_cover.docx")
+        output_dir = GENERATED_APPLICATION_MATERIALS_DIR / str(job_row["canonical_job_id"])
+        output_dir.mkdir(parents=True, exist_ok=True)
+        resume_path = (output_dir / f"{prefix}_resume.docx").resolve()
+        cover_path = (output_dir / f"{prefix}_cover.docx").resolve()
 
-            if hasattr(self._generator, "prepare_resume_for_rendering"):
-                rendered_resume_json, _ = self._generator.prepare_resume_for_rendering(result["resume_json"])
-            else:
-                rendered_resume_json = result["resume_json"]
-            self._generator.save_docx(rendered_resume_json, resume_path)
-            self._generator.save_cover_docx(
-                result["cover_letter_json"],
-                cover_path,
-                job=self._hydrate_canonical_job(job_row),
-                today=today,
-            )
-            self._audit_rendered_docs(job_row, result, resume_path, cover_path, rendered_resume_json=rendered_resume_json)
+        if hasattr(self._generator, "prepare_resume_for_rendering"):
+            rendered_resume_json, _ = self._generator.prepare_resume_for_rendering(result["resume_json"])
+        else:
+            rendered_resume_json = result["resume_json"]
+        self._generator.save_docx(rendered_resume_json, str(resume_path))
+        self._generator.save_cover_docx(
+            result["cover_letter_json"],
+            str(cover_path),
+            job=self._hydrate_canonical_job(job_row),
+            today=today,
+        )
+        self._audit_rendered_docs(
+            job_row,
+            result,
+            str(resume_path),
+            str(cover_path),
+            rendered_resume_json=rendered_resume_json,
+        )
 
-            folder_id = self._get_or_create_drive_folder(prefix)
-            resume_url = self.sheets.upload_document(
-                resume_path, f"{prefix}_resume.docx", folder_id
-            )
-            cover_url = self.sheets.upload_document(
-                cover_path, f"{prefix}_cover.docx", folder_id
-            )
-        return resume_url, cover_url
+        folder_id = self._get_or_create_drive_folder(prefix)
+        resume_url = self.sheets.upload_document(
+            str(resume_path), f"{prefix}_resume.docx", folder_id
+        )
+        cover_url = self.sheets.upload_document(
+            str(cover_path), f"{prefix}_cover.docx", folder_id
+        )
+        return resume_url, cover_url, str(resume_path), str(cover_path)
 
     def _audit_rendered_docs(self, job_row, result: dict, resume_path: str, cover_path: str, rendered_resume_json: dict | None = None) -> None:
         if not hasattr(self._generator, "_profile"):

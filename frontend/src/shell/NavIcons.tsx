@@ -64,6 +64,18 @@ export function FirmsIcon({ className }: IconProps) {
   );
 }
 
+export function BaseResumesIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="4" y="2.8" width="9.5" height="13.8" rx="1.4" stroke="currentColor" strokeWidth="1.25" />
+      <path d="M13.5 5.8H16a1 1 0 0 1 1 1v10.4H6.5" stroke="currentColor" strokeWidth="1.1" strokeOpacity="0.55" />
+      <line x1="6.5" y1="6.6" x2="11" y2="6.6" stroke="currentColor" strokeWidth="1" />
+      <line x1="6.5" y1="9.4" x2="11" y2="9.4" stroke="currentColor" strokeWidth="1" />
+      <line x1="6.5" y1="12.2" x2="9.5" y2="12.2" stroke="currentColor" strokeWidth="1" />
+    </svg>
+  );
+}
+
 export function AskAtlasIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -72,6 +84,20 @@ export function AskAtlasIcon({ className }: IconProps) {
         stroke="currentColor"
         strokeWidth="1.2"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function SettingsIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.2" />
+      <path
+        d="M10 2.8v2M10 15.2v2M4.9 4.9l1.4 1.4M13.7 13.7l1.4 1.4M2.8 10h2M15.2 10h2M4.9 15.1l1.4-1.4M13.7 6.3l1.4-1.4"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
       />
     </svg>
   );

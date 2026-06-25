@@ -19,7 +19,11 @@ import yaml
 
 from job_search.location import LocationScore, LocationScorer
 from job_search.location.models import SchemeName
-from job_search.models import CanonicalJob, FirmBenefitStatus, FirmProfile, StretchCategory
+from job_search.models import CanonicalJob, FirmBenefitStatus, FirmProfile, KnockoutFields, StretchCategory
+from job_search.services.scoring_settings import (
+    DEFAULT_PENALTIES as DEFAULT_SCORING_PENALTIES,
+    ScoringSettingsService,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -506,6 +510,72 @@ _NO_CLEARANCE_VALUES: frozenset[str] = frozenset({
     "none", "", "n/a", "na", "not required", "no clearance", "no clearance required",
 })
 
+_NUMBER_WORDS: dict[str, float] = {
+    "one": 1.0,
+    "two": 2.0,
+    "three": 3.0,
+    "four": 4.0,
+    "five": 5.0,
+    "six": 6.0,
+    "seven": 7.0,
+    "eight": 8.0,
+    "nine": 9.0,
+    "ten": 10.0,
+}
+
+_CLEARANCE_NEGATIVE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bno\s+(?:active\s+)?(?:security\s+)?clearance\s+(?:is\s+)?required\b", re.IGNORECASE),
+    re.compile(r"\b(?:security\s+)?clearance\s+(?:is\s+)?not\s+required\b", re.IGNORECASE),
+    re.compile(r"\bwithout\s+(?:a\s+)?(?:security\s+)?clearance\s+requirement\b", re.IGNORECASE),
+)
+
+_CLEARANCE_REQUIRED_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\b(?:active|current|existing)\s+(?P<level>(?:top\s+secret|secret|ts/sci|sci|dod|security))\s+clearance\b", re.IGNORECASE),
+    re.compile(r"\b(?P<level>top\s+secret|secret|ts/sci|sci|dod|security)\s+clearance\s+(?:required|needed|mandatory|preferred)\b", re.IGNORECASE),
+    re.compile(r"\b(?:requires?|must\s+(?:have|possess|hold)|ability\s+to\s+obtain)\s+(?:an?\s+)?(?P<level>top\s+secret|secret|ts/sci|sci|dod|security)\s+clearance\b", re.IGNORECASE),
+    re.compile(r"\bwith\s+(?:an?\s+)?(?P<level>top\s+secret|secret|ts/sci|sci|dod|security)\s+clearance\b", re.IGNORECASE),
+    re.compile(r"\bsecurity\s+clearance\s+(?:required|needed|mandatory)\b", re.IGNORECASE),
+)
+
+_PE_REQUIRED_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\b(?:p\.?\s*e\.?|pe|professional engineer)\s+(?:license|licensure|registration|certification)\s+(?:is\s+)?(?:required|needed|mandatory)\b", re.IGNORECASE),
+    re.compile(r"\b(?:requires?|required|must\s+(?:have|possess|hold)|need(?:s)?(?:\s+to\s+have)?)\s+(?:an?\s+)?(?:active\s+)?(?:p\.?\s*e\.?|pe|professional engineer)(?:\s+(?:license|licensure|registration))?\b", re.IGNORECASE),
+    re.compile(r"\b(?:registered|licensed)\s+professional\s+engineer\b", re.IGNORECASE),
+)
+
+_EIT_REQUIRED_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\b(?:eit|engineer\s+in\s+training)\s+(?:certification|license|registration)?\s*(?:is\s+)?(?:required|needed|mandatory)\b", re.IGNORECASE),
+    re.compile(r"\b(?:requires?|must\s+(?:have|possess|hold))\s+(?:an?\s+)?(?:eit|engineer\s+in\s+training)\b", re.IGNORECASE),
+)
+
+_MIN_YEARS_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\b(?:minimum|at\s+least|requires?|required|must\s+have|need(?:s)?|with)\D{0,36}(?P<years>\d+(?:\.\d+)?)\+?\s*(?:years?|yrs?)\b", re.IGNORECASE),
+    re.compile(r"\b(?P<years>\d+(?:\.\d+)?)\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:relevant\s+)?(?:professional\s+)?(?:experience|engineering|structural|construction|design)\b", re.IGNORECASE),
+    re.compile(r"\b(?P<years>\d+(?:\.\d+)?)\s*[-–]\s*\d+(?:\.\d+)?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:experience|engineering|structural|construction|design)\b", re.IGNORECASE),
+)
+
+_MIN_YEARS_WORD_PATTERN = re.compile(
+    r"\b(?P<years>one|two|three|four|five|six|seven|eight|nine|ten)\+?\s+"
+    r"(?:years?|yrs?)\s+(?:of\s+)?(?:relevant\s+)?(?:professional\s+)?"
+    r"(?:experience|engineering|structural|construction|design)\b",
+    re.IGNORECASE,
+)
+
+_SENIORITY_INFERENCES: tuple[tuple[re.Pattern[str], float, str], ...] = (
+    (re.compile(r"\b(?:senior|sr\.?)\b", re.IGNORECASE), 5.0, "senior role title"),
+    (re.compile(r"\b(?:lead|principal|staff)\s+(?:(?:civil|structural|construction|project)\s+)?engineer\b", re.IGNORECASE), 6.0, "lead/principal engineering role"),
+    (re.compile(r"\bproject\s+manager\b", re.IGNORECASE), 5.0, "project manager role"),
+    (re.compile(r"\bconstruction\s+manager\b", re.IGNORECASE), 5.0, "construction manager role"),
+)
+
+# Years thresholds used to tier a min_years signal into a major vs. minor gap.
+# >= MAJOR: heavily weighted (contributes to LONG_SHOT). Between MINOR and
+# MAJOR: a soft signal that only nudges a role to COMPETITIVE_STRETCH —
+# per governance correction, a minor years gap must not auto-exclude an
+# otherwise strong match.
+_MAJOR_YEARS_THRESHOLD: float = 5.0
+_MINOR_YEARS_THRESHOLD: float = 2.0
+
 
 @dataclass
 class ScoringContext:
@@ -513,7 +583,8 @@ class ScoringContext:
     discipline: str = "unknown"
     discipline_weight: float = 0.5
     location: LocationScore | None = None
-    knockout_ok: bool = True
+    major_gaps: list[str] = field(default_factory=list)
+    minor_gaps: list[str] = field(default_factory=list)
     knockout_issues: list[str] = field(default_factory=list)
     benefit_score: float = 0.0
     trajectory_score: float = 0.0
@@ -529,13 +600,22 @@ class Scorer:
         firms_config_path: str = "config/firms.yaml",
     ):
         cfg = self._load_config(config_path)
+        desktop_settings = ScoringSettingsService().active_settings()
+        desktop_weights = desktop_settings.discipline_weights if desktop_settings.active else {}
         self.discipline_weights = {
             **DEFAULT_DISCIPLINE_WEIGHTS,
             **(cfg.get("discipline_weights") or {}),
+            **desktop_weights,
         }
         self.formula = {**DEFAULT_MATCH_FORMULA, **(cfg.get("match_formula") or {})}
+        self.penalty_multipliers = {
+            **DEFAULT_SCORING_PENALTIES,
+            **(desktop_settings.penalties if desktop_settings.active else {}),
+        }
         loc_cfg = cfg.get("location") or {}
-        scheme: SchemeName = loc_cfg.get("scheme", "balanced")
+        scheme: SchemeName = (
+            desktop_settings.location_scheme if desktop_settings.active else loc_cfg.get("scheme", "balanced")
+        )
         try:
             self.location_scorer: LocationScorer | None = LocationScorer(scheme=scheme)
         except FileNotFoundError:
@@ -583,10 +663,11 @@ class Scorer:
             (job.location_state or "")
         ).lower()
 
+        self._infer_missing_knockouts(job, ctx.text)
         ctx.discipline, ctx.discipline_weight = self._detect_discipline(ctx.text)
         if self.location_scorer:
             ctx.location = self.location_scorer.score(job.location_city, job.location_state)
-        ctx.knockout_ok, ctx.knockout_issues = self._check_knockouts(job)
+        ctx.major_gaps, ctx.minor_gaps, ctx.knockout_issues = self._assess_gaps(job)
 
         jd_benefit = _match_signal_rules(ctx.text, _BENEFIT_COMPILED)
         jd_traj    = _match_signal_rules(ctx.text, _TRAJECTORY_COMPILED)
@@ -621,7 +702,7 @@ class Scorer:
             ctx.benefit_hits     = jd_benefit.hits
             ctx.trajectory_hits  = jd_traj.hits
 
-        ctx.stretch_category = self._classify_stretch(job, ctx.text)
+        ctx.stretch_category = self._classify_stretch(ctx)
         return ctx
 
     def _detect_discipline(self, text: str) -> tuple[str, float]:
@@ -651,32 +732,131 @@ class Scorer:
         best = max(scores, key=lambda k: scores[k])
         return best, scores[best]
 
-    def _check_knockouts(self, job: CanonicalJob) -> tuple[bool, list[str]]:
+    @classmethod
+    def _infer_missing_knockouts(cls, job: CanonicalJob, text: str) -> None:
+        ko = job.knockout or KnockoutFields()
+        job.knockout = ko
+
+        if ko.clearance is None:
+            ko.clearance = cls._detect_clearance_requirement(text)
+        if ko.pe_required is None:
+            ko.pe_required = cls._detect_pe_requirement(text)
+        if ko.eit_required is None:
+            ko.eit_required = cls._detect_eit_requirement(text)
+
+        detected_years = cls._detect_min_years(text)
+        inferred_years = cls._infer_seniority_years(text)
+        candidates = [
+            value
+            for value in (ko.min_years, detected_years, inferred_years)
+            if value is not None
+        ]
+        if candidates:
+            ko.min_years = max(candidates)
+
+    @staticmethod
+    def _detect_clearance_requirement(text: str) -> str | None:
+        if any(pattern.search(text) for pattern in _CLEARANCE_NEGATIVE_PATTERNS):
+            return None
+        for pattern in _CLEARANCE_REQUIRED_PATTERNS:
+            match = pattern.search(text)
+            if not match:
+                continue
+            level = match.groupdict().get("level")
+            if level:
+                normalized = " ".join(level.split()).title().replace("Ts/Sci", "TS/SCI")
+                return "Security clearance" if normalized == "Security" else normalized
+            return "Security clearance"
+        return None
+
+    @staticmethod
+    def _detect_pe_requirement(text: str) -> bool | None:
+        if re.search(r"\b(?:pe|p\.?\s*e\.?|professional engineer)\s+(?:preferred|a plus|desired)\b", text, re.IGNORECASE):
+            return None
+        if re.search(r"\b(?:under|supervised by|mentored by)\s+(?:a\s+)?(?:licensed|registered)\s+professional\s+engineer\b", text, re.IGNORECASE):
+            return None
+        return True if any(pattern.search(text) for pattern in _PE_REQUIRED_PATTERNS) else None
+
+    @staticmethod
+    def _detect_eit_requirement(text: str) -> bool | None:
+        if re.search(r"\b(?:eit|engineer\s+in\s+training)\s+(?:preferred|a plus|desired|path|support)\b", text, re.IGNORECASE):
+            return None
+        return True if any(pattern.search(text) for pattern in _EIT_REQUIRED_PATTERNS) else None
+
+    @staticmethod
+    def _detect_min_years(text: str) -> float | None:
+        years: list[float] = []
+        for pattern in _MIN_YEARS_PATTERNS:
+            for match in pattern.finditer(text):
+                years.append(float(match.group("years")))
+        for match in _MIN_YEARS_WORD_PATTERN.finditer(text):
+            value = _NUMBER_WORDS.get(match.group("years").lower())
+            if value is not None:
+                years.append(value)
+        return max(years) if years else None
+
+    @staticmethod
+    def _infer_seniority_years(text: str) -> float | None:
+        years: list[float] = []
+        for pattern, inferred_years, _reason in _SENIORITY_INFERENCES:
+            if pattern.search(text):
+                years.append(inferred_years)
+        return max(years) if years else None
+
+    def _assess_gaps(self, job: CanonicalJob) -> tuple[list[str], list[str], list[str]]:
+        """Classify detected knockout signals into major vs. minor risk gaps.
+
+        Clearance, PE licensure, and a strong years/seniority signal (>=
+        _MAJOR_YEARS_THRESHOLD) are "major" gaps: they demote a role to
+        LONG_SHOT and apply a heavy match-score penalty, but the job is
+        still scored, categorized, and surfaced — never silently dropped.
+        A years requirement above the new-grad baseline but below the major
+        threshold is a "minor" gap: it only nudges a role to
+        COMPETITIVE_STRETCH so an otherwise-strong match stays visible.
+        """
         ko = job.knockout
+        major: list[str] = []
+        minor: list[str] = []
         issues: list[str] = []
+
         if ko.pe_required:
-            issues.append("PE license required — not yet eligible")
-        if ko.min_years and ko.min_years > 2:
-            issues.append(f"Min {ko.min_years:.0f} years required — new grad")
+            major.append("pe_required")
+            issues.append("PE license required")
         clearance = (ko.clearance or "").strip()
         if clearance and clearance.lower() not in _NO_CLEARANCE_VALUES:
+            major.append("clearance")
             issues.append(f"Security clearance required: {clearance}")
-        return len(issues) == 0, issues
+        if ko.min_years:
+            if ko.min_years >= _MAJOR_YEARS_THRESHOLD:
+                major.append("min_years")
+                issues.append(f"Min {ko.min_years:.0f} years required")
+            elif ko.min_years > _MINOR_YEARS_THRESHOLD:
+                minor.append("min_years")
+                issues.append(f"Min {ko.min_years:.0f} years required (minor gap)")
+        if ko.eit_required:
+            minor.append("eit_required")
+            issues.append("EIT certification required")
+        relocation = (ko.relocation or "").strip()
+        if relocation and relocation.lower() not in {"none", "n/a", "na", "not required", "no relocation"}:
+            minor.append("relocation")
+            issues.append(f"Relocation requirement: {relocation}")
+        return major, minor, issues
 
-    def _classify_stretch(self, job: CanonicalJob, text: str) -> StretchCategory:
-        if DEGREE_RELATED.search(text):
-            return StretchCategory.QUALIFIED
-        if DEGREE_EXACT.search(text):
+    def _classify_stretch(self, ctx: "ScoringContext") -> StretchCategory:
+        if ctx.major_gaps:
+            return StretchCategory.LONG_SHOT
+        if ctx.minor_gaps:
             return StretchCategory.COMPETITIVE_STRETCH
-        if job.knockout.pe_required:
-            return StretchCategory.LONG_SHOT
-        if job.knockout.min_years and job.knockout.min_years >= 5:
-            return StretchCategory.LONG_SHOT
+        if DEGREE_RELATED.search(ctx.text):
+            return StretchCategory.QUALIFIED
+        if DEGREE_EXACT.search(ctx.text):
+            return StretchCategory.COMPETITIVE_STRETCH
         return StretchCategory.QUALIFIED
 
     def _compute_match_score(self, ctx: ScoringContext) -> float:
         f = self.formula
-        base = f["base"] * (0.5 if not ctx.knockout_ok else 1.0)
+        major_count = len(ctx.major_gaps)
+        base = f["base"] * (0.5 if major_count else 1.0)
 
         discipline_contribution = ctx.discipline_weight * f["discipline_weight"]
         location_contribution = (
@@ -694,13 +874,42 @@ class Scorer:
             + trajectory_contribution
         )
 
-        # Stretch penalty
-        if ctx.stretch_category == StretchCategory.COMPETITIVE_STRETCH:
-            raw *= 0.92
-        elif ctx.stretch_category == StretchCategory.LONG_SHOT:
-            raw *= 0.75
+        # Weighted penalty by gap severity — never an automatic exclusion.
+        # A single major gap (clearance, PE licensure, or strong seniority)
+        # demotes the role; stacking two or more major gaps demotes it
+        # heavily so it won't surface as a top "qualified" recommendation.
+        # A minor years-only gap is penalized lightly so an otherwise strong
+        # match can still stand as a competitive stretch.
+        if ctx.major_gaps:
+            multiplier = self._combined_gap_multiplier(ctx.major_gaps, major=True)
+            if major_count >= 2:
+                multiplier = min(multiplier, 0.40)
+            raw *= multiplier
+        elif ctx.minor_gaps:
+            raw *= self._combined_gap_multiplier(ctx.minor_gaps, major=False)
 
         return round(min(max(raw, 0.0), 1.0), 4)
+
+    def _combined_gap_multiplier(self, gaps: list[str], *, major: bool) -> float:
+        multiplier = 1.0
+        for gap in gaps:
+            key = self._penalty_key_for_gap(gap, major=major)
+            multiplier *= self.penalty_multipliers.get(key, 0.70 if major else 0.90)
+        return max(0.0, min(multiplier, 1.0))
+
+    @staticmethod
+    def _penalty_key_for_gap(gap: str, *, major: bool) -> str:
+        if gap == "clearance":
+            return "active_security_clearance_required"
+        if gap == "pe_required":
+            return "PE_required"
+        if gap == "eit_required":
+            return "EIT_required"
+        if gap == "relocation":
+            return "relocation_mismatch"
+        if gap == "min_years":
+            return "years_gap_major" if major else "years_gap_minor"
+        return "years_gap_major" if major else "years_gap_minor"
 
     def _load_config(self, path: str) -> dict:
         p = Path(path)

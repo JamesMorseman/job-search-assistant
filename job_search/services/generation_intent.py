@@ -54,6 +54,7 @@ from job_search.services.documents import (
 VALID_MATERIAL_GENERATION_STATUSES = {
     "not_started",
     "base_selected",
+    "using_base_resume",
     "confirmation_required",
     "generating",
     "generated_draft_review_required",
@@ -86,6 +87,8 @@ class GenerationConfirmationResult(BaseModel):
     material_generation_status: str
     resume_url: str | None
     cover_url: str | None
+    resume_path: str | None = None
+    cover_path: str | None = None
 
 
 class GenerationIntentService:
@@ -141,10 +144,14 @@ class GenerationIntentService:
 
         try:
             result: RegenerationResult = self._documents_service.regenerate_documents(canonical_job_id)
-        except DocumentRegenerationError as exc:
+        except Exception as exc:
             with get_db() as db:
                 self._write_status(db, canonical_job_id, "failed_error")
-            raise GenerationIntentError(str(exc)) from exc
+            if isinstance(exc, DocumentRegenerationError):
+                message = str(exc)
+            else:
+                message = f"Generation failed before drafts were created: {exc}"
+            raise GenerationIntentError(message) from exc
 
         with get_db() as db:
             state = self._write_status(db, canonical_job_id, "generated_draft_review_required")
@@ -154,6 +161,8 @@ class GenerationIntentService:
             material_generation_status=state.material_generation_status,
             resume_url=result.resume_url,
             cover_url=result.cover_url,
+            resume_path=result.resume_path,
+            cover_path=result.cover_path,
         )
 
     def get_status(self, canonical_job_id: str) -> GenerationIntentState:

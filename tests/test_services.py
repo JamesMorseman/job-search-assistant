@@ -113,6 +113,22 @@ def test_list_jobs_respects_limit_and_offset(db):
     assert [i.canonical_job_id for i in page2] == ["j3"]
 
 
+def test_list_jobs_demotes_hard_blockers_even_with_higher_scores(db):
+    _insert_job(db, "clean", match_score=0.65)
+    _insert_job(db, "clearance", match_score=0.99)
+    _insert_job(db, "senior", match_score=0.98)
+    _insert_job(db, "pe", match_score=0.97)
+    with get_db() as conn:
+        conn.execute("UPDATE jobs SET ko_clearance = 'Secret' WHERE canonical_job_id = 'clearance'")
+        conn.execute("UPDATE jobs SET ko_min_years = 5 WHERE canonical_job_id = 'senior'")
+        conn.execute("UPDATE jobs SET ko_pe_required = 1 WHERE canonical_job_id = 'pe'")
+
+    items = JobsService().list_jobs()
+
+    assert items[0].canonical_job_id == "clean"
+    assert {item.canonical_job_id for item in items[1:]} == {"clearance", "senior", "pe"}
+
+
 def test_get_job_detail_returns_none_for_missing_job(db):
     assert JobsService().get_job_detail("nope") is None
 

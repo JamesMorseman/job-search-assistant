@@ -55,6 +55,7 @@ class FirmSummary(BaseModel):
     employee_count: str | None
     enr_rank: int | None
     disciplines: list[str]
+    known_benefits: list[str]
     known_benefit_count: int
     open_job_count: int
 
@@ -120,6 +121,7 @@ _DETAIL_COLUMNS = """
 
 
 def _row_to_summary(row: Row) -> FirmSummary:
+    known_benefits = _parse_json_list(row["known_benefits"])
     return FirmSummary(
         firm_id=row["firm_id"],
         name=row["name"],
@@ -128,7 +130,8 @@ def _row_to_summary(row: Row) -> FirmSummary:
         employee_count=row["employee_count"],
         enr_rank=row["enr_rank"],
         disciplines=_parse_json_list(row["specialties"]),
-        known_benefit_count=len(_parse_json_list(row["known_benefits"])),
+        known_benefits=known_benefits,
+        known_benefit_count=len(known_benefits),
         open_job_count=row["open_job_count"],
     )
 

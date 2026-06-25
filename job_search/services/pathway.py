@@ -22,7 +22,7 @@ Hard boundaries enforced here, not just documented:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from pydantic import BaseModel
 
@@ -47,6 +47,7 @@ class ApplicationPathwayState(BaseModel):
     workspace_provider: str | None
     workspace_label: str | None
     application_status: str
+    application_deadline: str | None
     pathway_updated_at: str | None
 
 
@@ -107,6 +108,35 @@ class ApplicationPathwayService:
             )
             return self._read_state(db, canonical_job_id)
 
+    def set_application_deadline(
+        self,
+        canonical_job_id: str,
+        application_deadline: str | None,
+    ) -> ApplicationPathwayState:
+        cleaned = (application_deadline or "").strip()
+        if cleaned:
+            try:
+                date.fromisoformat(cleaned)
+            except ValueError as exc:
+                raise ApplicationPathwayError(
+                    "application_deadline must use YYYY-MM-DD format."
+                ) from exc
+        else:
+            cleaned = None
+
+        with get_db() as db:
+            self._require_job(db, canonical_job_id)
+            now = _now_iso()
+            db.execute(
+                """
+                UPDATE jobs
+                SET application_deadline = ?, pathway_updated_at = ?
+                WHERE canonical_job_id = ?
+                """,
+                (cleaned, now, canonical_job_id),
+            )
+            return self._read_state(db, canonical_job_id)
+
     @staticmethod
     def _require_job(db, canonical_job_id: str) -> None:
         exists = db.execute(
@@ -121,7 +151,7 @@ class ApplicationPathwayService:
         row = db.execute(
             """
             SELECT canonical_job_id, workspace_url, workspace_provider, workspace_label,
-                   application_status, pathway_updated_at
+                   application_status, application_deadline, pathway_updated_at
             FROM jobs
             WHERE canonical_job_id = ?
             """,
@@ -133,5 +163,6 @@ class ApplicationPathwayService:
             workspace_provider=row["workspace_provider"],
             workspace_label=row["workspace_label"],
             application_status=row["application_status"] or "not_applied",
+            application_deadline=row["application_deadline"],
             pathway_updated_at=row["pathway_updated_at"],
         )

@@ -233,6 +233,8 @@ class SheetsLogger:
             ko_parts.append("EIT required")
         if job_data.get("ko_min_years"):
             ko_parts.append(f"Min {job_data['ko_min_years']:.0f}yr")
+        if job_data.get("ko_clearance"):
+            ko_parts.append(f"Clearance: {job_data['ko_clearance']}")
         if job_data.get("ko_degree_required"):
             ko_parts.append(f"Degree: {job_data['ko_degree_required']}")
 

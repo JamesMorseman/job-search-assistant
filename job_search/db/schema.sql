@@ -93,8 +93,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     workspace_provider   TEXT,                    -- e.g. "google_drive"; null if unknown/unset
     workspace_label      TEXT,                     -- user-facing label for the workspace link
     application_status   TEXT DEFAULT 'not_applied', -- not_applied|applied (user-logged, post-submission only)
+    application_deadline TEXT,                     -- YYYY-MM-DD user-entered application deadline; null when unset
     pathway_updated_at   TEXT,                     -- ISO datetime; null until a pathway field is first set
-    material_generation_status TEXT DEFAULT 'not_started', -- not_started|base_selected|confirmation_required|generating|generated_draft_review_required|failed_error|stale_missing
+    material_generation_status TEXT DEFAULT 'not_started', -- not_started|base_selected|using_base_resume|confirmation_required|generating|generated_draft_review_required|failed_error|stale_missing
     -- Metadata
     ats_type            TEXT,
     created_at          TEXT DEFAULT (datetime('now')),
@@ -125,6 +126,7 @@ CREATE TABLE IF NOT EXISTS generated_docs (
     doc_type         TEXT NOT NULL,              -- resume|cover_letter
     drive_file_id    TEXT,                       -- immutable snapshot in Drive
     drive_url        TEXT,
+    local_path       TEXT,                       -- local generated draft path when Drive is unavailable or optional
     keyword_coverage REAL,                       -- % of JD top-tier keywords hit
     keywords_hit     TEXT,                       -- JSON array
     keywords_missed  TEXT,                       -- JSON array

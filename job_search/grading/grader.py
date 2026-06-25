@@ -109,6 +109,15 @@ class FitGrader:
               AND match_score >= ?
               AND llm_graded_at IS NULL
               AND COALESCE(stretch_category, '') != 'long_shot'
+              AND COALESCE(ko_pe_required, 0) != 1
+              AND (ko_min_years IS NULL OR ko_min_years <= 2)
+              AND (
+                ko_clearance IS NULL
+                OR lower(trim(ko_clearance)) IN (
+                  '', 'none', 'n/a', 'na', 'not required',
+                  'no clearance', 'no clearance required'
+                )
+              )
             ORDER BY match_score DESC
             LIMIT ?
             """,
@@ -136,6 +145,8 @@ class FitGrader:
             ko.append("EIT required")
         if job.get("ko_min_years"):
             ko.append(f"min {job['ko_min_years']:.0f}yr exp")
+        if job.get("ko_clearance"):
+            ko.append(f"clearance: {job['ko_clearance']}")
         if job.get("ko_degree_required"):
             ko.append(f"degree: {job['ko_degree_required']}")
         return (

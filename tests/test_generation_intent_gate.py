@@ -190,6 +190,19 @@ def test_confirm_generation_failure_sets_failed_error_and_raises(db):
     assert state.material_generation_status == "failed_error"
 
 
+def test_confirm_generation_unexpected_failure_sets_failed_error_and_raises(db):
+    _insert_job(db, "job-1")
+    fake_docs = FakeDocumentsService(error=RuntimeError("profile setup exploded"))
+    svc = GenerationIntentService(documents_service=fake_docs)
+
+    with pytest.raises(GenerationIntentError) as excinfo:
+        svc.confirm_generation("job-1")
+
+    assert "Generation failed before drafts were created" in str(excinfo.value)
+    state = svc.get_status("job-1")
+    assert state.material_generation_status == "failed_error"
+
+
 def test_confirm_generation_failure_does_not_corrupt_generated_docs_history(db):
     _insert_job(db, "job-1")
     conn = sqlite3.connect(db)
@@ -336,6 +349,21 @@ def test_confirm_generation_route_404_for_unknown_job(app_and_fake_docs):
     with TestClient(app) as client:
         resp = client.post("/atlas/api/opportunities/does-not-exist/generation/confirm", json={})
     assert resp.status_code == 404
+
+
+def test_confirm_generation_route_reports_missing_profile_and_sets_failed_error(db, monkeypatch):
+    monkeypatch.setattr("job_search.config.settings.OPENAI_API_KEY", "present")
+    monkeypatch.setattr("job_search.config.settings.PROFILE_PATH", "profile/missing-test-profile.yaml")
+    _insert_job(db, "job-1")
+    app = create_app()
+
+    with TestClient(app) as client:
+        resp = client.post("/atlas/api/opportunities/job-1/generation/confirm", json={})
+        status_resp = client.get("/atlas/api/opportunities/job-1/generation/status")
+
+    assert resp.status_code == 502
+    assert "candidate profile is missing" in resp.json()["detail"]
+    assert status_resp.json()["material_generation_status"] == "failed_error"
 
 
 def test_get_generation_status_route(app_and_fake_docs, db):

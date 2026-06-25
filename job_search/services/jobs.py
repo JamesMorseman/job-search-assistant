@@ -182,7 +182,24 @@ class JobsService:
         """
         if where:
             sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY match_score DESC, posted_date DESC"
+        sql += """
+            ORDER BY
+              CASE
+                WHEN COALESCE(stretch_category, '') = 'long_shot' THEN 1
+                WHEN COALESCE(ko_pe_required, 0) = 1 THEN 1
+                WHEN ko_min_years IS NOT NULL AND ko_min_years > 2 THEN 1
+                WHEN (
+                  ko_clearance IS NOT NULL
+                  AND lower(trim(ko_clearance)) NOT IN (
+                    '', 'none', 'n/a', 'na', 'not required',
+                    'no clearance', 'no clearance required'
+                  )
+                ) THEN 1
+                ELSE 0
+              END ASC,
+              match_score DESC,
+              posted_date DESC
+        """
         if limit is not None:
             sql += " LIMIT ? OFFSET ?"
             params.extend([limit, offset])

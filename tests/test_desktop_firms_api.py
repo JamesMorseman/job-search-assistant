@@ -87,7 +87,13 @@ def test_list_firms_returns_empty_list_when_no_firms(client, db):
 
 
 def test_list_firms_returns_firm_summaries(client, db):
-    _insert_firm(db, "f1", "Acme Engineering", specialties='["structural"]')
+    _insert_firm(
+        db,
+        "f1",
+        "Acme Engineering",
+        specialties='["structural"]',
+        known_benefits='["tuition_support", "mentorship"]',
+    )
     _insert_firm(db, "f2", "Beta Engineering")
 
     resp = client.get("/atlas/api/firms")
@@ -97,6 +103,8 @@ def test_list_firms_returns_firm_summaries(client, db):
     names = [f["name"] for f in body["firms"]]
     assert names == ["Acme Engineering", "Beta Engineering"]
     assert body["firms"][0]["disciplines"] == ["structural"]
+    assert body["firms"][0]["known_benefits"] == ["tuition_support", "mentorship"]
+    assert body["firms"][0]["known_benefit_count"] == 2
 
 
 def test_list_firms_filters_by_manual_priority(client, db):

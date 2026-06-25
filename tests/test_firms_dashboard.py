@@ -26,6 +26,7 @@ def _make_summary(**overrides) -> FirmSummary:
         employee_count="1000-5000",
         enr_rank=42,
         disciplines=["structural", "civil"],
+        known_benefits=["tuition_reimbursement", "pe_support", "mentorship"],
         known_benefit_count=3,
         open_job_count=5,
     )

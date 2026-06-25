@@ -18,6 +18,18 @@ from .scoring import Scorer
 
 logger = logging.getLogger(__name__)
 
+QUERY_LANES = {
+    "structural_engineering": ("structural", "bridge", "steel", "concrete"),
+    "site_civil_land_development": ("land development", "site civil", "site design"),
+    "water_resources_stormwater": ("water resource", "stormwater", "hydrology", "hydraulic"),
+    "environmental": ("environmental", "remediation", "permitting"),
+    "construction_project_field": ("construction", "project engineer", "field engineer", "schedule"),
+    "public_sector_municipal": ("municipal", "public works", "city engineer", "county"),
+    "technical_analyst_data_systems": ("data", "analyst", "systems", "automation", "python", "sql"),
+    "project_controls": ("project controls", "cost control", "scheduling", "primavera", "p6"),
+    "general_civil": ("civil engineer", "civil engineering"),
+}
+
 
 class Ingestor:
     def __init__(self, dry_run: bool = False):
@@ -48,8 +60,11 @@ class Ingestor:
             "reposts": 0,
             "errors": 0,
             "would_insert": 0,
+            "would_update": 0,
+            "would_repost": 0,
             "dry_run": self.dry_run,
             "sources": {},
+            "query_lanes": {lane: 0 for lane in QUERY_LANES},
         }
         logger.info("Ingest starting: dry_run=%s db_path=%s", self.dry_run, Path(settings.DB_PATH).resolve())
 
@@ -59,12 +74,46 @@ class Ingestor:
             for job in self._iter_all_sources(db):
                 try:
                     job = self.scorer.score(job)
+                    self._record_query_lane(stats, job)
                     if self.dry_run:
                         logger.info("DRY RUN — would upsert: %s @ %s", job.title, job.company)
-                        stats["would_insert"] += 1
+                        src = stats["sources"].setdefault(
+                            job.source,
+                            {
+                                "new": 0,
+                                "updated": 0,
+                                "reposts": 0,
+                                "would_create": 0,
+                                "would_update": 0,
+                                "would_repost": 0,
+                            },
+                        )
+                        exists = db.execute(
+                            "SELECT 1 FROM jobs WHERE canonical_job_id = ?",
+                            (job.canonical_job_id,),
+                        ).fetchone()
+                        if exists:
+                            stats["would_update"] += 1
+                            src["would_update"] += 1
+                        else:
+                            stats["would_insert"] += 1
+                            src["would_create"] += 1
+                            if dedup._detect_repost(job):
+                                stats["would_repost"] += 1
+                                src["would_repost"] += 1
                         continue
                     is_new, is_repost = dedup.upsert(job)
-                    src = stats["sources"].setdefault(job.source, {"new": 0, "updated": 0, "reposts": 0})
+                    src = stats["sources"].setdefault(
+                        job.source,
+                        {
+                            "new": 0,
+                            "updated": 0,
+                            "reposts": 0,
+                            "would_create": 0,
+                            "would_update": 0,
+                            "would_repost": 0,
+                        },
+                    )
                     if is_new:
                         stats["new"] += 1
                         src["new"] += 1
@@ -85,6 +134,27 @@ class Ingestor:
             stats["new"], stats["updated"], stats["reposts"], stats["errors"],
         )
         return stats
+
+    @staticmethod
+    def _record_query_lane(stats: dict, job) -> None:
+        lanes = stats.setdefault("query_lanes", {lane: 0 for lane in QUERY_LANES})
+        text = " ".join(
+            str(value or "").lower()
+            for value in (
+                job.title,
+                job.company,
+                job.description_normalized,
+                job.description_raw,
+                " ".join(job.discipline_tags or []),
+            )
+        )
+        matched = False
+        for lane, terms in QUERY_LANES.items():
+            if any(term in text for term in terms):
+                lanes[lane] = int(lanes.get(lane, 0) or 0) + 1
+                matched = True
+        if not matched:
+            lanes["general_civil"] = int(lanes.get("general_civil", 0) or 0) + 1
 
     def _iter_all_sources(self, db):
         """Yield CanonicalJob from all configured sources in priority order."""

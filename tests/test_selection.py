@@ -194,10 +194,12 @@ def test_upload_docs_renders_cover_letter_as_docx(monkeypatch):
         },
     }
 
-    resume_url, cover_url = proc._upload_docs(job_row, result, today="2026-06-12")
+    resume_url, cover_url, resume_path, cover_path = proc._upload_docs(job_row, result, today="2026-06-12")
 
     assert resume_url.endswith("_resume.docx")
     assert cover_url.endswith("_cover.docx")
+    assert Path(resume_path).is_file()
+    assert Path(cover_path).is_file()
     assert uploaded[0][1].endswith("_resume.docx")
     assert uploaded[1][1].endswith("_cover.docx")
     assert proc._generator.saved_cover["today"] == "2026-06-12"
@@ -221,6 +223,41 @@ def test_fetch_jobs_skips_existing_docs_unless_force(db):
     assert [row["canonical_job_id"] for row in forced] == ["job1"]
     assert _check_state(db, "job1") == "selected"
     conn.close()
+
+
+def test_generate_for_selected_skips_hard_blocked_rows(db):
+    _insert_job(db, "job1", "selected")
+    conn = sqlite3.connect(db)
+    conn.execute(
+        """
+        UPDATE jobs
+        SET ko_clearance = 'Secret', stretch_category = 'long_shot', match_score = 0.95
+        WHERE canonical_job_id = 'job1'
+        """
+    )
+    conn.commit()
+    conn.close()
+
+    class FailingGenerator:
+        def generate(self, job):
+            raise AssertionError("blocked rows must not reach generation")
+
+    class FakeSheets:
+        def update_doc_links(self, job_id, resume_url, cover_url):
+            raise AssertionError("blocked rows must not update docs")
+
+    proc = SelectionProcessor()
+    proc._generator = FailingGenerator()
+    proc.sheets = FakeSheets()
+
+    stats = proc.generate_for_selected(job_ids=["job1"], force=True)
+
+    assert stats["generated"] == 0
+    assert stats["skipped"] == 1
+    conn = sqlite3.connect(db)
+    docs = conn.execute("SELECT COUNT(*) FROM generated_docs WHERE canonical_job_id = 'job1'").fetchone()[0]
+    conn.close()
+    assert docs == 0
 
 
 def test_latest_generated_docs_are_identifiable(db):

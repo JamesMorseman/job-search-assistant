@@ -23,6 +23,7 @@ from job_search.evidence import EvidencePacket, EvidenceSelector
 from job_search.llm import get_llm_provider, resolve_service_config
 from job_search.llm.types import LLMMessage, LLMRequest
 from job_search.models import CanonicalJob
+from job_search.services.scoring_settings import ScoringSettingsService
 
 from .audit import audit_generated_documents
 from .keywords import KeywordExtractor
@@ -340,20 +341,35 @@ Do not mention ChatGPT, Codex, or the writing/generation process. Do not summari
             packet = self.evidence_selector.select(self._profile or {}, job, jd, keywords)
         except Exception as exc:  # noqa: BLE001 - generation must keep a safe fallback
             logger.warning("Evidence selection failed; falling back to full profile: %s", exc)
-            return {"full_profile_fallback": self._profile or {}}, None, True
+            return self._with_local_context({"full_profile_fallback": self._profile or {}}), None, True
 
         if not packet.has_rich_evidence():
             logger.warning("Evidence packet too sparse; falling back to full profile")
-            return {"full_profile_fallback": self._profile or {}}, packet, True
+            return self._with_local_context({"full_profile_fallback": self._profile or {}}), packet, True
 
-        return {
+        return self._with_local_context({
             "baseline_profile_facts": self._baseline_profile_facts(self._profile or {}),
             "selected_evidence_packet": packet.to_prompt_dict(),
             "generation_rule": (
                 "Use only baseline facts and selected evidence. Preserve section/source labels for grounding. "
                 "Do not infer unsupported tools, credentials, duties, or experience."
             ),
-        }, packet, False
+        }), packet, False
+
+    @staticmethod
+    def _with_local_context(profile_context: dict) -> dict:
+        settings_model = ScoringSettingsService().active_settings()
+        if settings_model.active and settings_model.profile_context_notes:
+            profile_context = dict(profile_context)
+            profile_context["local_profile_context_notes"] = {
+                "source": "output/local/atlas_scoring_override.json",
+                "content": settings_model.profile_context_notes,
+                "rule": (
+                    "Use this local context only when relevant to the target role. "
+                    "It supplements verified profile facts and must not introduce fabricated metrics."
+                ),
+            }
+        return profile_context
 
     @staticmethod
     def _baseline_profile_facts(profile: dict) -> dict:

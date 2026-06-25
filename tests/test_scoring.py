@@ -67,6 +67,75 @@ def test_pe_required_penalty():
     assert job.match_score < 0.50
 
 
+def test_text_inference_detects_security_clearance_from_title():
+    scorer = Scorer()
+    job = make_job(
+        title="Structural Engineer with Security Clearance",
+        description_normalized="Structural design for secure federal facilities.",
+    )
+
+    job = scorer.score(job)
+
+    assert job.knockout.clearance == "Security clearance"
+    assert job.stretch_category == StretchCategory.LONG_SHOT
+    assert job.match_score is not None
+    assert job.match_score < 0.55
+
+
+def test_text_inference_detects_senior_role_seniority():
+    scorer = Scorer()
+    job = make_job(
+        title="Senior Construction Engineer",
+        description_normalized="Construction engineering oversight for infrastructure work.",
+    )
+
+    job = scorer.score(job)
+
+    assert job.knockout.min_years is not None
+    assert job.knockout.min_years >= 5
+    assert job.stretch_category == StretchCategory.LONG_SHOT
+    assert job.match_score is not None
+    assert job.match_score < 0.55
+
+
+@pytest.mark.parametrize(
+    "title,description",
+    [
+        ("Lead Structural Engineer", "Lead design teams on bridge projects."),
+        ("Principal Civil Engineer", "Principal engineer for public works."),
+        ("Project Manager", "Manage civil infrastructure delivery."),
+    ],
+)
+def test_text_inference_detects_lead_principal_and_project_manager_seniority(title, description):
+    scorer = Scorer()
+    job = make_job(title=title, description_normalized=description)
+
+    job = scorer.score(job)
+
+    assert job.knockout.min_years is not None
+    assert job.knockout.min_years >= 5
+    assert job.stretch_category == StretchCategory.LONG_SHOT
+
+
+def test_text_inference_detects_pe_required_and_minimum_years():
+    scorer = Scorer()
+    job = make_job(
+        title="Structural Engineer",
+        description_normalized=(
+            "PE license required. Candidate must have 7+ years of structural "
+            "engineering experience."
+        ),
+    )
+
+    job = scorer.score(job)
+
+    assert job.knockout.pe_required is True
+    assert job.knockout.min_years == 7
+    assert job.stretch_category == StretchCategory.LONG_SHOT
+    assert job.match_score is not None
+    assert job.match_score < 0.55
+
+
 def test_stretch_category_bs_ce():
     scorer = Scorer()
     job = make_job(
@@ -565,7 +634,7 @@ def test_stretch_long_shot_min_years_five_or_more():
     assert job.stretch_category == StretchCategory.LONG_SHOT
 
 
-def test_stretch_qualified_min_years_below_five():
+def test_stretch_long_shot_min_years_above_new_grad_threshold():
     from job_search.models import KnockoutFields
     scorer = Scorer()
     job = make_job(
@@ -573,11 +642,10 @@ def test_stretch_qualified_min_years_below_five():
     )
     job.knockout = KnockoutFields(min_years=4.9)
     job = scorer.score(job)
-    assert job.stretch_category == StretchCategory.QUALIFIED
+    assert job.stretch_category == StretchCategory.LONG_SHOT
 
 
-def test_stretch_degree_related_takes_priority_over_pe_required():
-    # DEGREE_RELATED check happens before the pe_required LONG_SHOT check.
+def test_stretch_hard_blocker_takes_priority_over_degree_related():
     from job_search.models import KnockoutFields
     scorer = Scorer()
     job = make_job(
@@ -585,4 +653,4 @@ def test_stretch_degree_related_takes_priority_over_pe_required():
     )
     job.knockout = KnockoutFields(pe_required=True)
     job = scorer.score(job)
-    assert job.stretch_category == StretchCategory.QUALIFIED
+    assert job.stretch_category == StretchCategory.LONG_SHOT

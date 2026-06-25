@@ -101,9 +101,8 @@ def test_pipeline_runs_route_is_read_only_no_mutating_verbs_in_route_module():
     forbidden = ['@router.put(', '@router.patch(', '@router.delete(']
     for verb in forbidden:
         assert verb not in ATLAS_API_PY, f"{verb} should not appear in atlas_api.py"
-    # Package 10 authorizes exactly one POST mutation route (Focus
-    # resolution); Pipeline itself must not gain one.
-    assert '@router.post("/pipeline' not in ATLAS_API_PY
+    # Build 1 recovery authorizes the explicit local Run Sweep POST route.
+    assert '@router.post("/pipeline/run-sweep"' in ATLAS_API_PY
 
 
 def test_pipeline_route_consumes_list_recent_runs_in_source():
@@ -209,9 +208,6 @@ def test_pipeline_does_not_implement_prohibited_behavior():
         "reject_job",
         "mark_applied",
         "regenerate",
-        "onClick",
-        "<button",
-        "<form",
     ]
     for term in prohibited_terms:
         assert term not in PIPELINE_TSX, f"prohibited term/control found: {term}"

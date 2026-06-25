@@ -23,10 +23,12 @@ a broader fix was judged unnecessary for this package.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from sqlite3 import Row
 
 from pydantic import BaseModel
 
+from job_search.config import settings
 from job_search.db import get_db
 from job_search.reporting.documents import (
     get_latest_generated_doc,
@@ -54,6 +56,7 @@ class DocumentRecord(BaseModel):
     doc_type: str
     drive_file_id: str | None
     drive_url: str | None
+    local_path: str | None
     keyword_coverage: float | None
     keywords_hit: list
     keywords_missed: list
@@ -68,6 +71,7 @@ def _row_to_record(row: Row) -> DocumentRecord:
         doc_type=row["doc_type"],
         drive_file_id=row["drive_file_id"],
         drive_url=row["drive_url"],
+        local_path=row["local_path"],
         keyword_coverage=row["keyword_coverage"],
         keywords_hit=_parse_json_list(row["keywords_hit"]),
         keywords_missed=_parse_json_list(row["keywords_missed"]),
@@ -92,6 +96,8 @@ class RegenerationResult(BaseModel):
     canonical_job_id: str
     resume_url: str | None
     cover_url: str | None
+    resume_path: str | None = None
+    cover_path: str | None = None
 
 
 class DocumentsService:
@@ -105,6 +111,7 @@ class DocumentsService:
     """
 
     def __init__(self, processor: SelectionProcessor | None = None):
+        self._validate_runtime_setup = processor is None
         self._processor = processor or SelectionProcessor()
 
     def list_documents(
@@ -154,6 +161,8 @@ class DocumentsService:
         if not exists:
             raise DocumentRegenerationError(f"Unknown job: {canonical_job_id}")
 
+        if self._validate_runtime_setup:
+            self._validate_generation_setup()
         stats = self._processor.generate_for_selected(job_ids=[canonical_job_id], force=force)
 
         if stats["generated"] == 0:
@@ -167,4 +176,19 @@ class DocumentsService:
             canonical_job_id=canonical_job_id,
             resume_url=doc["resume_url"],
             cover_url=doc["cover_url"],
+            resume_path=doc.get("resume_path"),
+            cover_path=doc.get("cover_path"),
         )
+
+    @staticmethod
+    def _validate_generation_setup() -> None:
+        if not settings.OPENAI_API_KEY:
+            raise DocumentRegenerationError(
+                "Generation setup incomplete: OPENAI_API_KEY is missing. "
+                "Run jsa check for local setup guidance before generating drafts."
+            )
+        if not Path(settings.PROFILE_PATH).is_file():
+            raise DocumentRegenerationError(
+                "Generation setup incomplete: candidate profile is missing. "
+                "Copy the profile template locally and fill it in before generating drafts."
+            )

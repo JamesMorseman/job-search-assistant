@@ -144,6 +144,22 @@ def test_select_viable_filters_and_orders(db_path):
     assert ids == ["hi", "mid"]
 
 
+def test_select_viable_excludes_hard_blockers_even_with_high_scores(db_path):
+    conn = _conn(db_path)
+    _insert(conn, "clean", match_score=0.72)
+    _insert(conn, "clearance", match_score=0.99, stretch="long_shot")
+    _insert(conn, "senior", match_score=0.98, stretch="long_shot")
+    _insert(conn, "pe", match_score=0.97, stretch="long_shot")
+    conn.execute("UPDATE jobs SET ko_clearance = 'Secret' WHERE canonical_job_id = 'clearance'")
+    conn.execute("UPDATE jobs SET ko_min_years = 5 WHERE canonical_job_id = 'senior'")
+    conn.execute("UPDATE jobs SET ko_pe_required = 1 WHERE canonical_job_id = 'pe'")
+    conn.commit()
+
+    rows = _grader().select_viable(conn, max_jobs=10)
+
+    assert [r["canonical_job_id"] for r in rows] == ["clean"]
+
+
 def test_select_viable_respects_cap(db_path):
     conn = _conn(db_path)
     for i in range(5):

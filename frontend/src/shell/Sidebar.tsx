@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import AtlasMark from "./AtlasMark";
 import {
   AskAtlasIcon,
+  BaseResumesIcon,
   CommandCenterIcon,
   FirmsIcon,
   MissionExecuteIcon,
@@ -11,6 +12,7 @@ import {
   OpportunityDetailIcon,
   PipelineIcon,
   RadarIcon,
+  SettingsIcon,
 } from "./NavIcons";
 
 const missionSteps = [
@@ -33,8 +35,10 @@ const navGroups = [
     items: [
       { label: "Pipeline", path: "/pipeline", Icon: PipelineIcon },
       { label: "Opportunity Detail", path: "/opportunity-detail", Icon: OpportunityDetailIcon },
+      { label: "Base Resume Library", path: "/base-resumes", Icon: BaseResumesIcon },
       { label: "Firm Repository", path: "/firms", Icon: FirmsIcon },
       { label: "Ask Atlas", path: "/ask-atlas", Icon: AskAtlasIcon },
+      { label: "Settings / About", path: "/settings", Icon: SettingsIcon },
     ],
   },
 ];

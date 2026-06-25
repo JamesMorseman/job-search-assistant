@@ -18,6 +18,7 @@ export type AtlasOpportunitySummary = {
 export type AtlasGeneratedMaterialLink = {
   doc_type: string;
   drive_url: string | null;
+  local_path: string | null;
   generated_at: string | null;
 };
 
@@ -26,6 +27,7 @@ export type ApplicationStatus = "not_applied" | "applied";
 export type MaterialGenerationStatus =
   | "not_started"
   | "base_selected"
+  | "using_base_resume"
   | "confirmation_required"
   | "generating"
   | "generated_draft_review_required"
@@ -59,9 +61,11 @@ export type AtlasOpportunityDetail = AtlasOpportunitySummary & {
   workspace_provider: string | null;
   workspace_label: string | null;
   application_status: ApplicationStatus;
+  application_deadline: string | null;
   pathway_updated_at: string | null;
   material_generation_status: MaterialGenerationStatus;
   generated_materials: AtlasGeneratedMaterialLink[];
+  base_resume_artifact: BaseResumeArtifact | null;
 };
 
 export type SetWorkspaceLinkRequest = {
@@ -76,7 +80,12 @@ export type ApplicationPathwayState = {
   workspace_provider: string | null;
   workspace_label: string | null;
   application_status: ApplicationStatus;
+  application_deadline: string | null;
   pathway_updated_at: string | null;
+};
+
+export type SetApplicationDeadlineRequest = {
+  application_deadline?: string | null;
 };
 
 // Build 1 Package 2 — base resume library / selector
@@ -88,7 +97,12 @@ export type BaseResumeCategory = {
   selection_cues: string[];
   excluded_cues: string[];
   rationale: string;
+  document_ref: string;
   coursework_optional: boolean;
+  artifact_status: string;
+  artifact_path: string | null;
+  artifact_note: string;
+  artifact_download_url: string;
 };
 
 export type BaseResumeCategoryListResponse = {
@@ -124,6 +138,31 @@ export type BaseResumeSelectionRecord = {
   selected_at: string;
 };
 
+export type BaseResumeSelectionSummary = BaseResumeSelectionRecord & {
+  company: string | null;
+  title: string | null;
+};
+
+export type BaseResumeSelectionListResponse = {
+  selections: BaseResumeSelectionSummary[];
+  limit: number;
+};
+
+export type BaseResumeArtifact = {
+  category_id: string;
+  document_ref: string | null;
+  artifact_status: string;
+  local_path: string | null;
+  note: string;
+};
+
+export type BaseResumeUseResult = {
+  canonical_job_id: string;
+  material_generation_status: MaterialGenerationStatus;
+  pathway_updated_at: string;
+  artifact: BaseResumeArtifact;
+};
+
 // Build 1 Package 3 — generation intent gate
 
 export type GenerationIntentState = {
@@ -142,6 +181,30 @@ export type GenerationConfirmationResult = {
   material_generation_status: MaterialGenerationStatus;
   resume_url: string | null;
   cover_url: string | null;
+  resume_path: string | null;
+  cover_path: string | null;
+};
+
+export type ManualPostingRequest = {
+  apply_url: string;
+  title: string;
+  company: string;
+  description: string;
+  location_city?: string | null;
+  location_state?: string | null;
+};
+
+export type ManualPostingResult = {
+  canonical_job_id: string;
+  source: string;
+  source_job_id: string;
+  created: boolean;
+  repost: boolean;
+  company: string;
+  title: string;
+  apply_url: string;
+  match_score: number | null;
+  stretch_category: string | null;
 };
 
 export type AtlasOpportunityListResponse = {
@@ -185,6 +248,7 @@ export type FirmSummary = {
   employee_count: string | null;
   enr_rank: number | null;
   disciplines: string[];
+  known_benefits: string[];
   known_benefit_count: number;
   open_job_count: number;
 };
@@ -253,6 +317,92 @@ export type AtlasPipelineRun = {
 export type AtlasPipelineRunsResponse = {
   runs: AtlasPipelineRun[];
   limit: number;
+};
+
+export type RuntimeCheck = {
+  name: string;
+  status: string;
+  detail: string;
+  severity: string;
+};
+
+export type RuntimeCommand = {
+  label: string;
+  command: string;
+  purpose: string;
+};
+
+export type RuntimeConfigStatus = {
+  generated_at: string;
+  checks: RuntimeCheck[];
+  launch_commands: RuntimeCommand[];
+  data_protection_path: string;
+  desktop_update_path: string[];
+  tauri_wrapper_status: string;
+};
+
+export type ScoringSettings = {
+  active: boolean;
+  preset: string;
+  location_scheme: string;
+  discipline_weights: Record<string, number>;
+  penalties: Record<string, number>;
+  profile_context_notes: string;
+  updated_at: string | null;
+  override_path: string;
+  profile_path: string;
+  profile_status: string;
+};
+
+export type ScoringSettingsUpdate = {
+  preset: string;
+  location_scheme?: string | null;
+  discipline_weights: Record<string, number>;
+  penalties: Record<string, number>;
+  profile_context_notes: string;
+};
+
+export type ScoringSettingsResponse = {
+  settings: ScoringSettings;
+  available_presets: string[];
+};
+
+export type ScanCheck = {
+  name: string;
+  status: string;
+  detail: string;
+  severity: string;
+};
+
+export type ScanStep = {
+  name: string;
+  status: string;
+  stats: Record<string, unknown>;
+  error: string | null;
+  error_count: number;
+};
+
+export type RunSweepRequest = {
+  run_type: string;
+  dry_run: boolean;
+};
+
+export type RunSweepResponse = {
+  status: string;
+  message: string;
+  run_type: string;
+  dry_run: boolean;
+  run_id: number | null;
+  steps: ScanStep[];
+  checks: ScanCheck[];
+  latest_run: AtlasPipelineRun | null;
+};
+
+export type ScanStatus = {
+  generated_at: string;
+  latest_run: AtlasPipelineRun | null;
+  checks: ScanCheck[];
+  allowed_run_types: string[];
 };
 
 export type AtlasRecommendation = {

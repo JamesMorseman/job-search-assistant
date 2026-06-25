@@ -273,6 +273,25 @@ def test_record_selection_history_is_append_only_and_latest_is_deterministic(db)
     assert latest.category_id == "general_strongest_overall"
 
 
+def test_list_recent_selections_includes_job_context(db):
+    _insert_job(db, "job-1", company="Acme Engineering", title="Structural Engineer")
+    svc = BaseResumeSelectionService()
+
+    record = svc.record_selection(
+        canonical_job_id="job-1",
+        category_id="structural_engineering",
+        selection_mode="manual",
+        selected_by_user=True,
+        reason="User picked the structural base resume.",
+    )
+
+    selections = svc.list_recent_selections(limit=5)
+    assert selections[0].id == record.id
+    assert selections[0].company == "Acme Engineering"
+    assert selections[0].title == "Structural Engineer"
+    assert selections[0].category_id == "structural_engineering"
+
+
 def test_selection_service_never_calls_generation_or_state_machine():
     code_sources = "\n".join(
         inspect.getsource(method)
@@ -374,6 +393,11 @@ def test_record_selection_route_persists_and_is_readable(client, db):
     get_resp = client.get("/atlas/api/opportunities/job-1/base-resume-selection")
     assert get_resp.status_code == 200
     assert get_resp.json()["category_id"] == "structural_engineering"
+
+    list_resp = client.get("/atlas/api/base-resume-selections")
+    assert list_resp.status_code == 200
+    assert list_resp.json()["selections"][0]["canonical_job_id"] == "job-1"
+    assert list_resp.json()["selections"][0]["company"] == "Acme Engineering"
 
 
 def test_get_selection_route_404_when_none_recorded(client, db):

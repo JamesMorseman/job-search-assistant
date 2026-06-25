@@ -52,6 +52,80 @@
   list-style: none;
 }
 
+.atlas-ats-legend {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: 18px;
+  padding: 18px;
+  border: var(--atlas-card-border);
+  border-radius: var(--atlas-radius);
+  background: var(--atlas-card-bg);
+  box-shadow: var(--atlas-shadow-lg), var(--atlas-card-edge);
+}
+
+.atlas-ats-legend h3 {
+  margin: 0;
+  color: var(--atlas-text);
+  font-size: 18px;
+}
+
+.atlas-ats-legend ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-ats-legend li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--atlas-line-soft);
+  border-radius: var(--atlas-radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.atlas-ats-legend strong {
+  color: var(--atlas-text);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.atlas-ats-legend p {
+  grid-column: 2;
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.atlas-ats-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.atlas-ats-tier-green {
+  color: var(--atlas-success);
+}
+
+.atlas-ats-tier-yellow {
+  color: #f4c76d;
+}
+
+.atlas-ats-tier-red {
+  color: #f08a8a;
+}
+
+.atlas-ats-tier-unknown {
+  color: var(--atlas-muted);
+}
+
 .atlas-firm-card {
   padding: 18px;
   border: var(--atlas-card-border);
@@ -127,4 +201,54 @@
   color: var(--atlas-text);
   font-size: 16px;
   font-weight: 700;
+}
+
+.atlas-firm-benefits {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--atlas-line-soft);
+}
+
+.atlas-firm-benefits p {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.atlas-firm-benefits ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atlas-firm-benefits li,
+.atlas-firm-benefits span {
+  padding: 5px 9px;
+  border: 1px solid rgba(121, 223, 157, 0.26);
+  border-radius: 999px;
+  background: rgba(121, 223, 157, 0.08);
+  color: var(--atlas-success);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.atlas-firm-benefits span {
+  justify-self: start;
+  border-color: var(--atlas-line-soft);
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--atlas-muted);
+}
+
+@media (max-width: 780px) {
+  .atlas-ats-legend {
+    grid-template-columns: 1fr;
+  }
 }

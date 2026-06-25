@@ -26,6 +26,7 @@ DEMO_JOB_PREFIX = "demo-p7p5"
 class DemoOpportunity:
     job_id: str
     source_job_id: str
+    apply_url: str | None
     company: str
     title: str
     city: str
@@ -54,6 +55,7 @@ DEMO_OPPORTUNITIES: tuple[DemoOpportunity, ...] = (
     DemoOpportunity(
         job_id=f"{DEMO_JOB_PREFIX}-atlas-infrastructure-001",
         source_job_id="atlas-infrastructure-001",
+        apply_url="https://apply.atlas-demo.invalid/postings/atlas-infrastructure-001",
         company="Atlas Demo Infrastructure Group",
         title="Demo Civil Design Associate",
         city="Sample Metro",
@@ -84,6 +86,7 @@ DEMO_OPPORTUNITIES: tuple[DemoOpportunity, ...] = (
     DemoOpportunity(
         job_id=f"{DEMO_JOB_PREFIX}-northstar-civil-002",
         source_job_id="northstar-civil-002",
+        apply_url="https://apply.atlas-demo.invalid/postings/northstar-civil-002",
         company="Northstar Demo Civil",
         title="Sample Transportation Engineer",
         city="Fictional Junction",
@@ -113,6 +116,7 @@ DEMO_OPPORTUNITIES: tuple[DemoOpportunity, ...] = (
     DemoOpportunity(
         job_id=f"{DEMO_JOB_PREFIX}-bluebridge-003",
         source_job_id="bluebridge-003",
+        apply_url="https://apply.atlas-demo.invalid/postings/bluebridge-003",
         company="Bluebridge Sample Engineering",
         title="Fictional Structural Project Coordinator",
         city="Example Harbor",
@@ -142,6 +146,7 @@ DEMO_OPPORTUNITIES: tuple[DemoOpportunity, ...] = (
     DemoOpportunity(
         job_id=f"{DEMO_JOB_PREFIX}-harborline-transit-004",
         source_job_id="harborline-transit-004",
+        apply_url="https://apply.atlas-demo.invalid/postings/harborline-transit-004",
         company="Harborline Fictional Transit",
         title="Demo Transit Infrastructure Analyst",
         city="Sample Port",
@@ -171,6 +176,7 @@ DEMO_OPPORTUNITIES: tuple[DemoOpportunity, ...] = (
     DemoOpportunity(
         job_id=f"{DEMO_JOB_PREFIX}-clearwater-works-005",
         source_job_id="clearwater-works-005",
+        apply_url="https://apply.atlas-demo.invalid/postings/clearwater-works-005",
         company="Clearwater Demo Works",
         title="Sample Water Resources Associate",
         city="Demo Springs",
@@ -200,6 +206,7 @@ DEMO_OPPORTUNITIES: tuple[DemoOpportunity, ...] = (
     DemoOpportunity(
         job_id=f"{DEMO_JOB_PREFIX}-summit-structures-006",
         source_job_id="summit-structures-006",
+        apply_url=None,
         company="Summit Demo Structures",
         title="Fictional Bridge Inspection Engineer",
         city="Example Ridge",
@@ -217,8 +224,9 @@ DEMO_OPPORTUNITIES: tuple[DemoOpportunity, ...] = (
         benefit_reasons=["Sample field training signal"],
         trajectory_reasons=["Fictional inspection experience path"],
         description=(
-            "Fictional bridge inspection sample for demo review. This record is not a "
-            "real posting and contains no real application details."
+            "Fallback row: fictional bridge inspection sample for demo review. "
+            "This record intentionally has no exact posting URL and contains no "
+            "real application details."
         ),
         salary_min=70000,
         salary_max=86000,
@@ -316,7 +324,7 @@ def _insert_demo_jobs(conn: sqlite3.Connection) -> None:
                 llm_rationale, llm_graded_at, llm_model, app_state, ats_type
             )
             VALUES (
-                ?, 'demo', ?, ?, ?, ?, ?, ?, 'US', ?, ?, ?, ?, NULL, ?, ?, ?,
+                ?, 'demo', ?, ?, ?, ?, ?, ?, 'US', ?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, 'Demo-only work authorization context', ?, ?, 0, NULL,
                 'No relocation in demo context', ?, ?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, 'demo-local', ?, 'other'
@@ -334,6 +342,7 @@ def _insert_demo_jobs(conn: sqlite3.Connection) -> None:
                 item.description,
                 item.description,
                 f"demo-hash-{item.source_job_id}",
+                item.apply_url,
                 item.posted_date,
                 item.last_seen,
                 item.last_seen,

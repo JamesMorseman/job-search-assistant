@@ -55,6 +55,10 @@ ATLAS_API_PY = (
 AUTHORIZED_POST_ROUTES = {
     # Package 10 (Focus) — pre-existing, unchanged by Away-Run 02.
     "/focuses/resolutions",
+    # Build 1 desktop completion recovery — explicit user-triggered local
+    # pipeline wrapper. Defaults to dry-run and never calls generation unless
+    # the user chooses a real generate/full sweep with passing setup checks.
+    "/pipeline/run-sweep",
     # Away-Run 02 / Package 1 — application pathway (navigation-only metadata
     # writes; never calls generation).
     "/opportunities/{job_id}/pathway/workspace-link",
@@ -68,6 +72,16 @@ AUTHORIZED_POST_ROUTES = {
     # updates status metadata.
     "/opportunities/{job_id}/generation/request-confirmation",
     "/opportunities/{job_id}/generation/confirm",
+    # Build 0.5 application workflow unlock / desktop recovery:
+    # no-API base-resume fallback, private local artifact registration,
+    # deadline planning, manual URL ingestion, and local scoring controls.
+    # These are explicit user-triggered local actions.
+    "/opportunities/{job_id}/generation/use-base-resume",
+    "/opportunities/{job_id}/pathway/deadline",
+    "/base-resume-categories/{category_id}/artifact",
+    "/manual-postings",
+    "/settings/scoring",
+    "/settings/scoring/reset",
 }
 
 # The single route permitted to ever reach DocumentsService.regenerate_documents.

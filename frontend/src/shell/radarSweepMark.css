@@ -131,12 +131,12 @@
 
 .atlas-sweepmark-exceptional {
   color: var(--atlas-accent);
-  box-shadow: inset 0 0 32px rgba(56, 211, 196, 0.3);
+  box-shadow: inset 0 0 42px rgba(56, 211, 196, 0.42), 0 0 26px rgba(56, 211, 196, 0.18);
 }
 
 .atlas-sweepmark-strong {
   color: var(--atlas-accent-strong);
-  box-shadow: inset 0 0 24px rgba(88, 166, 255, 0.22);
+  box-shadow: inset 0 0 30px rgba(88, 166, 255, 0.3), 0 0 18px rgba(88, 166, 255, 0.12);
 }
 
 /* P7P5J (RadarSweep_Motion_Spec.md tier color rule / SignalCard spec S10,
@@ -147,12 +147,12 @@
    canonical-primitive rule (RadarSweep_Motion_Spec.md S10). */
 .atlas-sweepmark-relevant {
   color: var(--atlas-accent);
-  box-shadow: inset 0 0 18px rgba(56, 211, 196, 0.16);
+  box-shadow: inset 0 0 20px rgba(56, 211, 196, 0.18);
 }
 
 .atlas-sweepmark-emerging {
   color: var(--atlas-muted);
-  box-shadow: inset 0 0 14px rgba(148, 163, 184, 0.12);
+  box-shadow: inset 0 0 12px rgba(148, 163, 184, 0.1);
 }
 
 .atlas-sweepmark-unscored {
@@ -172,4 +172,46 @@
 .atlas-sweepmark-brand .atlas-sweepmark-hub,
 .atlas-sweepmark-brand .atlas-sweepmark-blip {
   filter: none;
+}
+
+.atlas-sweepmark-exceptional .atlas-sweepmark-ray {
+  filter: drop-shadow(0 0 7px currentColor);
+  opacity: 0.96;
+}
+
+.atlas-sweepmark-exceptional .atlas-sweepmark-blip,
+.atlas-sweepmark-exceptional .atlas-sweepmark-hub {
+  filter: drop-shadow(0 0 6px currentColor);
+  opacity: 1;
+}
+
+.atlas-sweepmark-strong .atlas-sweepmark-ray {
+  filter: drop-shadow(0 0 5px currentColor);
+  opacity: 0.86;
+}
+
+.atlas-sweepmark-strong .atlas-sweepmark-blip,
+.atlas-sweepmark-strong .atlas-sweepmark-hub {
+  filter: drop-shadow(0 0 4px currentColor);
+  opacity: 0.92;
+}
+
+.atlas-sweepmark-relevant .atlas-sweepmark-ray {
+  filter: drop-shadow(0 0 3px currentColor);
+  opacity: 0.68;
+}
+
+.atlas-sweepmark-relevant .atlas-sweepmark-blip,
+.atlas-sweepmark-relevant .atlas-sweepmark-hub {
+  opacity: 0.78;
+}
+
+.atlas-sweepmark-emerging .atlas-sweepmark-ray {
+  filter: drop-shadow(0 0 1px currentColor);
+  opacity: 0.42;
+}
+
+.atlas-sweepmark-emerging .atlas-sweepmark-blip,
+.atlas-sweepmark-emerging .atlas-sweepmark-hub {
+  opacity: 0.52;
 }
